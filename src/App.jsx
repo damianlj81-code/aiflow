@@ -893,6 +893,7 @@ Rules:
   );
 };
 
+
 // =========================================================================
 // GŁÓWNY KOMPONENT APP
 // =========================================================================
@@ -901,6 +902,10 @@ export default function App() {
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [user, setUser] = useState(null);
   const [lang, setLang] = useState('PL');
+  const [cookiesAccepted, setCookiesAccepted] = useState(() => localStorage.getItem('cookies') === '1');
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [newsletterSent, setNewsletterSent] = useState(false);
+  const [digitalConsent, setDigitalConsent] = useState(false);
 
   const t = { ...translations[lang], lang };
 
@@ -911,6 +916,27 @@ export default function App() {
     });
     return () => unsubscribe();
   }, []);
+
+  const handleCookies = (accepted) => {
+    setCookiesAccepted(true);
+    if (accepted) localStorage.setItem('cookies', '1');
+  };
+
+  const handleNewsletter = async (e) => {
+    e.preventDefault();
+    if (!newsletterEmail || !user) return;
+    try {
+      await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'newsletter'), {
+        email: newsletterEmail,
+        date: new Date().toISOString(),
+        consent: true
+      });
+      setNewsletterSent(true);
+      setNewsletterEmail('');
+    } catch (err) {
+      console.error("Newsletter error:", err);
+    }
+  };
 
   return (
     <div className={isDarkMode ? 'dark' : ''}>
@@ -923,7 +949,6 @@ export default function App() {
               </div>
               <span className="text-white font-bold text-lg hidden sm:block tracking-tight uppercase">AI FLOW</span>
             </div>
-            
             <div className="flex items-center gap-3">
               <div className="flex bg-slate-800 dark:bg-[#121212] p-1 rounded-xl border border-slate-700 dark:border-[#222]">
                 <button onClick={() => setCurrentView('home')} className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase transition-all ${currentView === 'home' ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/10' : 'text-amber-500/70 font-bold'}`}>{t.nav_academy}</button>
@@ -937,19 +962,162 @@ export default function App() {
             </div>
           </div>
         </nav>
-        
+
         <main>
           {currentView === 'home' && <HomeView t={t} />}
           {currentView === 'tutorials' && <TutorialsView user={user} setCurrentView={setCurrentView} t={t} />}
           {currentView === 'prompt-builder' && <PromptBuilderView t={t} />}
+          {currentView === 'impressum' && <ImpressumView setCurrentView={setCurrentView} lang={lang} />}
+          {currentView === 'datenschutz' && <DatenschutzView setCurrentView={setCurrentView} lang={lang} />}
+          {currentView === 'regulamin' && <RegulaminView setCurrentView={setCurrentView} lang={lang} />}
         </main>
-        
-        <footer className="bg-slate-50 dark:bg-[#050505] py-10 border-t border-slate-200 dark:border-[#111] transition-colors duration-500 font-sans">
-           <div className="max-w-[1400px] mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
+
+        <footer className="bg-slate-50 dark:bg-[#050505] py-12 border-t border-slate-200 dark:border-[#111] transition-colors duration-500 font-sans">
+          <div className="max-w-[1400px] mx-auto px-4 flex flex-col gap-8">
+
+            {/* Newsletter */}
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6 border-b border-slate-200 dark:border-[#222] pb-8">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-widest text-black dark:text-white mb-1">
+                  {lang === 'EN' ? 'Stay in the loop' : 'Bądź na bieżąco'}
+                </p>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                  {lang === 'EN'
+                    ? 'Subscribe to receive updates and marketing communications from AI Flow Academy.'
+                    : 'Zapisz się aby otrzymywać aktualizacje i komunikaty marketingowe od AI Flow Academy.'}
+                </p>
+              </div>
+              {newsletterSent ? (
+                <p className="text-emerald-500 font-bold text-[10px] uppercase tracking-widest">✓ {lang === 'EN' ? 'Thank you!' : 'Dziękujemy!'}</p>
+              ) : (
+                <form onSubmit={handleNewsletter} className="flex flex-col gap-2 w-full max-w-sm">
+                  <div className="flex gap-2">
+                    <input
+                      type="email"
+                      required
+                      placeholder={lang === 'EN' ? 'Your email address' : 'Twój adres e-mail'}
+                      value={newsletterEmail}
+                      onChange={e => setNewsletterEmail(e.target.value)}
+                      className="flex-grow bg-white dark:bg-[#121212] border border-black dark:border-[#333] px-3 py-2 text-xs text-black dark:text-white outline-none focus:border-amber-500 transition-colors"
+                    />
+                    <button type="submit" className="bg-amber-500 hover:bg-amber-400 text-black font-bold text-[10px] uppercase tracking-widest px-4 py-2 transition-colors">
+                      {lang === 'EN' ? 'Subscribe' : 'Zapisz'}
+                    </button>
+                  </div>
+                  <label className="flex items-start gap-2 cursor-pointer">
+                    <input type="checkbox" required className="mt-0.5 accent-amber-500" />
+                    <span className="text-[9px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                      {lang === 'EN'
+                        ? 'I agree to receive marketing communications from AI Flow Academy. I can unsubscribe at any time.'
+                        : 'Wyrażam zgodę na otrzymywanie komunikatów marketingowych od AI Flow Academy. Mogę zrezygnować w dowolnym momencie.'}
+                      {' '}<button type="button" onClick={() => setCurrentView('datenschutz')} className="text-amber-500 underline">{lang === 'EN' ? 'Privacy Policy' : 'Polityka Prywatności'}</button>
+                    </span>
+                  </label>
+                </form>
+              )}
+            </div>
+
+            {/* Links */}
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
               <p className="text-[9px] text-slate-500 dark:text-slate-600 uppercase tracking-widest font-bold">{t.footer_copy}</p>
-           </div>
+              <div className="flex items-center gap-4">
+                <button onClick={() => setCurrentView('impressum')} className="text-[9px] text-slate-500 dark:text-slate-600 uppercase tracking-widest font-bold hover:text-amber-500 transition-colors">Impressum</button>
+                <button onClick={() => setCurrentView('datenschutz')} className="text-[9px] text-slate-500 dark:text-slate-600 uppercase tracking-widest font-bold hover:text-amber-500 transition-colors">{lang === 'EN' ? 'Privacy Policy' : 'Datenschutz / RODO'}</button>
+                <button onClick={() => setCurrentView('regulamin')} className="text-[9px] text-slate-500 dark:text-slate-600 uppercase tracking-widest font-bold hover:text-amber-500 transition-colors">{lang === 'EN' ? 'Terms' : 'Regulamin'}</button>
+              </div>
+            </div>
+          </div>
         </footer>
+
+        {/* COOKIE BANNER */}
+        {!cookiesAccepted && (
+          <div className="fixed bottom-0 left-0 right-0 z-50 bg-slate-900 dark:bg-[#0A0A0A] border-t border-amber-500/30 p-4 font-sans shadow-2xl">
+            <div className="max-w-[1400px] mx-auto flex flex-col md:flex-row items-center gap-4 justify-between">
+              <p className="text-[11px] text-slate-300 leading-relaxed max-w-2xl">
+                {lang === 'EN'
+                  ? '🍪 We use cookies and collect email addresses for contact and marketing purposes. By continuing, you accept our '
+                  : '🍪 Używamy plików cookie i zbieramy adresy email w celach kontaktowych i marketingowych. Kontynuując, akceptujesz naszą '}
+                <button onClick={() => setCurrentView('datenschutz')} className="text-amber-500 underline font-bold">
+                  {lang === 'EN' ? 'Privacy Policy' : 'Politykę Prywatności'}
+                </button>.
+              </p>
+              <div className="flex gap-3 flex-shrink-0">
+                <button onClick={() => handleCookies(true)} className="bg-amber-500 text-black font-bold text-[10px] uppercase tracking-widest px-6 py-2 hover:bg-amber-400 transition-colors">
+                  {lang === 'EN' ? 'Accept' : 'Akceptuję'}
+                </button>
+                <button onClick={() => handleCookies(false)} className="border border-slate-600 text-slate-400 font-bold text-[10px] uppercase tracking-widest px-4 py-2 hover:border-slate-400 transition-colors">
+                  {lang === 'EN' ? 'Reject' : 'Odrzuć'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
 }
+
+// =========================================================================
+// STRONA: IMPRESSUM
+// =========================================================================
+const ImpressumView = ({ setCurrentView, lang }) => (
+  <div className="min-h-screen bg-white dark:bg-black p-6 md:p-16 font-sans transition-colors duration-500">
+    <div className="max-w-3xl mx-auto">
+      <button onClick={() => setCurrentView('home')} className="text-[10px] font-bold uppercase tracking-widest text-amber-500 mb-8 flex items-center gap-2 hover:gap-3 transition-all">← {lang === 'EN' ? 'Back' : 'Powrót'}</button>
+      <h1 className="text-3xl font-extrabold uppercase tracking-tighter text-black dark:text-white mb-10 border-b border-black dark:border-[#222] pb-6">Impressum</h1>
+      <div className="space-y-6 text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+        <div><h2 className="font-bold uppercase text-[10px] tracking-widest text-amber-600 dark:text-amber-500 mb-2">Angaben gemäß § 5 TMG</h2><p>DDC – Dienstleistungen Damian Chlad<br />Garteler Weg 38<br />27711 Osterholz-Scharmbeck<br />Deutschland</p></div>
+        <div><h2 className="font-bold uppercase text-[10px] tracking-widest text-amber-600 dark:text-amber-500 mb-2">Kontakt</h2><p>Telefon: +49 151 66396941<br />E-Mail: info@loveaiflow.com</p></div>
+        <div><h2 className="font-bold uppercase text-[10px] tracking-widest text-amber-600 dark:text-amber-500 mb-2">Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV</h2><p>Damian Chlad<br />Garteler Weg 38<br />27711 Osterholz-Scharmbeck</p></div>
+        <div><h2 className="font-bold uppercase text-[10px] tracking-widest text-amber-600 dark:text-amber-500 mb-2">Streitschlichtung</h2><p>Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit: <a href="https://ec.europa.eu/consumers/odr" className="text-amber-500 underline" target="_blank" rel="noreferrer">https://ec.europa.eu/consumers/odr</a>. Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</p></div>
+      </div>
+    </div>
+  </div>
+);
+
+// =========================================================================
+// STRONA: DATENSCHUTZ / POLITYKA PRYWATNOŚCI
+// =========================================================================
+const DatenschutzView = ({ setCurrentView, lang }) => (
+  <div className="min-h-screen bg-white dark:bg-black p-6 md:p-16 font-sans transition-colors duration-500">
+    <div className="max-w-3xl mx-auto">
+      <button onClick={() => setCurrentView('home')} className="text-[10px] font-bold uppercase tracking-widest text-amber-500 mb-8 flex items-center gap-2 hover:gap-3 transition-all">← {lang === 'EN' ? 'Back' : 'Powrót'}</button>
+      <h1 className="text-3xl font-extrabold uppercase tracking-tighter text-black dark:text-white mb-10 border-b border-black dark:border-[#222] pb-6">{lang === 'EN' ? 'Privacy Policy' : 'Datenschutzerklärung / Polityka Prywatności'}</h1>
+      <div className="space-y-8 text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+        <div><h2 className="font-bold uppercase text-[10px] tracking-widest text-amber-600 dark:text-amber-500 mb-2">{lang === 'EN' ? '1. Data Controller' : '1. Administrator Danych'}</h2><p>DDC – Dienstleistungen Damian Chlad, Garteler Weg 38, 27711 Osterholz-Scharmbeck<br />E-Mail: info@loveaiflow.com | Tel: +49 151 66396941</p></div>
+        <div><h2 className="font-bold uppercase text-[10px] tracking-widest text-amber-600 dark:text-amber-500 mb-2">{lang === 'EN' ? '2. Data We Collect' : '2. Jakie dane zbieramy'}</h2><p>{lang === 'EN' ? 'We collect email addresses provided voluntarily via our newsletter form. We also collect technical data (IP address, browser type) via cookies for website operation and security.' : 'Zbieramy adresy e-mail podawane dobrowolnie przez formularz newslettera. Zbieramy również dane techniczne (adres IP, typ przeglądarki) poprzez pliki cookie w celu działania i bezpieczeństwa strony.'}</p></div>
+        <div><h2 className="font-bold uppercase text-[10px] tracking-widest text-amber-600 dark:text-amber-500 mb-2">{lang === 'EN' ? '3. Purpose of Processing' : '3. Cel przetwarzania'}</h2><p>{lang === 'EN' ? 'Email addresses are processed for: (a) direct contact regarding your subscription, (b) marketing communications about AI Flow Academy. Legal basis: Art. 6(1)(a) GDPR – consent.' : 'Adresy e-mail przetwarzamy w celu: (a) kontaktu w sprawie subskrypcji, (b) wysyłania komunikatów marketingowych AI Flow Academy. Podstawa prawna: art. 6 ust. 1 lit. a RODO – zgoda.'}</p></div>
+        <div><h2 className="font-bold uppercase text-[10px] tracking-widest text-amber-600 dark:text-amber-500 mb-2">{lang === 'EN' ? '4. Your Rights (GDPR)' : '4. Twoje prawa (RODO)'}</h2><p>{lang === 'EN' ? 'You have the right to access, rectify, erase your data, restrict processing, data portability, and withdraw consent at any time. Contact: info@loveaiflow.com' : 'Masz prawo do dostępu, sprostowania, usunięcia danych, ograniczenia przetwarzania, przenoszenia danych oraz cofnięcia zgody. Kontakt: info@loveaiflow.com'}</p></div>
+        <div><h2 className="font-bold uppercase text-[10px] tracking-widest text-amber-600 dark:text-amber-500 mb-2">{lang === 'EN' ? '5. Cookies & Firebase' : '5. Cookies i Firebase'}</h2><p>{lang === 'EN' ? 'We use technically necessary cookies and Firebase (Google) for anonymous authentication and database services (region: europe-west3, EU).' : 'Używamy technicznie niezbędnych plików cookie oraz Firebase (Google) do uwierzytelniania i bazy danych (region: europe-west3, UE).'}</p></div>
+        <div><h2 className="font-bold uppercase text-[10px] tracking-widest text-amber-600 dark:text-amber-500 mb-2">{lang === 'EN' ? '6. Complaints' : '6. Skargi'}</h2><p>{lang === 'EN' ? 'You may lodge a complaint with: Der Bundesbeauftragte für den Datenschutz und die Informationsfreiheit (BfDI), Graurheindorfer Str. 153, 53117 Bonn.' : 'Możesz złożyć skargę do: Der Bundesbeauftragte für den Datenschutz und die Informationsfreiheit (BfDI), Graurheindorfer Str. 153, 53117 Bonn.'}</p></div>
+      </div>
+    </div>
+  </div>
+);
+
+// =========================================================================
+// STRONA: REGULAMIN
+// =========================================================================
+const RegulaminView = ({ setCurrentView, lang }) => (
+  <div className="min-h-screen bg-white dark:bg-black p-6 md:p-16 font-sans transition-colors duration-500">
+    <div className="max-w-3xl mx-auto">
+      <button onClick={() => setCurrentView('home')} className="text-[10px] font-bold uppercase tracking-widest text-amber-500 mb-8 flex items-center gap-2 hover:gap-3 transition-all">← {lang === 'EN' ? 'Back' : 'Powrót'}</button>
+      <h1 className="text-3xl font-extrabold uppercase tracking-tighter text-black dark:text-white mb-10 border-b border-black dark:border-[#222] pb-6">{lang === 'EN' ? 'Terms & Conditions' : 'Regulamin'}</h1>
+      <div className="space-y-8 text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
+        <div><h2 className="font-bold uppercase text-[10px] tracking-widest text-amber-600 dark:text-amber-500 mb-2">{lang === 'EN' ? '1. Provider' : '1. Usługodawca'}</h2><p>DDC – Dienstleistungen Damian Chlad, Garteler Weg 38, 27711 Osterholz-Scharmbeck. E-Mail: info@loveaiflow.com | Tel: +49 151 66396941</p></div>
+        <div><h2 className="font-bold uppercase text-[10px] tracking-widest text-amber-600 dark:text-amber-500 mb-2">{lang === 'EN' ? '2. Subject' : '2. Przedmiot umowy'}</h2><p>{lang === 'EN' ? 'AI Flow Academy provides access to digital educational content (VOD, coaching, tools) via subscription, delivered exclusively online.' : 'AI Flow Academy udostępnia dostęp do cyfrowych treści edukacyjnych (VOD, coaching, narzędzia) w ramach subskrypcji, świadczonej wyłącznie online.'}</p></div>
+        <div><h2 className="font-bold uppercase text-[10px] tracking-widest text-amber-600 dark:text-amber-500 mb-2">{lang === 'EN' ? '3. Pricing & Auto-Renewal' : '3. Ceny i automatyczne odnowienie'}</h2><p>{lang === 'EN' ? 'Monthly plan: 199 PLN/month, cancellable anytime. Annual VIP: 1800 PLN/year, paid in advance. The annual plan renews automatically unless cancelled at least 14 days before renewal.' : 'Plan miesięczny: 199 PLN/mies., rezygnacja w dowolnym momencie. Plan roczny VIP: 1800 PLN/rok, płatny z góry. Plan roczny odnawia się automatycznie, chyba że zostanie wypowiedziany co najmniej 14 dni przed datą odnowienia.'}</p></div>
+        <div>
+          <h2 className="font-bold uppercase text-[10px] tracking-widest text-amber-600 dark:text-amber-500 mb-2">{lang === 'EN' ? '4. Right of Withdrawal — Digital Content' : '4. Prawo odstąpienia — treści cyfrowe'}</h2>
+          <div className="bg-amber-500/10 border border-amber-500/30 p-4 rounded-lg">
+            <p className="font-bold text-amber-600 dark:text-amber-500 mb-2">⚠️ {lang === 'EN' ? 'Important:' : 'Ważne:'}</p>
+            <p>{lang === 'EN' ? 'By completing your purchase and checking the consent box, you expressly agree to the immediate commencement of the digital service and acknowledge that you thereby waive your right of withdrawal pursuant to § 356(5) BGB / Art. 16(m) Directive 2011/83/EU.' : 'Dokonując zakupu i zaznaczając checkbox zgody, wyraźnie wyrażasz zgodę na natychmiastowe rozpoczęcie świadczenia usługi cyfrowej i przyjmujesz do wiadomości, że tym samym tracisz prawo odstąpienia od umowy zgodnie z § 356 ust. 5 BGB / art. 16 lit. m dyrektywy 2011/83/UE.'}</p>
+          </div>
+        </div>
+        <div><h2 className="font-bold uppercase text-[10px] tracking-widest text-amber-600 dark:text-amber-500 mb-2">{lang === 'EN' ? '5. Cancellation' : '5. Rezygnacja'}</h2><p>{lang === 'EN' ? 'Cancel anytime by email: info@loveaiflow.com. Access continues until end of paid period. Annual plan: cancel 14+ days before renewal.' : 'Rezygnacja w dowolnym momencie przez e-mail: info@loveaiflow.com. Dostęp trwa do końca opłaconego okresu. Plan roczny: wypowiedzenie 14+ dni przed odnowieniem.'}</p></div>
+        <div><h2 className="font-bold uppercase text-[10px] tracking-widest text-amber-600 dark:text-amber-500 mb-2">{lang === 'EN' ? '6. Governing Law' : '6. Prawo właściwe'}</h2><p>{lang === 'EN' ? 'German law applies. Jurisdiction: Osterholz-Scharmbeck, Germany.' : 'Stosuje się prawo niemieckie. Sąd właściwy: Osterholz-Scharmbeck, Niemcy.'}</p></div>
+      </div>
+    </div>
+  </div>
+);
