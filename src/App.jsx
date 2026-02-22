@@ -8,7 +8,7 @@ import {
 
 // FIREBASE INTEGRATION
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
+import { getAuth, signInAnonymously, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
 import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -23,6 +23,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const googleProvider = new GoogleAuthProvider();
 
 const appId = "aiflow_academy";
 
@@ -194,6 +195,128 @@ const LangSwitcher = ({ lang, setLang }) => (
 );
 
 // =========================================================================
+// MODAL LOGOWANIA
+// =========================================================================
+const LoginModal = ({ onClose, lang }) => {
+  const [mode, setMode] = useState('login'); // 'login' | 'register'
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const errorMsg = (code) => {
+    const msgs = {
+      'auth/email-already-in-use': lang === 'EN' ? 'This email is already registered.' : 'Ten email jest już zarejestrowany.',
+      'auth/wrong-password': lang === 'EN' ? 'Incorrect password.' : 'Nieprawidłowe hasło.',
+      'auth/user-not-found': lang === 'EN' ? 'No account found with this email.' : 'Nie znaleziono konta z tym emailem.',
+      'auth/weak-password': lang === 'EN' ? 'Password must be at least 6 characters.' : 'Hasło musi mieć co najmniej 6 znaków.',
+      'auth/invalid-email': lang === 'EN' ? 'Invalid email address.' : 'Nieprawidłowy adres email.',
+      'auth/popup-closed-by-user': '',
+    };
+    return msgs[code] || (lang === 'EN' ? 'An error occurred. Please try again.' : 'Wystąpił błąd. Spróbuj ponownie.');
+  };
+
+  const handleGoogle = async () => {
+    setLoading(true); setError('');
+    try {
+      await signInWithPopup(auth, googleProvider);
+      onClose();
+    } catch (e) { setError(errorMsg(e.code)); }
+    setLoading(false);
+  };
+
+  const handleEmail = async (e) => {
+    e.preventDefault();
+    setLoading(true); setError('');
+    try {
+      if (mode === 'register') {
+        await createUserWithEmailAndPassword(auth, email, password);
+      } else {
+        await signInWithEmailAndPassword(auth, email, password);
+      }
+      onClose();
+    } catch (e) { setError(errorMsg(e.code)); }
+    setLoading(false);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 z-50 font-sans" onClick={onClose}>
+      <div className="bg-white dark:bg-[#0A0A0A] rounded-2xl p-8 w-full max-w-sm border dark:border-[#1A1A1A] shadow-2xl relative" onClick={e => e.stopPropagation()}>
+        <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-black dark:hover:text-white hover:rotate-90 transition-all"><X className="w-5 h-5" /></button>
+
+        {/* Logo */}
+        <div className="flex items-center gap-2 mb-6">
+          <div className="w-8 h-8 bg-amber-500 rounded flex items-center justify-center"><Zap className="w-5 h-5 text-black" /></div>
+          <span className="font-bold text-black dark:text-white uppercase tracking-tight">AI FLOW</span>
+        </div>
+
+        {/* Tytuł */}
+        <h2 className="text-xl font-extrabold uppercase tracking-tighter text-black dark:text-white mb-1">
+          {mode === 'login'
+            ? (lang === 'EN' ? 'Welcome back' : 'Witaj ponownie')
+            : (lang === 'EN' ? 'Create account' : 'Utwórz konto')}
+        </h2>
+        <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mb-6">
+          {mode === 'login'
+            ? (lang === 'EN' ? 'Sign in to access all content' : 'Zaloguj się aby uzyskać dostęp')
+            : (lang === 'EN' ? 'Join AI Flow Academy' : 'Dołącz do AI Flow Academy')}
+        </p>
+
+        {/* Google */}
+        <button onClick={handleGoogle} disabled={loading} className="w-full flex items-center justify-center gap-3 py-3 px-4 border-2 border-slate-200 dark:border-[#222] rounded-xl font-bold text-sm text-black dark:text-white hover:border-amber-500 transition-all mb-4 disabled:opacity-50">
+          <svg className="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          {lang === 'EN' ? 'Continue with Google' : 'Kontynuuj przez Google'}
+        </button>
+
+        <div className="flex items-center gap-3 mb-4">
+          <div className="flex-1 h-px bg-slate-200 dark:bg-[#222]"></div>
+          <span className="text-[10px] text-slate-400 uppercase font-bold">{lang === 'EN' ? 'or' : 'lub'}</span>
+          <div className="flex-1 h-px bg-slate-200 dark:bg-[#222]"></div>
+        </div>
+
+        {/* Email + hasło */}
+        <form onSubmit={handleEmail} className="space-y-3">
+          <input
+            type="email"
+            required
+            placeholder={lang === 'EN' ? 'Email address' : 'Adres email'}
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            className="w-full bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-[#333] rounded-xl px-4 py-3 text-sm text-black dark:text-white outline-none focus:border-amber-500 transition-colors"
+          />
+          <input
+            type="password"
+            required
+            placeholder={lang === 'EN' ? 'Password (min. 6 characters)' : 'Hasło (min. 6 znaków)'}
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            className="w-full bg-slate-50 dark:bg-[#121212] border border-slate-200 dark:border-[#333] rounded-xl px-4 py-3 text-sm text-black dark:text-white outline-none focus:border-amber-500 transition-colors"
+          />
+          {error && <p className="text-red-500 text-[11px] font-bold">{error}</p>}
+          <button type="submit" disabled={loading} className="w-full py-3 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-xl uppercase text-[10px] tracking-widest transition-all disabled:opacity-50">
+            {loading ? '...' : mode === 'login'
+              ? (lang === 'EN' ? 'Sign In' : 'Zaloguj się')
+              : (lang === 'EN' ? 'Create Account' : 'Utwórz konto')}
+          </button>
+        </form>
+
+        {/* Przełącznik login/rejestracja */}
+        <p className="text-center text-[11px] text-slate-500 mt-4">
+          {mode === 'login'
+            ? (lang === 'EN' ? "Don't have an account? " : 'Nie masz konta? ')
+            : (lang === 'EN' ? 'Already have an account? ' : 'Masz już konto? ')}
+          <button onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); }} className="text-amber-500 font-bold hover:underline">
+            {mode === 'login'
+              ? (lang === 'EN' ? 'Register' : 'Zarejestruj się')
+              : (lang === 'EN' ? 'Sign In' : 'Zaloguj się')}
+          </button>
+        </p>
+      </div>
+    </div>
+  );
+};
+
+// =========================================================================
 // WIDOK 1: GŁÓWNA PLATFORMA (VOD)
 // =========================================================================
 const HomeView = ({ t }) => {
@@ -343,16 +466,8 @@ const HomeView = ({ t }) => {
 // =========================================================================
 // WIDOK 2: TUTORIALE VOD
 // =========================================================================
-const VideoPreviewModal = ({ video, onClose, setCurrentView, t }) => {
-  const [isBlurred, setIsBlurred] = useState(false);
-  const timerRef = useRef(null);
-
-  useEffect(() => {
-    timerRef.current = setTimeout(() => {
-      setIsBlurred(true);
-    }, 10000);
-    return () => clearTimeout(timerRef.current);
-  }, []);
+const VideoPreviewModal = ({ video, onClose, setCurrentView, t, user, onLoginRequest }) => {
+  const isLoggedIn = user && !user.isAnonymous;
 
   const scrollToPayment = () => {
     onClose();
@@ -371,31 +486,50 @@ const VideoPreviewModal = ({ video, onClose, setCurrentView, t }) => {
         </button>
 
         <div className="relative aspect-video w-full overflow-hidden">
-          <iframe
-            width="100%"
-            height="100%"
-            src={`https://www.youtube.com/embed/${video.ytId}?autoplay=1&controls=0&rel=0&modestbranding=1`}
-            title={video.title}
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            className="w-full h-full"
-          />
-
-          {isBlurred && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center transition-all duration-700">
-              <div className="absolute inset-0 backdrop-blur-xl bg-black/60" />
-              <div className="relative z-10 flex flex-col items-center px-6">
-                <div className="w-16 h-16 bg-amber-500 rounded-full flex items-center justify-center mb-4 shadow-[0_0_40px_rgba(245,158,11,0.5)]">
-                  <Lock className="w-8 h-8 text-black" />
+          {isLoggedIn ? (
+            // Zalogowany — odtwarza film
+            <iframe
+              width="100%"
+              height="100%"
+              src={`https://www.youtube.com/embed/${video.ytId}?autoplay=1&controls=1&rel=0&modestbranding=1`}
+              title={video.title}
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="w-full h-full"
+            />
+          ) : (
+            // Niezalogowany — miniatura + paywall
+            <>
+              <img
+                src={`https://img.youtube.com/vi/${video.ytId}/maxresdefault.jpg`}
+                className="w-full h-full object-cover"
+                alt={video.title}
+                onError={e => e.target.src = `https://img.youtube.com/vi/${video.ytId}/hqdefault.jpg`}
+              />
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                <div className="absolute inset-0 backdrop-blur-sm bg-black/75" />
+                <div className="relative z-10 flex flex-col items-center px-6">
+                  <div className="w-16 h-16 bg-amber-500 rounded-full flex items-center justify-center mb-4 shadow-[0_0_40px_rgba(245,158,11,0.5)]">
+                    <Lock className="w-8 h-8 text-black" />
+                  </div>
+                  <h3 className="text-white font-extrabold text-xl uppercase tracking-tighter mb-2">
+                    {t.lang === 'EN' ? 'Members Only' : 'Tylko dla członków'}
+                  </h3>
+                  <p className="text-slate-400 text-xs uppercase tracking-widest mb-6 max-w-xs">
+                    {t.lang === 'EN' ? 'Log in or create a free account to watch' : 'Zaloguj się lub utwórz konto aby oglądać'}
+                  </p>
+                  <div className="flex gap-3">
+                    <button onClick={() => { onClose(); onLoginRequest(); }} className="bg-amber-500 hover:bg-amber-400 text-black font-bold py-3 px-6 rounded-xl uppercase text-[10px] tracking-widest transition-all transform hover:-translate-y-1 shadow-lg">
+                      {t.lang === 'EN' ? 'Log In / Register' : 'Zaloguj / Zarejestruj'}
+                    </button>
+                    <button onClick={scrollToPayment} className="border border-amber-500/50 text-amber-500 font-bold py-3 px-6 rounded-xl uppercase text-[10px] tracking-widest transition-all hover:bg-amber-500/10">
+                      {t.lang === 'EN' ? 'See Plans' : 'Zobacz plany'}
+                    </button>
+                  </div>
                 </div>
-                <h3 className="text-white font-extrabold text-xl uppercase tracking-tighter mb-2">{t.preview_locked_title}</h3>
-                <p className="text-slate-400 text-xs uppercase tracking-widest mb-6 max-w-xs">{t.preview_locked_sub}</p>
-                <button onClick={scrollToPayment} className="bg-amber-500 hover:bg-amber-400 text-black font-bold py-3 px-8 rounded-xl uppercase text-[10px] tracking-widest transition-all transform hover:-translate-y-1 shadow-lg">
-                  {t.preview_locked_btn}
-                </button>
               </div>
-            </div>
+            </>
           )}
         </div>
 
@@ -404,10 +538,10 @@ const VideoPreviewModal = ({ video, onClose, setCurrentView, t }) => {
             <h3 className="text-white font-bold text-sm uppercase tracking-tight">{video.title}</h3>
             <p className="text-slate-500 text-[10px] uppercase tracking-widest mt-1">{video.date}</p>
           </div>
-          {!isBlurred && (
-            <div className="flex items-center gap-2 text-amber-500 text-[10px] font-bold uppercase tracking-widest animate-pulse">
-              <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
-              {t.tut_preview_live}
+          {isLoggedIn && (
+            <div className="flex items-center gap-2 text-emerald-500 text-[10px] font-bold uppercase tracking-widest">
+              <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+              {t.lang === 'EN' ? 'Full Access' : 'Pełny dostęp'}
             </div>
           )}
         </div>
@@ -416,7 +550,7 @@ const VideoPreviewModal = ({ video, onClose, setCurrentView, t }) => {
   );
 };
 
-const TutorialsView = ({ user, setCurrentView, t }) => {
+const TutorialsView = ({ user, setCurrentView, t, onLoginRequest }) => {
   const [tutorials, setTutorials] = useState([]);
   const [newUrl, setNewUrl] = useState('');
   const [newTitle, setNewTitle] = useState('');
@@ -533,10 +667,7 @@ const TutorialsView = ({ user, setCurrentView, t }) => {
               <div className="relative aspect-video overflow-hidden border-b border-black dark:border-[#222]" onClick={() => setPreviewVideo(v)}>
                 <img src={`https://img.youtube.com/vi/${v.ytId}/maxresdefault.jpg`} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt={v.title} onError={e => e.target.src=`https://img.youtube.com/vi/${v.ytId}/hqdefault.jpg`} />
                 <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center text-white"><Play className="w-8 h-8 ml-1 fill-current" /></div>
-                </div>
-                <div className="absolute bottom-2 right-2 bg-black/70 text-amber-500 text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded">
-                  {t.tut_preview_badge}
+                  <div className="w-16 h-16 bg-amber-500/90 rounded-full flex items-center justify-center text-black"><Lock className="w-8 h-8" /></div>
                 </div>
               </div>
               <div className="p-5 flex justify-between items-start flex-grow">
@@ -552,7 +683,7 @@ const TutorialsView = ({ user, setCurrentView, t }) => {
           ))}
         </div>
 
-        {previewVideo && <VideoPreviewModal video={previewVideo} onClose={() => setPreviewVideo(null)} setCurrentView={setCurrentView} t={t} />}
+        {previewVideo && <VideoPreviewModal video={previewVideo} onClose={() => setPreviewVideo(null)} setCurrentView={setCurrentView} t={t} user={user} onLoginRequest={onLoginRequest} />}
       </div>
     </div>
   );
@@ -906,8 +1037,10 @@ export default function App() {
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterSent, setNewsletterSent] = useState(false);
   const [digitalConsent, setDigitalConsent] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
 
   const t = { ...translations[lang], lang };
+  const isLoggedIn = user && !user.isAnonymous;
 
   useEffect(() => {
     signInAnonymously(auth).catch(err => console.error("Auth error:", err));
@@ -956,6 +1089,18 @@ export default function App() {
                 <button onClick={() => setCurrentView('prompt-builder')} className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase transition-all ${currentView === 'prompt-builder' ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/10' : 'text-amber-500/70 font-bold'}`}>{t.nav_studio}</button>
               </div>
               <LangSwitcher lang={lang} setLang={setLang} />
+              {/* PRZYCISK LOGOWANIA */}
+              {isLoggedIn ? (
+                <button onClick={() => signOut(auth)} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold uppercase tracking-widest hover:bg-emerald-500/20 transition-all">
+                  <User className="w-4 h-4" />
+                  <span className="hidden sm:block">{user.email?.split('@')[0] || 'Konto'}</span>
+                </button>
+              ) : (
+                <button onClick={() => setShowLogin(true)} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500 text-black text-[10px] font-bold uppercase tracking-widest hover:bg-amber-400 transition-all">
+                  <User className="w-4 h-4" />
+                  <span className="hidden sm:block">{lang === 'EN' ? 'Log In' : 'Zaloguj'}</span>
+                </button>
+              )}
               <button onClick={() => setIsDarkMode(!isDarkMode)} className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-800 dark:bg-[#121212] text-amber-400 border border-slate-700 hover:scale-110 transition-transform">
                 {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
               </button>
@@ -965,11 +1110,15 @@ export default function App() {
 
         <main>
           {currentView === 'home' && <HomeView t={t} />}
-          {currentView === 'tutorials' && <TutorialsView user={user} setCurrentView={setCurrentView} t={t} />}
+          {currentView === 'tutorials' && <TutorialsView user={user} setCurrentView={setCurrentView} t={t} onLoginRequest={() => setShowLogin(true)} />}
           {currentView === 'prompt-builder' && <PromptBuilderView t={t} />}
           {currentView === 'impressum' && <ImpressumView setCurrentView={setCurrentView} lang={lang} />}
           {currentView === 'datenschutz' && <DatenschutzView setCurrentView={setCurrentView} lang={lang} />}
           {currentView === 'regulamin' && <RegulaminView setCurrentView={setCurrentView} lang={lang} />}
+        </main>
+
+        {/* MODAL LOGOWANIA */}
+        {showLogin && <LoginModal onClose={() => setShowLogin(false)} lang={lang} />}}
         </main>
 
         <footer className="bg-slate-50 dark:bg-[#050505] py-12 border-t border-slate-200 dark:border-[#111] transition-colors duration-500 font-sans">
