@@ -345,22 +345,22 @@ const HomeView = ({ t, onLoginRequest }) => {
     <div className="font-sans flex flex-col">
 
       {/* ── HERO ─────────────────────────────────────────── */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-black px-4">
+      <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-white dark:bg-black px-4 transition-colors duration-700">
         {/* Animated grid background */}
-        <div className="absolute inset-0 opacity-[0.04]" style={{backgroundImage:'linear-gradient(#f59e0b 1px,transparent 1px),linear-gradient(90deg,#f59e0b 1px,transparent 1px)',backgroundSize:'60px 60px'}}/>
+        <div className="absolute inset-0 opacity-[0.04] dark:opacity-[0.04]" style={{backgroundImage:'linear-gradient(#f59e0b 1px,transparent 1px),linear-gradient(90deg,#f59e0b 1px,transparent 1px)',backgroundSize:'60px 60px'}}/>
         {/* Glow orbs */}
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-amber-500/10 rounded-full blur-[120px] pointer-events-none"/>
         <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-blue-500/10 rounded-full blur-[100px] pointer-events-none"/>
 
         <div className="relative z-10 max-w-5xl mx-auto text-center">
           {/* Pill badge */}
-          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-8">
-            <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse"/>
+          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-8">
+            <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"/>
             {t.lang === 'EN' ? 'AI Education Platform' : 'Platforma Edukacji AI'}
           </div>
 
           {/* Main headline */}
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-white mb-4 leading-[0.9] tracking-tighter">
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-black dark:text-white mb-4 leading-[0.9] tracking-tighter">
             AI FLOW<br/>
             <span className="text-transparent bg-clip-text" style={{backgroundImage:'linear-gradient(135deg,#f59e0b,#fbbf24,#f97316)'}}>ACADEMY</span>
           </h1>
@@ -368,14 +368,14 @@ const HomeView = ({ t, onLoginRequest }) => {
           {/* Rotating feature text */}
           <div className="h-10 mb-8 overflow-hidden relative">
             {features.map((f, i) => (
-              <p key={f} className={`text-slate-300 text-base uppercase tracking-[0.3em] font-bold transition-all duration-1000 ${i === activeFeature ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6 absolute inset-x-0'}`}>
+              <p key={f} className={`text-slate-600 dark:text-slate-300 text-base uppercase tracking-[0.3em] font-bold transition-all duration-1000 ${i === activeFeature ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6 absolute inset-x-0'}`}>
                 {f}
               </p>
             ))}
           </div>
 
           {/* Tagline */}
-          <p className="text-slate-500 text-lg max-w-xl mx-auto mb-12 leading-relaxed">
+          <p className="text-slate-500 dark:text-slate-500 text-lg max-w-xl mx-auto mb-12 leading-relaxed">
             {t.home_tagline}
           </p>
 
@@ -385,14 +385,14 @@ const HomeView = ({ t, onLoginRequest }) => {
               <span className="relative z-10">{t.lang === 'EN' ? '🚀 Get Full Access' : '🚀 Uzyskaj Pełny Dostęp'}</span>
               <div className="absolute inset-0 bg-amber-400 translate-y-full group-hover:translate-y-0 transition-transform duration-300"/>
             </button>
-            <button onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })} className="px-8 py-4 border border-white/20 text-white font-bold text-sm uppercase tracking-widest rounded-xl hover:border-amber-500/50 hover:bg-white/5 transition-all flex items-center gap-2">
+            <button onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })} className="px-8 py-4 border text-black dark:text-white font-bold text-sm uppercase tracking-widest rounded-xl transition-all flex items-center gap-2 hover:border-amber-500/50 dark:border-white/20 border-black/20 hover:bg-amber-500/5">
               <Play className="w-4 h-4 text-amber-500" />
               {t.lang === 'EN' ? 'Watch Demo' : 'Obejrzyj Demo'}
             </button>
           </div>
 
           {/* Stats row */}
-          <div className="grid grid-cols-3 gap-8 max-w-lg mx-auto border-t border-white/10 pt-8">
+          <div className="grid grid-cols-3 gap-8 max-w-lg mx-auto border-t border-black/10 dark:border-white/10 pt-8">
             {[
               { n: '100+', l: t.lang === 'EN' ? 'Videos' : 'Filmów' },
               { n: '3x', l: t.lang === 'EN' ? 'Weekly Live' : 'Live/Tydzień' },
@@ -407,7 +407,7 @@ const HomeView = ({ t, onLoginRequest }) => {
         </div>
 
         {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-slate-600">
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
           <div className="w-px h-12 bg-gradient-to-b from-transparent to-amber-500/50"/>
         </div>
       </section>
@@ -442,9 +442,9 @@ const HomeView = ({ t, onLoginRequest }) => {
       </section>
 
       {/* ── WHAT YOU GET ──────────────────────────────────── */}
-      <section className="bg-[#050505] py-24 px-4 border-t border-white/5">
+      <section className="bg-slate-50 dark:bg-[#050505] py-24 px-4 border-t border-black/5 dark:border-white/5 transition-colors duration-700">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tighter text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-black text-black dark:text-white uppercase tracking-tighter text-center mb-16">
             {t.lang === 'EN' ? 'What you get' : 'Co otrzymujesz'}
             <span className="text-amber-500">.</span>
           </h2>
@@ -455,9 +455,9 @@ const HomeView = ({ t, onLoginRequest }) => {
               { icon: '🤖', title: 'Prompt Builder', desc: t.lang === 'EN' ? 'Professional AI prompt studio' : 'Profesjonalne studio promptów AI' },
               { icon: '👥', title: t.lang === 'EN' ? 'Community' : 'Społeczność', desc: t.lang === 'EN' ? 'Private members group' : 'Zamknięta grupa członków' },
             ].map(card => (
-              <div key={card.title} className="group p-6 bg-black border border-white/5 rounded-2xl hover:border-amber-500/30 hover:bg-amber-500/5 transition-all duration-300 cursor-default">
+              <div key={card.title} className="group p-6 bg-white dark:bg-black border border-black/5 dark:border-white/5 rounded-2xl hover:border-amber-500/30 hover:bg-amber-500/5 transition-all duration-300 cursor-default">
                 <div className="text-3xl mb-4">{card.icon}</div>
-                <h3 className="text-white font-bold text-sm uppercase tracking-tight mb-2">{card.title}</h3>
+                <h3 className="text-black dark:text-white font-bold text-sm uppercase tracking-tight mb-2">{card.title}</h3>
                 <p className="text-slate-500 text-xs leading-relaxed">{card.desc}</p>
               </div>
             ))}
@@ -466,16 +466,16 @@ const HomeView = ({ t, onLoginRequest }) => {
       </section>
 
       {/* ── PRICING HIDDEN — COMING SOON ─────────────────── */}
-      <section className="bg-black py-16 px-4 border-t" style={{borderColor:'rgba(255,255,255,0.05)'}}>
+      <section className="bg-white dark:bg-black py-16 px-4 border-t border-black/5 dark:border-white/5 transition-colors duration-700">
         <div className="max-w-2xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-6">
-            <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse"/>
+          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-6">
+            <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"/>
             {t.lang === 'EN' ? 'Launching Soon' : 'Wkrótce w sprzedaży'}
           </div>
-          <h2 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tighter mb-4">
+          <h2 className="text-2xl md:text-3xl font-black text-black dark:text-white uppercase tracking-tighter mb-4">
             {t.lang === 'EN' ? 'Founding Member Pricing' : 'Ceny dla Założycieli'}
           </h2>
-          <p className="text-white/30 text-sm mb-4">
+          <p className="text-black/30 dark:text-white/30 text-sm mb-4">
             {t.lang === 'EN'
               ? 'We\'re putting the finishing touches on our platform. Early members will get exclusive founding rates.'
               : 'Finalizujemy platformę. Pierwsi członkowie otrzymają ekskluzywne ceny założycielskie.'}
@@ -1182,26 +1182,26 @@ export default function App() {
 
   return (
     <div className={isDarkMode ? 'dark' : ''}>
-      <div className="min-h-screen bg-black transition-colors duration-700 font-sans selection:bg-amber-500 selection:text-black">
+      <div className="min-h-screen bg-white dark:bg-black transition-colors duration-700 font-sans selection:bg-amber-500 selection:text-black">
         {/* NAV */}
-        <nav className="fixed top-0 left-0 right-0 z-50 h-16 flex items-center px-4 font-sans" style={{background:'rgba(0,0,0,0.85)',backdropFilter:'blur(20px)',borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
+        <nav className="fixed top-0 left-0 right-0 z-50 h-16 flex items-center px-4 font-sans transition-colors duration-300" style={{background: isDarkMode ? 'rgba(0,0,0,0.85)' : 'rgba(255,255,255,0.90)', backdropFilter:'blur(20px)', borderBottom: isDarkMode ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.08)'}}>
           <div className="max-w-[1400px] mx-auto w-full flex items-center justify-between">
             <div className="flex items-center gap-3 cursor-pointer" onClick={() => setCurrentView('home')}>
               <img src="/logo.png" alt="AI Flow" className="h-8 w-auto" />
             </div>
             <div className="flex items-center gap-2">
               {/* Nav tabs */}
-              <div className="hidden sm:flex items-center gap-1 p-1 rounded-xl" style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.08)'}}>
+              <div className="hidden sm:flex items-center gap-1 p-1 rounded-xl transition-colors" style={{background: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', border: isDarkMode ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.08)'}}>
                 {[['home', t.nav_academy], ['tutorials', t.nav_tutorials], ['prompt-builder', t.nav_studio]].map(([view, label]) => (
                   <button key={view} onClick={() => setCurrentView(view)}
-                    className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${currentView === view ? 'bg-amber-500 text-black' : 'text-white/40 hover:text-white/80'}`}>
+                    className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${currentView === view ? 'bg-amber-500 text-black' : isDarkMode ? 'text-white/40 hover:text-white/80' : 'text-black/40 hover:text-black/80'}`}>
                     {label}
                   </button>
                 ))}
               </div>
               <LangSwitcher lang={lang} setLang={setLang} />
               {isLoggedIn ? (
-                <button onClick={() => signOut(auth)} className="flex items-center gap-2 px-3 py-2 rounded-xl text-emerald-400 text-[10px] font-bold uppercase tracking-widest transition-all hover:bg-emerald-500/10" style={{border:'1px solid rgba(52,211,153,0.2)'}}>
+                <button onClick={() => signOut(auth)} className="flex items-center gap-2 px-3 py-2 rounded-xl text-emerald-600 dark:text-emerald-400 text-[10px] font-bold uppercase tracking-widest transition-all hover:bg-emerald-500/10" style={{border:'1px solid rgba(52,211,153,0.3)'}}>
                   <User className="w-4 h-4" />
                   <span className="hidden sm:block">{user.email?.split('@')[0] || 'Konto'}</span>
                 </button>
@@ -1211,7 +1211,7 @@ export default function App() {
                   <span className="hidden sm:block">{lang === 'EN' ? 'Log In' : 'Zaloguj'}</span>
                 </button>
               )}
-              <button onClick={() => setIsDarkMode(!isDarkMode)} className="w-9 h-9 flex items-center justify-center rounded-xl text-white/40 hover:text-amber-400 transition-colors" style={{border:'1px solid rgba(255,255,255,0.08)'}}>
+              <button onClick={() => setIsDarkMode(!isDarkMode)} className={`w-9 h-9 flex items-center justify-center rounded-xl transition-colors ${isDarkMode ? 'text-white/40 hover:text-amber-400' : 'text-black/40 hover:text-amber-500'}`} style={{border: isDarkMode ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.08)'}}>
                 {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               </button>
             </div>
