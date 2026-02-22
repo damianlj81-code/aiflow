@@ -8,16 +8,23 @@ import {
 
 // FIREBASE INTEGRATION
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from 'firebase/auth';
+import { getAuth, signInAnonymously, onAuthStateChanged } from 'firebase/auth';
 import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc } from 'firebase/firestore';
 
-const firebaseConfig = JSON.parse(__firebase_config);
+const firebaseConfig = {
+  apiKey: "AIzaSyB36wJrKgkyH0_ev6uyzVWKc2gQdXZNaWA",
+  authDomain: "aiflow-academy.firebaseapp.com",
+  projectId: "aiflow-academy",
+  storageBucket: "aiflow-academy.firebasestorage.app",
+  messagingSenderId: "397056782057",
+  appId: "1:397056782057:web:8eb4ff5bd4fcbc7f0aca78",
+  measurementId: "G-SJVX8JP5P6"
+};
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const rawAppId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-const appId = rawAppId.replace(/[^a-zA-Z0-9]/g, '_'); 
+const appId = "aiflow_academy";
 
 const getYTId = (url) => {
   if (!url) return null;
@@ -898,18 +905,14 @@ export default function App() {
   const t = { ...translations[lang], lang };
 
   useEffect(() => {
-    const initAuth = async () => {
-      try {
-        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          await signInWithCustomToken(auth, __initial_auth_token);
-        } else {
-          await signInAnonymously(auth);
-        }
-      } catch (err) {
-        console.error("Błąd uwierzytelniania:", err);
-      }
-    };
-    initAuth();
+  useEffect(() => {
+    signInAnonymously(auth).catch(err => console.error("Auth error:", err));
+    
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+    
+    return () => unsubscribe();
     
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
