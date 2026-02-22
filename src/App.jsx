@@ -336,7 +336,7 @@ const HomeView = ({ t, onLoginRequest }) => {
     : ['Tworzenie Awatarów AI', 'Inżynieria Promptów', 'Automatyzacja Workflow', 'Live Coaching'];
 
   useEffect(() => {
-    const fi = setInterval(() => setActiveFeature(p => (p + 1) % features.length), 2500);
+    const fi = setInterval(() => setActiveFeature(p => (p + 1) % features.length), 4000);
     return () => clearInterval(fi);
   }, []);
 
@@ -386,9 +386,9 @@ const HomeView = ({ t, onLoginRequest }) => {
           </h1>
 
           {/* Rotating feature text */}
-          <div className="h-8 mb-8 overflow-hidden">
+          <div className="h-10 mb-8 overflow-hidden relative">
             {features.map((f, i) => (
-              <p key={f} className={`text-slate-400 text-sm uppercase tracking-[0.3em] font-bold transition-all duration-500 ${i === activeFeature ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 absolute'}`}>
+              <p key={f} className={`text-slate-300 text-base uppercase tracking-[0.3em] font-bold transition-all duration-1000 ${i === activeFeature ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6 absolute inset-x-0'}`}>
                 {f}
               </p>
             ))}
@@ -405,7 +405,7 @@ const HomeView = ({ t, onLoginRequest }) => {
               <span className="relative z-10">{t.lang === 'EN' ? '🚀 Get Full Access' : '🚀 Uzyskaj Pełny Dostęp'}</span>
               <div className="absolute inset-0 bg-amber-400 translate-y-full group-hover:translate-y-0 transition-transform duration-300"/>
             </button>
-            <button onClick={() => setIsVideoActive(true)} className="px-8 py-4 border border-white/20 text-white font-bold text-sm uppercase tracking-widest rounded-xl hover:border-amber-500/50 hover:bg-white/5 transition-all flex items-center gap-2">
+            <button onClick={() => { document.getElementById('video-section')?.scrollIntoView({ behavior: 'smooth' }); }} className="px-8 py-4 border border-white/20 text-white font-bold text-sm uppercase tracking-widest rounded-xl hover:border-amber-500/50 hover:bg-white/5 transition-all flex items-center gap-2">
               <Play className="w-4 h-4 text-amber-500" />
               {t.lang === 'EN' ? 'Watch Demo' : 'Obejrzyj Demo'}
             </button>
@@ -433,7 +433,7 @@ const HomeView = ({ t, onLoginRequest }) => {
       </section>
 
       {/* ── VIDEO SECTION ─────────────────────────────────── */}
-      <section className="bg-black py-20 px-4">
+      <section id="video-section" className="bg-black py-20 px-4">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-8">
             <p className="text-[10px] text-amber-500 font-bold uppercase tracking-[0.4em] mb-3">
