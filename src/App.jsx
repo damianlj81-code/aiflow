@@ -323,12 +323,9 @@ const HomeView = ({ t, onLoginRequest }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showIban, setShowIban] = useState(false);
   const [isVideoActive, setIsVideoActive] = useState(true);
-  const [progress, setProgress] = useState(0);
-  const [isLocked, setIsLocked] = useState(false);
   const [activeFeature, setActiveFeature] = useState(0);
   
   const pricingRef = useRef(null);
-  const DEMO_LIMIT_SECONDS = 15; 
   const YOUTUBE_VIDEO_ID = "1_1oHwOZMe4"; 
 
   const features = t.lang === 'EN'
@@ -339,23 +336,6 @@ const HomeView = ({ t, onLoginRequest }) => {
     const fi = setInterval(() => setActiveFeature(p => (p + 1) % features.length), 4000);
     return () => clearInterval(fi);
   }, []);
-
-  useEffect(() => {
-    let interval;
-    if (isVideoActive && !isLocked) {
-      interval = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= DEMO_LIMIT_SECONDS - 1) {
-            setIsVideoActive(false); 
-            setIsLocked(true);       
-            return DEMO_LIMIT_SECONDS;
-          }
-          return prev + 1;
-        });
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [isVideoActive, isLocked]);
 
   const scrollToPricing = () => { pricingRef.current?.scrollIntoView({ behavior: 'smooth' }); };
   const handlePurchase = (planName) => { setSelectedPlan(planName); setIsModalOpen(true); setShowIban(false); };
@@ -456,15 +436,6 @@ const HomeView = ({ t, onLoginRequest }) => {
                 title="AI Flow Demo" frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowFullScreen className="w-full h-full absolute inset-0"/>
-            )}
-            {isLocked && (
-              <div className="absolute inset-0 bg-black/95 flex flex-col items-center justify-center p-6 text-center">
-                <Lock className="w-12 h-12 text-amber-500 mb-4"/>
-                <h2 className="text-2xl font-black text-white mb-3 uppercase tracking-tighter">{t.home_locked_title}</h2>
-                <button onClick={scrollToPricing} className="bg-amber-500 hover:bg-amber-400 text-black font-bold py-3 px-8 rounded-xl transition-all hover:scale-105 mt-4 uppercase text-[10px] tracking-widest">
-                  {t.home_locked_btn}
-                </button>
-              </div>
             )}
           </div>
         </div>
