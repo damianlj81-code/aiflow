@@ -494,88 +494,23 @@ const HomeView = ({ t, onLoginRequest }) => {
         </div>
       </section>
 
-      {/* ── PRICING ───────────────────────────────────────── */}
-      <section ref={pricingRef} id="pricing-section" className="bg-black py-24 px-4 border-t border-white/5">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-16">
-            <p className="text-[10px] text-amber-500 font-bold uppercase tracking-[0.4em] mb-3">— {t.lang === 'EN' ? 'Simple Pricing' : 'Prosta Wycena'} —</p>
-            <h2 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tighter">{t.home_pricing_title}</h2>
+      {/* ── PRICING HIDDEN — COMING SOON ─────────────────── */}
+      <section className="bg-black py-16 px-4 border-t" style={{borderColor:'rgba(255,255,255,0.05)'}}>
+        <div className="max-w-2xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-6">
+            <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse"/>
+            {t.lang === 'EN' ? 'Launching Soon' : 'Wkrótce w sprzedaży'}
           </div>
-
-          <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-            {/* Standard */}
-            <div className="relative p-8 bg-[#0A0A0A] border border-white/10 rounded-2xl flex flex-col hover:border-white/20 transition-all">
-              <h3 className="text-xs font-bold uppercase tracking-[0.3em] text-slate-500 mb-4">{t.home_monthly_title}</h3>
-              <div className="flex items-end gap-2 mb-6">
-                <span className="text-5xl font-black text-white">199</span>
-                <span className="text-slate-500 font-bold mb-2">PLN {t.home_monthly_per}</span>
-              </div>
-              <ul className="space-y-3 mb-8 flex-grow">
-                {t.home_monthly_features.map(f => (
-                  <li key={f} className="flex items-center gap-3 text-sm text-slate-400">
-                    <Check className="w-4 h-4 text-amber-500 flex-shrink-0"/> {f}
-                  </li>
-                ))}
-              </ul>
-              <button onClick={() => handlePurchase(t.home_monthly_title)} className="w-full py-3 border border-white/20 text-white font-bold rounded-xl uppercase text-[10px] tracking-widest hover:border-amber-500/50 hover:bg-amber-500/5 transition-all">
-                {t.home_monthly_btn}
-              </button>
-            </div>
-
-            {/* VIP */}
-            <div className="relative p-8 rounded-2xl flex flex-col overflow-hidden" style={{background:'linear-gradient(135deg,#1a1200,#0d0900)',border:'1px solid rgba(245,158,11,0.4)'}}>
-              <div className="absolute inset-0 opacity-5" style={{backgroundImage:'radial-gradient(circle at 50% 0%,#f59e0b,transparent 70%)'}}/>
-              <div className="absolute -top-px left-1/2 -translate-x-1/2 bg-amber-500 text-black text-[9px] font-black uppercase tracking-widest px-4 py-1 rounded-b-lg">
-                {t.home_yearly_badge}
-              </div>
-              <h3 className="text-xs font-bold uppercase tracking-[0.3em] text-amber-500/70 mb-4 mt-2">{t.home_yearly_title}</h3>
-              <div className="flex items-end gap-2 mb-2">
-                <span className="text-5xl font-black text-white">1800</span>
-                <span className="text-amber-500/70 font-bold mb-2">PLN {t.home_yearly_per}</span>
-              </div>
-              <p className="text-[10px] text-amber-500/60 font-bold uppercase tracking-widest mb-6">{t.lang === 'EN' ? '= 150 PLN/month — save 25%' : '= 150 PLN/mies. — oszczędzasz 25%'}</p>
-              <ul className="space-y-3 mb-8 flex-grow">
-                {t.home_yearly_features.map(f => (
-                  <li key={f} className="flex items-center gap-3 text-sm text-slate-300">
-                    <Check className="w-4 h-4 text-amber-500 flex-shrink-0"/> {f}
-                  </li>
-                ))}
-              </ul>
-              <button onClick={() => handlePurchase(t.home_yearly_title)} className="relative w-full py-3 bg-amber-500 text-black font-black rounded-xl uppercase text-[10px] tracking-widest hover:bg-amber-400 transition-all hover:shadow-[0_0_30px_rgba(245,158,11,0.4)]">
-                {t.home_yearly_btn}
-              </button>
-            </div>
-          </div>
+          <h2 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tighter mb-4">
+            {t.lang === 'EN' ? 'Founding Member Pricing' : 'Ceny dla Założycieli'}
+          </h2>
+          <p className="text-white/30 text-sm mb-4">
+            {t.lang === 'EN'
+              ? 'We\'re putting the finishing touches on our platform. Early members will get exclusive founding rates.'
+              : 'Finalizujemy platformę. Pierwsi członkowie otrzymają ekskluzywne ceny założycielskie.'}
+          </p>
         </div>
       </section>
-
-      {/* MODAL PŁATNOŚCI */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 z-50 font-sans">
-          <div className="bg-[#0A0A0A] rounded-2xl p-8 max-w-md w-full border border-white/10 relative shadow-2xl">
-            <button onClick={closeModal} className="absolute top-4 right-4 text-slate-500 hover:text-white hover:rotate-90 transition-all"><X /></button>
-            <h3 className="text-2xl font-black mb-1 text-white uppercase tracking-tighter">{t.modal_title}</h3>
-            <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-6 font-bold">{t.modal_package} <span className="text-amber-500">{selectedPlan}</span></p>
-            <div className="space-y-3">
-              <button className="w-full p-4 border border-white/10 rounded-xl flex items-center gap-4 bg-black hover:border-amber-500/30 transition-colors group text-left">
-                <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500 group-hover:scale-110 transition-transform"><CreditCard className="w-6 h-6"/></div>
-                <div><div className="font-bold text-sm text-white">{t.modal_auto_pay}</div><div className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">{t.modal_auto_pay_sub}</div></div>
-              </button>
-              <button onClick={() => setShowIban(!showIban)} className="w-full p-4 border border-white/10 rounded-xl flex items-center gap-4 bg-black hover:border-white/20 transition-colors group text-left">
-                <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-slate-400"><Building2 className="w-6 h-6"/></div>
-                <div className="flex-grow"><div className="font-bold text-sm text-white">{t.modal_transfer}</div><div className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">{t.modal_transfer_sub}</div></div>
-                <ChevronDown className={`text-slate-500 ${showIban ? 'rotate-180' : ''} transition-transform`}/>
-              </button>
-              {showIban && (
-                <div className="p-4 bg-black rounded-xl text-[11px] space-y-3 text-slate-300 font-mono border border-white/10">
-                  <div className="flex justify-between border-b border-white/10 pb-1"><span>IBAN (DE)</span><span className="text-amber-500 font-bold">DE89 3704 0044 0532 0130 00</span></div>
-                  <div className="flex justify-between font-bold"><span>{t.modal_due}</span><span className="text-white">{selectedPlan === t.home_yearly_title ? '1800 PLN / ~420 EUR' : '199 PLN / ~46 EUR'}</span></div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
@@ -1143,24 +1078,77 @@ Rules:
 
 
 // =========================================================================
-// UNDER CONSTRUCTION
+// COMING SOON
 // =========================================================================
-const UnderConstruction = ({ t }) => (
-  <div className="min-h-screen bg-black flex flex-col items-center justify-center text-center p-8 font-sans">
-    <div className="max-w-lg">
-      <div className="text-6xl mb-6">🚧</div>
-      <h1 className="text-3xl md:text-5xl font-extrabold uppercase tracking-tighter text-white mb-4">
-        Under Construction
-      </h1>
-      <p className="text-slate-400 text-sm uppercase tracking-widest font-bold mb-2">
-        {t.lang === 'EN' ? 'This section is coming soon.' : 'Ta sekcja jest w przygotowaniu.'}
-      </p>
-      <p className="text-slate-600 text-xs uppercase tracking-widest font-bold">
-        AI Flow Academy — 2026
-      </p>
+const ComingSoon = ({ t }) => {
+  const [email, setEmail] = useState('');
+  const [sent, setSent] = useState(false);
+
+  const handleNotify = async (e) => {
+    e.preventDefault();
+    try {
+      await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'waitlist'), {
+        email,
+        date: new Date().toISOString(),
+      });
+      setSent(true);
+    } catch(err) { console.error(err); }
+  };
+
+  return (
+    <div className="min-h-screen bg-black flex flex-col items-center justify-center text-center p-8 font-sans relative overflow-hidden">
+      {/* Background glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-amber-500/5 rounded-full blur-[150px] pointer-events-none"/>
+      <div className="absolute inset-0 opacity-[0.03]" style={{backgroundImage:'linear-gradient(#f59e0b 1px,transparent 1px),linear-gradient(90deg,#f59e0b 1px,transparent 1px)',backgroundSize:'60px 60px'}}/>
+
+      <div className="relative z-10 max-w-lg">
+        {/* Badge */}
+        <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-8">
+          <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse"/>
+          {t.lang === 'EN' ? 'Coming Soon' : 'Już wkrótce'}
+        </div>
+
+        <h1 className="text-4xl md:text-6xl font-black uppercase tracking-tighter text-white mb-4 leading-tight">
+          {t.lang === 'EN' ? 'Something' : 'Coś'}<br/>
+          <span className="text-transparent bg-clip-text" style={{backgroundImage:'linear-gradient(135deg,#f59e0b,#fbbf24,#f97316)'}}>
+            {t.lang === 'EN' ? 'Big' : 'Wielkiego'}
+          </span><br/>
+          {t.lang === 'EN' ? 'is Coming' : 'Nadchodzi'}
+        </h1>
+
+        <p className="text-white/30 text-sm mb-10 leading-relaxed">
+          {t.lang === 'EN'
+            ? 'We\'re preparing something special. Leave your email and be the first to know when we launch.'
+            : 'Przygotowujemy coś wyjątkowego. Zostaw email i dowiedz się pierwszy o starcie.'}
+        </p>
+
+        {sent ? (
+          <div className="flex items-center justify-center gap-2 text-emerald-400 font-bold text-sm uppercase tracking-widest">
+            <Check className="w-5 h-5"/> {t.lang === 'EN' ? 'You\'re on the list!' : 'Jesteś na liście!'}
+          </div>
+        ) : (
+          <form onSubmit={handleNotify} className="flex gap-2 max-w-sm mx-auto">
+            <input
+              type="email" required
+              placeholder={t.lang === 'EN' ? 'Your email' : 'Twój email'}
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              className="flex-grow bg-white/5 border px-4 py-3 text-sm text-white outline-none focus:border-amber-500 transition-colors rounded-xl"
+              style={{borderColor:'rgba(255,255,255,0.1)'}}
+            />
+            <button type="submit" className="bg-amber-500 hover:bg-amber-400 text-black font-black text-[10px] uppercase tracking-widest px-5 rounded-xl transition-all hover:shadow-[0_0_20px_rgba(245,158,11,0.4)]">
+              {t.lang === 'EN' ? 'Notify Me' : 'Powiadom'}
+            </button>
+          </form>
+        )}
+
+        <p className="text-white/15 text-[10px] uppercase tracking-widest font-bold mt-12">
+          AI Flow Academy — 2026
+        </p>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 // =========================================================================
 // GŁÓWNY KOMPONENT APP
@@ -1185,6 +1173,19 @@ export default function App() {
       setUser(currentUser);
     });
     return () => unsubscribe();
+  }, []);
+
+  // LICZNIK ODWIEDZIN
+  useEffect(() => {
+    const visited = sessionStorage.getItem('visited');
+    if (!visited) {
+      sessionStorage.setItem('visited', '1');
+      addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'visits'), {
+        date: new Date().toISOString(),
+        ua: navigator.userAgent.substring(0, 100),
+        lang: navigator.language,
+      }).catch(() => {});
+    }
   }, []);
 
   const handleCookies = (accepted) => {
@@ -1248,8 +1249,8 @@ export default function App() {
 
         <main className="pt-16">
           {currentView === 'home' && <HomeView t={t} />}
-          {currentView === 'tutorials' && <UnderConstruction t={t} />}
-          {currentView === 'prompt-builder' && <UnderConstruction t={t} />}
+          {currentView === 'tutorials' && <ComingSoon t={t} />}
+          {currentView === 'prompt-builder' && <ComingSoon t={t} />}
           {currentView === 'impressum' && <ImpressumView setCurrentView={setCurrentView} lang={lang} />}
           {currentView === 'datenschutz' && <DatenschutzView setCurrentView={setCurrentView} lang={lang} />}
           {currentView === 'regulamin' && <RegulaminView setCurrentView={setCurrentView} lang={lang} />}
