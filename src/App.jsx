@@ -316,19 +316,29 @@ const LoginModal = ({ onClose, lang }) => {
 };
 
 // =========================================================================
-// WIDOK 1: GŁÓWNA PLATFORMA (VOD)
+// WIDOK 1: GŁÓWNA PLATFORMA (VOD) — REDESIGN
 // =========================================================================
-const HomeView = ({ t }) => {
+const HomeView = ({ t, onLoginRequest }) => {
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showIban, setShowIban] = useState(false);
-  const [isVideoActive, setIsVideoActive] = useState(true); // autostart
+  const [isVideoActive, setIsVideoActive] = useState(true);
   const [progress, setProgress] = useState(0);
   const [isLocked, setIsLocked] = useState(false);
+  const [activeFeature, setActiveFeature] = useState(0);
   
   const pricingRef = useRef(null);
   const DEMO_LIMIT_SECONDS = 15; 
   const YOUTUBE_VIDEO_ID = "1_1oHwOZMe4"; 
+
+  const features = t.lang === 'EN'
+    ? ['AI Avatar Creation', 'Prompt Engineering', 'Workflow Automation', 'Live Coaching']
+    : ['Tworzenie Awatarów AI', 'Inżynieria Promptów', 'Automatyzacja Workflow', 'Live Coaching'];
+
+  useEffect(() => {
+    const fi = setInterval(() => setActiveFeature(p => (p + 1) % features.length), 2500);
+    return () => clearInterval(fi);
+  }, []);
 
   useEffect(() => {
     let interval;
@@ -347,111 +357,219 @@ const HomeView = ({ t }) => {
     return () => clearInterval(interval);
   }, [isVideoActive, isLocked]);
 
-  const handlePlayDemo = () => { if (!isLocked) setIsVideoActive(true); };
   const scrollToPricing = () => { pricingRef.current?.scrollIntoView({ behavior: 'smooth' }); };
   const handlePurchase = (planName) => { setSelectedPlan(planName); setIsModalOpen(true); setShowIban(false); };
   const closeModal = () => { setIsModalOpen(false); setSelectedPlan(null); };
 
   return (
-    <div className="font-sans flex flex-col pb-20">
-      <div className="pt-10 pb-16 px-4 bg-slate-50 dark:bg-black transition-colors duration-500">
-        <div className="max-w-4xl mx-auto text-center mb-8 font-sans">
-          <div className="flex items-center justify-center gap-2 mb-2 text-red-600 font-bold uppercase text-[10px]">
-            <Youtube className="w-5 h-5" /> VOD Academy Preview
+    <div className="font-sans flex flex-col">
+
+      {/* ── HERO ─────────────────────────────────────────── */}
+      <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-black px-4">
+        {/* Animated grid background */}
+        <div className="absolute inset-0 opacity-[0.04]" style={{backgroundImage:'linear-gradient(#f59e0b 1px,transparent 1px),linear-gradient(90deg,#f59e0b 1px,transparent 1px)',backgroundSize:'60px 60px'}}/>
+        {/* Glow orbs */}
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-amber-500/10 rounded-full blur-[120px] pointer-events-none"/>
+        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-blue-500/10 rounded-full blur-[100px] pointer-events-none"/>
+
+        <div className="relative z-10 max-w-5xl mx-auto text-center">
+          {/* Pill badge */}
+          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-8">
+            <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse"/>
+            {t.lang === 'EN' ? 'AI Education Platform' : 'Platforma Edukacji AI'}
           </div>
-          <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold mb-4 leading-tight text-slate-900 dark:text-[#E5E0D8]">
-            AI FLOW ACADEMY
+
+          {/* Main headline */}
+          <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-white mb-4 leading-[0.9] tracking-tighter">
+            AI FLOW<br/>
+            <span className="text-transparent bg-clip-text" style={{backgroundImage:'linear-gradient(135deg,#f59e0b,#fbbf24,#f97316)'}}>ACADEMY</span>
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 max-w-2xl mx-auto text-lg italic font-serif">
+
+          {/* Rotating feature text */}
+          <div className="h-8 mb-8 overflow-hidden">
+            {features.map((f, i) => (
+              <p key={f} className={`text-slate-400 text-sm uppercase tracking-[0.3em] font-bold transition-all duration-500 ${i === activeFeature ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 absolute'}`}>
+                {f}
+              </p>
+            ))}
+          </div>
+
+          {/* Tagline */}
+          <p className="text-slate-500 text-lg max-w-xl mx-auto mb-12 leading-relaxed">
             {t.home_tagline}
           </p>
+
+          {/* CTA buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+            <button onClick={scrollToPricing} className="group relative px-8 py-4 bg-amber-500 text-black font-black text-sm uppercase tracking-widest rounded-xl overflow-hidden transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(245,158,11,0.4)]">
+              <span className="relative z-10">{t.lang === 'EN' ? '🚀 Get Full Access' : '🚀 Uzyskaj Pełny Dostęp'}</span>
+              <div className="absolute inset-0 bg-amber-400 translate-y-full group-hover:translate-y-0 transition-transform duration-300"/>
+            </button>
+            <button onClick={() => setIsVideoActive(true)} className="px-8 py-4 border border-white/20 text-white font-bold text-sm uppercase tracking-widest rounded-xl hover:border-amber-500/50 hover:bg-white/5 transition-all flex items-center gap-2">
+              <Play className="w-4 h-4 text-amber-500" />
+              {t.lang === 'EN' ? 'Watch Demo' : 'Obejrzyj Demo'}
+            </button>
+          </div>
+
+          {/* Stats row */}
+          <div className="grid grid-cols-3 gap-8 max-w-lg mx-auto border-t border-white/10 pt-8">
+            {[
+              { n: '100+', l: t.lang === 'EN' ? 'Videos' : 'Filmów' },
+              { n: '3x', l: t.lang === 'EN' ? 'Weekly Live' : 'Live/Tydzień' },
+              { n: '24/7', l: t.lang === 'EN' ? 'Access' : 'Dostęp' },
+            ].map(s => (
+              <div key={s.n} className="text-center">
+                <div className="text-2xl font-black text-amber-500">{s.n}</div>
+                <div className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mt-1">{s.l}</div>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div className="max-w-4xl mx-auto bg-black rounded-2xl overflow-hidden shadow-2xl relative aspect-video border border-slate-200 dark:border-[#1A1A1A]">
-          {!isVideoActive && !isLocked && progress === 0 && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-[url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1964&auto=format&fit=crop')] bg-cover bg-center text-center px-4">
-              <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]"></div>
-              <button onClick={handlePlayDemo} className="relative z-10 w-20 h-20 bg-red-600 hover:bg-red-700 text-white rounded-full flex items-center justify-center transition-transform hover:scale-105 shadow-[0_0_40px_rgba(220,38,38,0.6)]">
-                <Play className="w-10 h-10 ml-1" />
-              </button>
-              <p className="relative z-10 text-white mt-6 font-bold tracking-widest text-xs uppercase">{t.home_play_demo}</p>
-            </div>
-          )}
-          {isVideoActive && (
-            <div className="absolute inset-0 w-full h-full bg-black">
-              <iframe 
-                width="100%" 
-                height="100%" 
-                src={`https://www.youtube.com/embed/${YOUTUBE_VIDEO_ID}?autoplay=1&mute=1&controls=1&rel=0&start=7`} 
-                title="YouTube video player" 
-                frameBorder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                allowFullScreen 
-                className="w-full h-full"
-              ></iframe>
-            </div>
-          )}
-          {isLocked && (
-            <div className="absolute inset-0 bg-black/95 flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-500 font-sans">
-              <Lock className="w-12 h-12 text-amber-500 mb-4" />
-              <h2 className="text-xl md:text-3xl font-bold text-white mb-3 uppercase tracking-tighter">{t.home_locked_title}</h2>
-              <button onClick={scrollToPricing} className="bg-amber-500 hover:bg-amber-400 text-black font-bold py-3 px-8 rounded-xl transition-all transform hover:-translate-y-1 mt-4 uppercase text-[10px] tracking-widest">
-                {t.home_locked_btn}
-              </button>
-            </div>
-          )}
+        {/* Scroll indicator */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-slate-600">
+          <div className="w-px h-12 bg-gradient-to-b from-transparent to-amber-500/50"/>
         </div>
-      </div>
+      </section>
 
-      <div ref={pricingRef} id="pricing-section" className="pt-16 pb-20 px-4 bg-white dark:bg-[#050505] transition-colors duration-500 font-sans">
-        <div className="max-w-5xl mx-auto flex flex-col items-center">
-          <h2 className="text-3xl font-bold mb-12 text-slate-900 dark:text-[#E5E0D8] uppercase tracking-tighter">{t.home_pricing_title}</h2>
-          <div className="grid md:grid-cols-2 gap-8 w-full max-w-4xl">
-            <div className="bg-slate-50 dark:bg-[#0A0A0A] rounded-3xl p-8 border border-slate-200 dark:border-[#1A1A1A] flex flex-col">
-              <h3 className="text-xl font-bold mb-4 dark:text-white uppercase">{t.home_monthly_title}</h3>
-              <div className="text-4xl font-extrabold mb-6 dark:text-white">199 PLN <span className="text-sm text-slate-500 font-normal">{t.home_monthly_per}</span></div>
-              <ul className="space-y-4 mb-8 flex-grow">
+      {/* ── VIDEO SECTION ─────────────────────────────────── */}
+      <section className="bg-black py-20 px-4">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-8">
+            <p className="text-[10px] text-amber-500 font-bold uppercase tracking-[0.4em] mb-3">
+              {t.lang === 'EN' ? '— Featured Content —' : '— Wyróżniony Materiał —'}
+            </p>
+          </div>
+          <div className="relative rounded-2xl overflow-hidden shadow-[0_0_80px_rgba(245,158,11,0.15)] border border-white/5 aspect-video">
+            {!isVideoActive && !isLocked && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-[url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1964&auto=format&fit=crop')] bg-cover bg-center">
+                <div className="absolute inset-0 bg-black/70"/>
+                <button onClick={() => setIsVideoActive(true)} className="relative z-10 w-24 h-24 bg-amber-500 hover:bg-amber-400 text-black rounded-full flex items-center justify-center transition-all hover:scale-110 shadow-[0_0_60px_rgba(245,158,11,0.5)]">
+                  <Play className="w-10 h-10 ml-1" />
+                </button>
+                <p className="relative z-10 text-white mt-6 font-bold tracking-widest text-xs uppercase">{t.home_play_demo}</p>
+              </div>
+            )}
+            {isVideoActive && (
+              <iframe width="100%" height="100%"
+                src={`https://www.youtube.com/embed/${YOUTUBE_VIDEO_ID}?autoplay=1&mute=1&controls=1&rel=0&start=7`}
+                title="AI Flow Demo" frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen className="w-full h-full absolute inset-0"/>
+            )}
+            {isLocked && (
+              <div className="absolute inset-0 bg-black/95 flex flex-col items-center justify-center p-6 text-center">
+                <Lock className="w-12 h-12 text-amber-500 mb-4"/>
+                <h2 className="text-2xl font-black text-white mb-3 uppercase tracking-tighter">{t.home_locked_title}</h2>
+                <button onClick={scrollToPricing} className="bg-amber-500 hover:bg-amber-400 text-black font-bold py-3 px-8 rounded-xl transition-all hover:scale-105 mt-4 uppercase text-[10px] tracking-widest">
+                  {t.home_locked_btn}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ── WHAT YOU GET ──────────────────────────────────── */}
+      <section className="bg-[#050505] py-24 px-4 border-t border-white/5">
+        <div className="max-w-5xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tighter text-center mb-16">
+            {t.lang === 'EN' ? 'What you get' : 'Co otrzymujesz'}
+            <span className="text-amber-500">.</span>
+          </h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              { icon: '🎬', title: t.lang === 'EN' ? 'VOD Library' : 'Baza VOD', desc: t.lang === 'EN' ? '100+ expert videos on demand' : '100+ filmów eksperckich na żądanie' },
+              { icon: '⚡', title: t.lang === 'EN' ? 'Live Coaching' : 'Live Coaching', desc: t.lang === 'EN' ? '3x per week with Damian' : '3x w tygodniu z Damianem' },
+              { icon: '🤖', title: 'Prompt Builder', desc: t.lang === 'EN' ? 'Professional AI prompt studio' : 'Profesjonalne studio promptów AI' },
+              { icon: '👥', title: t.lang === 'EN' ? 'Community' : 'Społeczność', desc: t.lang === 'EN' ? 'Private members group' : 'Zamknięta grupa członków' },
+            ].map(card => (
+              <div key={card.title} className="group p-6 bg-black border border-white/5 rounded-2xl hover:border-amber-500/30 hover:bg-amber-500/5 transition-all duration-300 cursor-default">
+                <div className="text-3xl mb-4">{card.icon}</div>
+                <h3 className="text-white font-bold text-sm uppercase tracking-tight mb-2">{card.title}</h3>
+                <p className="text-slate-500 text-xs leading-relaxed">{card.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── PRICING ───────────────────────────────────────── */}
+      <section ref={pricingRef} id="pricing-section" className="bg-black py-24 px-4 border-t border-white/5">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-16">
+            <p className="text-[10px] text-amber-500 font-bold uppercase tracking-[0.4em] mb-3">— {t.lang === 'EN' ? 'Simple Pricing' : 'Prosta Wycena'} —</p>
+            <h2 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tighter">{t.home_pricing_title}</h2>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+            {/* Standard */}
+            <div className="relative p-8 bg-[#0A0A0A] border border-white/10 rounded-2xl flex flex-col hover:border-white/20 transition-all">
+              <h3 className="text-xs font-bold uppercase tracking-[0.3em] text-slate-500 mb-4">{t.home_monthly_title}</h3>
+              <div className="flex items-end gap-2 mb-6">
+                <span className="text-5xl font-black text-white">199</span>
+                <span className="text-slate-500 font-bold mb-2">PLN {t.home_monthly_per}</span>
+              </div>
+              <ul className="space-y-3 mb-8 flex-grow">
                 {t.home_monthly_features.map(f => (
-                  <li key={f} className="flex items-center gap-2 text-sm dark:text-slate-300"><Check className="w-4 h-4 text-emerald-500" /> {f}</li>
+                  <li key={f} className="flex items-center gap-3 text-sm text-slate-400">
+                    <Check className="w-4 h-4 text-amber-500 flex-shrink-0"/> {f}
+                  </li>
                 ))}
               </ul>
-              <button onClick={() => handlePurchase(t.home_monthly_title)} className="w-full py-4 bg-slate-900 dark:bg-slate-700 text-white font-bold rounded-xl uppercase text-[10px] tracking-widest hover:bg-slate-800 transition-colors">{t.home_monthly_btn}</button>
+              <button onClick={() => handlePurchase(t.home_monthly_title)} className="w-full py-3 border border-white/20 text-white font-bold rounded-xl uppercase text-[10px] tracking-widest hover:border-amber-500/50 hover:bg-amber-500/5 transition-all">
+                {t.home_monthly_btn}
+              </button>
             </div>
-            <div className="bg-slate-900 dark:bg-black rounded-3xl p-8 border border-amber-500/30 shadow-2xl relative scale-105 flex flex-col">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-500 text-black px-4 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">{t.home_yearly_badge}</div>
-              <h3 className="text-xl font-bold mb-4 text-white uppercase">{t.home_yearly_title}</h3>
-              <div className="text-4xl font-extrabold mb-6 text-white">1800 PLN <span className="text-sm text-slate-400 font-normal">{t.home_yearly_per}</span></div>
-              <ul className="space-y-4 mb-8 flex-grow">
+
+            {/* VIP */}
+            <div className="relative p-8 rounded-2xl flex flex-col overflow-hidden" style={{background:'linear-gradient(135deg,#1a1200,#0d0900)',border:'1px solid rgba(245,158,11,0.4)'}}>
+              <div className="absolute inset-0 opacity-5" style={{backgroundImage:'radial-gradient(circle at 50% 0%,#f59e0b,transparent 70%)'}}/>
+              <div className="absolute -top-px left-1/2 -translate-x-1/2 bg-amber-500 text-black text-[9px] font-black uppercase tracking-widest px-4 py-1 rounded-b-lg">
+                {t.home_yearly_badge}
+              </div>
+              <h3 className="text-xs font-bold uppercase tracking-[0.3em] text-amber-500/70 mb-4 mt-2">{t.home_yearly_title}</h3>
+              <div className="flex items-end gap-2 mb-2">
+                <span className="text-5xl font-black text-white">1800</span>
+                <span className="text-amber-500/70 font-bold mb-2">PLN {t.home_yearly_per}</span>
+              </div>
+              <p className="text-[10px] text-amber-500/60 font-bold uppercase tracking-widest mb-6">{t.lang === 'EN' ? '= 150 PLN/month — save 25%' : '= 150 PLN/mies. — oszczędzasz 25%'}</p>
+              <ul className="space-y-3 mb-8 flex-grow">
                 {t.home_yearly_features.map(f => (
-                  <li key={f} className="flex items-center gap-2 text-sm text-slate-200"><Check className="w-4 h-4 text-amber-500" /> {f}</li>
+                  <li key={f} className="flex items-center gap-3 text-sm text-slate-300">
+                    <Check className="w-4 h-4 text-amber-500 flex-shrink-0"/> {f}
+                  </li>
                 ))}
               </ul>
-              <button onClick={() => handlePurchase(t.home_yearly_title)} className="w-full py-4 bg-amber-500 text-black font-bold rounded-xl uppercase text-[10px] tracking-widest shadow-lg hover:bg-amber-400 transition-colors">{t.home_yearly_btn}</button>
+              <button onClick={() => handlePurchase(t.home_yearly_title)} className="relative w-full py-3 bg-amber-500 text-black font-black rounded-xl uppercase text-[10px] tracking-widest hover:bg-amber-400 transition-all hover:shadow-[0_0_30px_rgba(245,158,11,0.4)]">
+                {t.home_yearly_btn}
+              </button>
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
+      {/* MODAL PŁATNOŚCI */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 z-50 font-sans">
-          <div className="bg-white dark:bg-[#0A0A0A] rounded-2xl p-8 max-w-md w-full border dark:border-[#1A1A1A] relative shadow-2xl">
-            <button onClick={closeModal} className="absolute top-4 right-4 dark:text-white hover:rotate-90 transition-transform"><X /></button>
-            <h3 className="text-2xl font-bold mb-2 text-center dark:text-[#E5E0D8] uppercase tracking-tighter">{t.modal_title}</h3>
-            <p className="text-center text-[10px] text-slate-500 uppercase tracking-widest mb-6 font-bold">{t.modal_package} <span className="text-amber-500">{selectedPlan}</span></p>
-            <div className="space-y-4">
-              <button className="w-full p-4 border rounded-xl flex items-center gap-4 dark:bg-black dark:border-[#1A1A1A] dark:text-white hover:border-amber-500 transition-colors group text-left">
-                <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-[#111] flex items-center justify-center text-amber-500 group-hover:scale-110 transition-transform"><CreditCard className="w-6 h-6" /></div>
-                <div><div className="font-bold text-sm">{t.modal_auto_pay}</div><div className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">{t.modal_auto_pay_sub}</div></div>
+          <div className="bg-[#0A0A0A] rounded-2xl p-8 max-w-md w-full border border-white/10 relative shadow-2xl">
+            <button onClick={closeModal} className="absolute top-4 right-4 text-slate-500 hover:text-white hover:rotate-90 transition-all"><X /></button>
+            <h3 className="text-2xl font-black mb-1 text-white uppercase tracking-tighter">{t.modal_title}</h3>
+            <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-6 font-bold">{t.modal_package} <span className="text-amber-500">{selectedPlan}</span></p>
+            <div className="space-y-3">
+              <button className="w-full p-4 border border-white/10 rounded-xl flex items-center gap-4 bg-black hover:border-amber-500/30 transition-colors group text-left">
+                <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500 group-hover:scale-110 transition-transform"><CreditCard className="w-6 h-6"/></div>
+                <div><div className="font-bold text-sm text-white">{t.modal_auto_pay}</div><div className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">{t.modal_auto_pay_sub}</div></div>
               </button>
-              <button onClick={() => setShowIban(!showIban)} className="w-full p-4 border rounded-xl flex items-center gap-4 dark:bg-black dark:border-[#1A1A1A] dark:text-white hover:border-slate-400 transition-colors group text-left">
-                <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-[#111] flex items-center justify-center text-slate-400"><Building2 className="w-6 h-6" /></div>
-                <div className="flex-grow"><div className="font-bold text-sm">{t.modal_transfer}</div><div className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">{t.modal_transfer_sub}</div></div>
-                <ChevronDown className={showIban ? 'rotate-180 transition-transform' : 'transition-transform'} />
+              <button onClick={() => setShowIban(!showIban)} className="w-full p-4 border border-white/10 rounded-xl flex items-center gap-4 bg-black hover:border-white/20 transition-colors group text-left">
+                <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-slate-400"><Building2 className="w-6 h-6"/></div>
+                <div className="flex-grow"><div className="font-bold text-sm text-white">{t.modal_transfer}</div><div className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">{t.modal_transfer_sub}</div></div>
+                <ChevronDown className={`text-slate-500 ${showIban ? 'rotate-180' : ''} transition-transform`}/>
               </button>
               {showIban && (
-                <div className="p-4 bg-slate-50 dark:bg-[#111] rounded-xl text-[11px] space-y-3 dark:text-slate-300 font-mono border dark:border-[#222] animate-in slide-in-from-top-2">
-                  <div className="flex justify-between border-b border-slate-200 dark:border-[#222] pb-1 font-mono"><span>IBAN (DE)</span><span className="text-amber-500 font-bold">DE89 3704 0044 0532 0130 00</span></div>
-                  <div className="flex justify-between font-bold font-mono"><span>{t.modal_due}</span><span className="text-white">{selectedPlan === t.home_yearly_title ? '1800 PLN / ~420 EUR' : '199 PLN / ~46 EUR'}</span></div>
+                <div className="p-4 bg-black rounded-xl text-[11px] space-y-3 text-slate-300 font-mono border border-white/10">
+                  <div className="flex justify-between border-b border-white/10 pb-1"><span>IBAN (DE)</span><span className="text-amber-500 font-bold">DE89 3704 0044 0532 0130 00</span></div>
+                  <div className="flex justify-between font-bold"><span>{t.modal_due}</span><span className="text-white">{selectedPlan === t.home_yearly_title ? '1800 PLN / ~420 EUR' : '199 PLN / ~46 EUR'}</span></div>
                 </div>
               )}
             </div>
@@ -1092,39 +1210,43 @@ export default function App() {
 
   return (
     <div className={isDarkMode ? 'dark' : ''}>
-      <div className="min-h-screen bg-white dark:bg-black transition-colors duration-700 font-sans selection:bg-amber-500 selection:text-black">
-        <nav className="bg-slate-900 dark:bg-[#050505] border-b border-slate-800 dark:border-[#1A1A1A] sticky top-0 z-50 h-16 flex items-center px-4 font-sans">
+      <div className="min-h-screen bg-black transition-colors duration-700 font-sans selection:bg-amber-500 selection:text-black">
+        {/* NAV */}
+        <nav className="fixed top-0 left-0 right-0 z-50 h-16 flex items-center px-4 font-sans" style={{background:'rgba(0,0,0,0.85)',backdropFilter:'blur(20px)',borderBottom:'1px solid rgba(255,255,255,0.06)'}}>
           <div className="max-w-[1400px] mx-auto w-full flex items-center justify-between">
-            <div className="flex items-center gap-2 cursor-pointer" onClick={() => setCurrentView('home')}>
-              <img src="/logo.png" alt="AI Flow" className="h-9 w-auto" />
+            <div className="flex items-center gap-3 cursor-pointer" onClick={() => setCurrentView('home')}>
+              <img src="/logo.png" alt="AI Flow" className="h-8 w-auto" />
             </div>
-            <div className="flex items-center gap-3">
-              <div className="flex bg-slate-800 dark:bg-[#121212] p-1 rounded-xl border border-slate-700 dark:border-[#222]">
-                <button onClick={() => setCurrentView('home')} className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase transition-all ${currentView === 'home' ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/10' : 'text-amber-500/70 font-bold'}`}>{t.nav_academy}</button>
-                <button onClick={() => setCurrentView('tutorials')} className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase transition-all ${currentView === 'tutorials' ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/10' : 'text-amber-500/70 font-bold'}`}>{t.nav_tutorials}</button>
-                <button onClick={() => setCurrentView('prompt-builder')} className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase transition-all ${currentView === 'prompt-builder' ? 'bg-amber-500 text-black shadow-lg shadow-amber-500/10' : 'text-amber-500/70 font-bold'}`}>{t.nav_studio}</button>
+            <div className="flex items-center gap-2">
+              {/* Nav tabs */}
+              <div className="hidden sm:flex items-center gap-1 p-1 rounded-xl" style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.08)'}}>
+                {[['home', t.nav_academy], ['tutorials', t.nav_tutorials], ['prompt-builder', t.nav_studio]].map(([view, label]) => (
+                  <button key={view} onClick={() => setCurrentView(view)}
+                    className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${currentView === view ? 'bg-amber-500 text-black' : 'text-white/40 hover:text-white/80'}`}>
+                    {label}
+                  </button>
+                ))}
               </div>
               <LangSwitcher lang={lang} setLang={setLang} />
-              {/* PRZYCISK LOGOWANIA */}
               {isLoggedIn ? (
-                <button onClick={() => signOut(auth)} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-bold uppercase tracking-widest hover:bg-emerald-500/20 transition-all">
+                <button onClick={() => signOut(auth)} className="flex items-center gap-2 px-3 py-2 rounded-xl text-emerald-400 text-[10px] font-bold uppercase tracking-widest transition-all hover:bg-emerald-500/10" style={{border:'1px solid rgba(52,211,153,0.2)'}}>
                   <User className="w-4 h-4" />
                   <span className="hidden sm:block">{user.email?.split('@')[0] || 'Konto'}</span>
                 </button>
               ) : (
-                <button onClick={() => setShowLogin(true)} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500 text-black text-[10px] font-bold uppercase tracking-widest hover:bg-amber-400 transition-all">
+                <button onClick={() => setShowLogin(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 text-black text-[10px] font-black uppercase tracking-widest hover:bg-amber-400 transition-all">
                   <User className="w-4 h-4" />
                   <span className="hidden sm:block">{lang === 'EN' ? 'Log In' : 'Zaloguj'}</span>
                 </button>
               )}
-              <button onClick={() => setIsDarkMode(!isDarkMode)} className="w-10 h-10 flex items-center justify-center rounded-full bg-slate-800 dark:bg-[#121212] text-amber-400 border border-slate-700 hover:scale-110 transition-transform">
-                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              <button onClick={() => setIsDarkMode(!isDarkMode)} className="w-9 h-9 flex items-center justify-center rounded-xl text-white/40 hover:text-amber-400 transition-colors" style={{border:'1px solid rgba(255,255,255,0.08)'}}>
+                {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               </button>
             </div>
           </div>
         </nav>
 
-        <main>
+        <main className="pt-16">
           {currentView === 'home' && <HomeView t={t} />}
           {currentView === 'tutorials' && <UnderConstruction t={t} />}
           {currentView === 'prompt-builder' && <UnderConstruction t={t} />}
@@ -1136,58 +1258,53 @@ export default function App() {
         {/* MODAL LOGOWANIA */}
         {showLogin && <LoginModal onClose={() => setShowLogin(false)} lang={lang} />}
 
-        <footer className="bg-slate-50 dark:bg-[#050505] py-12 border-t border-slate-200 dark:border-[#111] transition-colors duration-500 font-sans">
-          <div className="max-w-[1400px] mx-auto px-4 flex flex-col gap-8">
+        <footer className="bg-black border-t font-sans" style={{borderColor:'rgba(255,255,255,0.06)'}}>
+          <div className="max-w-[1400px] mx-auto px-6 py-16 flex flex-col gap-12">
 
-            {/* Newsletter */}
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6 border-b border-slate-200 dark:border-[#222] pb-8">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-widest text-black dark:text-white mb-1">
-                  {lang === 'EN' ? 'Stay in the loop' : 'Bądź na bieżąco'}
-                </p>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                  {lang === 'EN'
-                    ? 'Subscribe to receive updates and marketing communications from AI Flow Academy.'
-                    : 'Zapisz się aby otrzymywać aktualizacje i komunikaty marketingowe od AI Flow Academy.'}
+            {/* Top row */}
+            <div className="flex flex-col md:flex-row justify-between gap-12">
+              {/* Brand */}
+              <div className="max-w-xs">
+                <img src="/logo.png" alt="AI Flow" className="h-8 w-auto mb-4" />
+                <p className="text-[11px] text-white/30 leading-relaxed">
+                  {lang === 'EN' ? 'Professional AI education platform for creators, coaches and entrepreneurs.' : 'Profesjonalna platforma edukacji AI dla twórców, coachów i przedsiębiorców.'}
                 </p>
               </div>
-              {newsletterSent ? (
-                <p className="text-emerald-500 font-bold text-[10px] uppercase tracking-widest">✓ {lang === 'EN' ? 'Thank you!' : 'Dziękujemy!'}</p>
-              ) : (
-                <form onSubmit={handleNewsletter} className="flex flex-col gap-2 w-full max-w-sm">
-                  <div className="flex gap-2">
-                    <input
-                      type="email"
-                      required
-                      placeholder={lang === 'EN' ? 'Your email address' : 'Twój adres e-mail'}
-                      value={newsletterEmail}
-                      onChange={e => setNewsletterEmail(e.target.value)}
-                      className="flex-grow bg-white dark:bg-[#121212] border border-black dark:border-[#333] px-3 py-2 text-xs text-black dark:text-white outline-none focus:border-amber-500 transition-colors"
-                    />
-                    <button type="submit" className="bg-amber-500 hover:bg-amber-400 text-black font-bold text-[10px] uppercase tracking-widest px-4 py-2 transition-colors">
-                      {lang === 'EN' ? 'Subscribe' : 'Zapisz'}
-                    </button>
-                  </div>
-                  <label className="flex items-start gap-2 cursor-pointer">
-                    <input type="checkbox" required className="mt-0.5 accent-amber-500" />
-                    <span className="text-[9px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                      {lang === 'EN'
-                        ? 'I agree to receive marketing communications from AI Flow Academy. I can unsubscribe at any time.'
-                        : 'Wyrażam zgodę na otrzymywanie komunikatów marketingowych od AI Flow Academy. Mogę zrezygnować w dowolnym momencie.'}
-                      {' '}<button type="button" onClick={() => setCurrentView('datenschutz')} className="text-amber-500 underline">{lang === 'EN' ? 'Privacy Policy' : 'Polityka Prywatności'}</button>
-                    </span>
-                  </label>
-                </form>
-              )}
+
+              {/* Newsletter */}
+              <div className="max-w-sm w-full">
+                <p className="text-xs font-black uppercase tracking-[0.3em] text-white mb-1">{lang === 'EN' ? 'Stay updated' : 'Bądź na bieżąco'}</p>
+                <p className="text-[10px] text-white/30 mb-4">{lang === 'EN' ? 'Marketing updates from AI Flow Academy.' : 'Aktualizacje marketingowe od AI Flow Academy.'}</p>
+                {newsletterSent ? (
+                  <p className="text-emerald-400 font-bold text-[11px] uppercase tracking-widest">✓ {lang === 'EN' ? 'Thank you!' : 'Dziękujemy!'}</p>
+                ) : (
+                  <form onSubmit={handleNewsletter} className="flex flex-col gap-2">
+                    <div className="flex gap-2">
+                      <input type="email" required placeholder={lang === 'EN' ? 'Email address' : 'Adres email'} value={newsletterEmail} onChange={e => setNewsletterEmail(e.target.value)}
+                        className="flex-grow bg-white/5 border px-3 py-2.5 text-xs text-white outline-none focus:border-amber-500 transition-colors rounded-lg" style={{borderColor:'rgba(255,255,255,0.1)'}} />
+                      <button type="submit" className="bg-amber-500 hover:bg-amber-400 text-black font-black text-[10px] uppercase tracking-widest px-4 rounded-lg transition-colors">
+                        {lang === 'EN' ? 'Join' : 'Dołącz'}
+                      </button>
+                    </div>
+                    <label className="flex items-start gap-2 cursor-pointer">
+                      <input type="checkbox" required className="mt-0.5 accent-amber-500" />
+                      <span className="text-[9px] text-white/25 leading-relaxed">
+                        {lang === 'EN' ? 'I agree to marketing communications. ' : 'Zgadzam się na komunikaty marketingowe. '}
+                        <button type="button" onClick={() => setCurrentView('datenschutz')} className="text-amber-500 underline">{lang === 'EN' ? 'Privacy Policy' : 'Polityka Prywatności'}</button>
+                      </span>
+                    </label>
+                  </form>
+                )}
+              </div>
             </div>
 
-            {/* Links */}
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <p className="text-[9px] text-slate-500 dark:text-slate-600 uppercase tracking-widest font-bold">{t.footer_copy}</p>
-              <div className="flex items-center gap-4">
-                <button onClick={() => setCurrentView('impressum')} className="text-[9px] text-slate-500 dark:text-slate-600 uppercase tracking-widest font-bold hover:text-amber-500 transition-colors">Impressum</button>
-                <button onClick={() => setCurrentView('datenschutz')} className="text-[9px] text-slate-500 dark:text-slate-600 uppercase tracking-widest font-bold hover:text-amber-500 transition-colors">{lang === 'EN' ? 'Privacy Policy' : 'Datenschutz / RODO'}</button>
-                <button onClick={() => setCurrentView('regulamin')} className="text-[9px] text-slate-500 dark:text-slate-600 uppercase tracking-widest font-bold hover:text-amber-500 transition-colors">{lang === 'EN' ? 'Terms' : 'Regulamin'}</button>
+            {/* Bottom row */}
+            <div className="flex flex-col md:flex-row justify-between items-center gap-4 pt-8" style={{borderTop:'1px solid rgba(255,255,255,0.06)'}}>
+              <p className="text-[9px] text-white/20 uppercase tracking-widest font-bold">{t.footer_copy}</p>
+              <div className="flex items-center gap-6">
+                {[['impressum','Impressum'], ['datenschutz', lang==='EN'?'Privacy':'Datenschutz'], ['regulamin', lang==='EN'?'Terms':'Regulamin']].map(([view, label]) => (
+                  <button key={view} onClick={() => setCurrentView(view)} className="text-[9px] text-white/20 uppercase tracking-widest font-bold hover:text-amber-500 transition-colors">{label}</button>
+                ))}
               </div>
             </div>
           </div>
@@ -1195,21 +1312,17 @@ export default function App() {
 
         {/* COOKIE BANNER */}
         {!cookiesAccepted && (
-          <div className="fixed bottom-0 left-0 right-0 z-50 bg-slate-900 dark:bg-[#0A0A0A] border-t border-amber-500/30 p-4 font-sans shadow-2xl">
+          <div className="fixed bottom-0 left-0 right-0 z-50 p-4 font-sans" style={{background:'rgba(0,0,0,0.95)',backdropFilter:'blur(20px)',borderTop:'1px solid rgba(245,158,11,0.2)'}}>
             <div className="max-w-[1400px] mx-auto flex flex-col md:flex-row items-center gap-4 justify-between">
-              <p className="text-[11px] text-slate-300 leading-relaxed max-w-2xl">
-                {lang === 'EN'
-                  ? '🍪 We use cookies and collect email addresses for contact and marketing purposes. By continuing, you accept our '
-                  : '🍪 Używamy plików cookie i zbieramy adresy email w celach kontaktowych i marketingowych. Kontynuując, akceptujesz naszą '}
-                <button onClick={() => setCurrentView('datenschutz')} className="text-amber-500 underline font-bold">
-                  {lang === 'EN' ? 'Privacy Policy' : 'Politykę Prywatności'}
-                </button>.
+              <p className="text-[11px] text-white/50 leading-relaxed max-w-2xl">
+                🍪 {lang === 'EN' ? 'We use cookies and collect emails for contact and marketing. By continuing you accept our ' : 'Używamy cookies i zbieramy emaile w celach kontaktowych i marketingowych. Kontynuując akceptujesz naszą '}
+                <button onClick={() => setCurrentView('datenschutz')} className="text-amber-500 underline font-bold">{lang === 'EN' ? 'Privacy Policy' : 'Politykę Prywatności'}</button>.
               </p>
               <div className="flex gap-3 flex-shrink-0">
-                <button onClick={() => handleCookies(true)} className="bg-amber-500 text-black font-bold text-[10px] uppercase tracking-widest px-6 py-2 hover:bg-amber-400 transition-colors">
+                <button onClick={() => handleCookies(true)} className="bg-amber-500 text-black font-black text-[10px] uppercase tracking-widest px-6 py-2 rounded-lg hover:bg-amber-400 transition-colors">
                   {lang === 'EN' ? 'Accept' : 'Akceptuję'}
                 </button>
-                <button onClick={() => handleCookies(false)} className="border border-slate-600 text-slate-400 font-bold text-[10px] uppercase tracking-widest px-4 py-2 hover:border-slate-400 transition-colors">
+                <button onClick={() => handleCookies(false)} className="text-white/40 font-bold text-[10px] uppercase tracking-widest px-4 py-2 rounded-lg hover:text-white/60 transition-colors" style={{border:'1px solid rgba(255,255,255,0.1)'}}>
                   {lang === 'EN' ? 'Reject' : 'Odrzuć'}
                 </button>
               </div>
