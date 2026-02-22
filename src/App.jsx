@@ -1134,8 +1134,7 @@ export default function App() {
         </main>
 
         {/* MODAL LOGOWANIA */}
-        {showLogin && <LoginModal onClose={() => setShowLogin(false)} lang={lang} />}}
-        </main>
+        {showLogin && <LoginModal onClose={() => setShowLogin(false)} lang={lang} />}
 
         <footer className="bg-slate-50 dark:bg-[#050505] py-12 border-t border-slate-200 dark:border-[#111] transition-colors duration-500 font-sans">
           <div className="max-w-[1400px] mx-auto px-4 flex flex-col gap-8">
