@@ -405,7 +405,7 @@ const HomeView = ({ t, onLoginRequest }) => {
               <span className="relative z-10">{t.lang === 'EN' ? '🚀 Get Full Access' : '🚀 Uzyskaj Pełny Dostęp'}</span>
               <div className="absolute inset-0 bg-amber-400 translate-y-full group-hover:translate-y-0 transition-transform duration-300"/>
             </button>
-            <button onClick={() => { document.getElementById('video-section')?.scrollIntoView({ behavior: 'smooth' }); }} className="px-8 py-4 border border-white/20 text-white font-bold text-sm uppercase tracking-widest rounded-xl hover:border-amber-500/50 hover:bg-white/5 transition-all flex items-center gap-2">
+            <button onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })} className="px-8 py-4 border border-white/20 text-white font-bold text-sm uppercase tracking-widest rounded-xl hover:border-amber-500/50 hover:bg-white/5 transition-all flex items-center gap-2">
               <Play className="w-4 h-4 text-amber-500" />
               {t.lang === 'EN' ? 'Watch Demo' : 'Obejrzyj Demo'}
             </button>
