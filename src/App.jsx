@@ -905,19 +905,10 @@ export default function App() {
   const t = { ...translations[lang], lang };
 
   useEffect(() => {
-  useEffect(() => {
     signInAnonymously(auth).catch(err => console.error("Auth error:", err));
-    
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
     });
-    
-    return () => unsubscribe();
-    
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-    });
-    
     return () => unsubscribe();
   }, []);
 
