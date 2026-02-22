@@ -246,8 +246,7 @@ const LoginModal = ({ onClose, lang }) => {
 
         {/* Logo */}
         <div className="flex items-center gap-2 mb-6">
-          <div className="w-8 h-8 bg-amber-500 rounded flex items-center justify-center"><Zap className="w-5 h-5 text-black" /></div>
-          <span className="font-bold text-black dark:text-white uppercase tracking-tight">AI FLOW</span>
+          <img src="/logo.png" alt="AI Flow" className="h-8 w-auto" />
         </div>
 
         {/* Tytuł */}
@@ -323,7 +322,7 @@ const HomeView = ({ t }) => {
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showIban, setShowIban] = useState(false);
-  const [isVideoActive, setIsVideoActive] = useState(false);
+  const [isVideoActive, setIsVideoActive] = useState(true); // autostart
   const [progress, setProgress] = useState(0);
   const [isLocked, setIsLocked] = useState(false);
   
@@ -1026,6 +1025,26 @@ Rules:
 
 
 // =========================================================================
+// UNDER CONSTRUCTION
+// =========================================================================
+const UnderConstruction = ({ t }) => (
+  <div className="min-h-screen bg-black flex flex-col items-center justify-center text-center p-8 font-sans">
+    <div className="max-w-lg">
+      <div className="text-6xl mb-6">🚧</div>
+      <h1 className="text-3xl md:text-5xl font-extrabold uppercase tracking-tighter text-white mb-4">
+        Under Construction
+      </h1>
+      <p className="text-slate-400 text-sm uppercase tracking-widest font-bold mb-2">
+        {t.lang === 'EN' ? 'This section is coming soon.' : 'Ta sekcja jest w przygotowaniu.'}
+      </p>
+      <p className="text-slate-600 text-xs uppercase tracking-widest font-bold">
+        AI Flow Academy — 2026
+      </p>
+    </div>
+  </div>
+);
+
+// =========================================================================
 // GŁÓWNY KOMPONENT APP
 // =========================================================================
 export default function App() {
@@ -1077,10 +1096,7 @@ export default function App() {
         <nav className="bg-slate-900 dark:bg-[#050505] border-b border-slate-800 dark:border-[#1A1A1A] sticky top-0 z-50 h-16 flex items-center px-4 font-sans">
           <div className="max-w-[1400px] mx-auto w-full flex items-center justify-between">
             <div className="flex items-center gap-2 cursor-pointer" onClick={() => setCurrentView('home')}>
-              <div className="w-8 h-8 bg-amber-500 rounded flex items-center justify-center shadow-lg">
-                <Zap className="w-5 h-5 text-black" />
-              </div>
-              <span className="text-white font-bold text-lg hidden sm:block tracking-tight uppercase">AI FLOW</span>
+              <img src="/logo.png" alt="AI Flow" className="h-9 w-auto" />
             </div>
             <div className="flex items-center gap-3">
               <div className="flex bg-slate-800 dark:bg-[#121212] p-1 rounded-xl border border-slate-700 dark:border-[#222]">
@@ -1110,8 +1126,8 @@ export default function App() {
 
         <main>
           {currentView === 'home' && <HomeView t={t} />}
-          {currentView === 'tutorials' && <TutorialsView user={user} setCurrentView={setCurrentView} t={t} onLoginRequest={() => setShowLogin(true)} />}
-          {currentView === 'prompt-builder' && <PromptBuilderView t={t} />}
+          {currentView === 'tutorials' && <UnderConstruction t={t} />}
+          {currentView === 'prompt-builder' && <UnderConstruction t={t} />}
           {currentView === 'impressum' && <ImpressumView setCurrentView={setCurrentView} lang={lang} />}
           {currentView === 'datenschutz' && <DatenschutzView setCurrentView={setCurrentView} lang={lang} />}
           {currentView === 'regulamin' && <RegulaminView setCurrentView={setCurrentView} lang={lang} />}
