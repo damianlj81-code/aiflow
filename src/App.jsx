@@ -1048,7 +1048,7 @@ const UnderConstruction = ({ t }) => (
 // GŁÓWNY KOMPONENT APP
 // =========================================================================
 export default function App() {
-  const [currentView, setCurrentView] = useState('prompt-builder');
+  const [currentView, setCurrentView] = useState('home');
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [user, setUser] = useState(null);
   const [lang, setLang] = useState('PL');
