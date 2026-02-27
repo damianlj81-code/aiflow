@@ -318,6 +318,170 @@ const LoginModal = ({ onClose, lang }) => {
 // =========================================================================
 // WIDOK 1: GŁÓWNA PLATFORMA (VOD) — REDESIGN
 // =========================================================================
+// =========================================================================
+// FAQ SECTION
+// =========================================================================
+const FAQSection = ({ t }) => {
+  const [openIdx, setOpenIdx] = useState(null);
+  const [customQ, setCustomQ] = useState('');
+  const [email, setEmail] = useState('');
+  const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [selectedQ, setSelectedQ] = useState('');
+
+  const faqs = [
+    {
+      q: t.lang === 'EN' ? 'When do tutorials start?' : 'Kiedy startują tutoriale?',
+      a: t.lang === 'EN' ? 'We are currently working on the first video materials. Leave your email on the home page and you will be the first to know about the launch.' : 'Aktualnie pracujemy nad pierwszymi materiałami wideo. Zostaw email na stronie głównej a będziesz pierwsza/y informowana/y o starcie.'
+    },
+    {
+      q: t.lang === 'EN' ? 'Do I need AI experience?' : 'Czy potrzebuję doświadczenia z AI?',
+      a: t.lang === 'EN' ? 'No! AI Flow Academy is designed for complete beginners. We start from scratch — step by step, without unnecessary jargon.' : 'Nie! AI Flow Academy jest stworzona dla kompletnych początkujących. Zaczynamy od zera — krok po kroku, bez zbędnego żargonu.'
+    },
+    {
+      q: t.lang === 'EN' ? 'What tools will be covered?' : 'Jakie narzędzia będą omawiane?',
+      a: t.lang === 'EN' ? 'We focus on free and cheap tools: Pika Labs, Leonardo AI, D-ID, Murf AI, CapCut, Adobe Firefly, ElevenLabs, Grok and more. No expensive subscriptions required.' : 'Skupiamy się na darmowych i tanich narzędziach: Pika Labs, Leonardo AI, D-ID, Murf AI, CapCut, Adobe Firefly, ElevenLabs, Grok i więcej. Bez drogich subskrypcji.'
+    },
+    {
+      q: t.lang === 'EN' ? 'What is included in the paid plan?' : 'Co zawiera płatny plan?',
+      a: t.lang === 'EN' ? 'The paid plan gives you: access to the full video library (100+ tutorials), 3x weekly live sessions with Damian, the AI avatar builder, Studio Pro tools with guides, and access to the private members community.' : 'Płatny plan daje Ci: dostęp do pełnej biblioteki wideo (100+ tutoriali), live sesje 3x w tygodniu z Damianem, kreator awatarów AI, narzędzia Studio Pro z poradnikami oraz dostęp do zamkniętej społeczności.'
+    },
+    {
+      q: t.lang === 'EN' ? 'Can I cancel at any time?' : 'Czy mogę zrezygnować w dowolnym momencie?',
+      a: t.lang === 'EN' ? 'Yes! You can cancel your subscription at any time through the customer portal. Access continues until the end of the paid period — no hidden fees.' : 'Tak! Możesz anulować subskrypcję w dowolnym momencie przez portal klienta. Dostęp trwa do końca opłaconego okresu — bez ukrytych opłat.'
+    },
+    {
+      q: t.lang === 'EN' ? 'Is there a free trial?' : 'Czy jest darmowy okres próbny?',
+      a: t.lang === 'EN' ? 'The tools in Studio Pro are completely free to use — no account needed. The paid plan gives you access to tutorials and live sessions.' : 'Narzędzia w Studio Pro są całkowicie darmowe — bez konta. Płatny plan daje dostęp do tutoriali i live sesji.'
+    },
+  ];
+
+  const handleSend = async () => {
+    if (!email || (!selectedQ && !customQ)) return;
+    setSending(true);
+    try {
+      await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'questions'), {
+        email,
+        question: customQ || selectedQ,
+        date: new Date().toISOString(),
+      });
+      setSent(true);
+    } catch(err) { console.error(err); }
+    setSending(false);
+  };
+
+  return (
+    <section className="bg-white dark:bg-[#050505] py-24 px-4 border-t border-black/5 dark:border-white/5 transition-colors duration-700">
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-6">
+            <span className="w-1.5 h-1.5 bg-amber-500 rounded-full"/>
+            FAQ
+          </div>
+          <h2 className="text-3xl md:text-4xl font-black text-black dark:text-white uppercase tracking-tighter">
+            {t.lang === 'EN' ? 'Frequently Asked' : 'Najczęściej zadawane'}
+            <span className="text-amber-500"> {t.lang === 'EN' ? 'Questions' : 'pytania'}</span>
+          </h2>
+        </div>
+
+        <div className="space-y-3 mb-16">
+          {faqs.map((faq, i) => (
+            <div key={i}
+              className={`border rounded-2xl overflow-hidden transition-all duration-300 cursor-pointer ${openIdx === i ? 'border-amber-500/40 bg-amber-500/5' : 'border-black/5 dark:border-white/5 bg-white dark:bg-[#0A0A0A] hover:border-amber-500/20'}`}
+              onClick={() => setOpenIdx(openIdx === i ? null : i)}>
+              <div className="flex items-center justify-between px-6 py-4 gap-4">
+                <p className="text-sm font-bold text-black dark:text-white">{faq.q}</p>
+                <span className={`text-amber-500 text-lg font-black transition-transform duration-300 flex-shrink-0 ${openIdx === i ? 'rotate-45' : ''}`}>+</span>
+              </div>
+              {openIdx === i && (
+                <div className="px-6 pb-5">
+                  <p className="text-sm text-slate-500 leading-relaxed">{faq.a}</p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Formularz pytania */}
+        <div className="bg-white dark:bg-[#0A0A0A] border border-black/5 dark:border-amber-500/10 rounded-2xl p-8 md:p-10">
+          <div className="flex items-start gap-4 mb-8">
+            <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center flex-shrink-0">
+              <span className="text-black font-black text-lg">?</span>
+            </div>
+            <div>
+              <h3 className="text-lg font-black text-black dark:text-white uppercase tracking-tight">
+                {t.lang === 'EN' ? "Don't see your question?" : 'Nie ma Twojego pytania?'}
+              </h3>
+              <p className="text-slate-500 text-xs mt-1">
+                {t.lang === 'EN' ? 'Choose from the list or write your own — I will reply as soon as possible.' : 'Wybierz z listy lub napisz własne — odpiszę najszybciej jak to możliwe.'}
+              </p>
+            </div>
+          </div>
+
+          {sent ? (
+            <div className="flex items-center justify-center gap-3 py-8 text-emerald-500 font-bold uppercase tracking-widest text-sm">
+              <span className="text-2xl">✓</span>
+              {t.lang === 'EN' ? 'Sent! I will reply soon.' : 'Wysłane! Odpiszę wkrótce.'}
+            </div>
+          ) : (
+            <div className="space-y-5">
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                  {t.lang === 'EN' ? 'Choose a question' : 'Wybierz pytanie'}
+                </label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {faqs.map((faq, i) => (
+                    <button key={i}
+                      onClick={() => { setSelectedQ(faq.q); setCustomQ(''); }}
+                      className={`text-left px-4 py-3 rounded-xl text-xs font-medium border transition-all ${selectedQ === faq.q ? 'border-amber-500 bg-amber-500/10 text-amber-600 dark:text-amber-400' : 'border-black/5 dark:border-white/5 text-slate-600 dark:text-slate-400 hover:border-amber-500/30'}`}>
+                      {faq.q}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                  {t.lang === 'EN' ? 'Or write your own' : 'Lub napisz własne'}
+                </label>
+                <textarea
+                  value={customQ}
+                  onChange={e => { setCustomQ(e.target.value); setSelectedQ(''); }}
+                  placeholder={t.lang === 'EN' ? 'Your question...' : 'Twoje pytanie...'}
+                  rows={3}
+                  className="w-full bg-slate-50 dark:bg-[#111] border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-black dark:text-white placeholder-slate-400 focus:outline-none focus:border-amber-500 transition-colors resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">
+                  {t.lang === 'EN' ? 'Your email (to receive reply)' : 'Twój email (żeby odpisać)'}
+                </label>
+                <div className="flex gap-3">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    placeholder={t.lang === 'EN' ? 'email@example.com' : 'email@przykład.pl'}
+                    className="flex-grow bg-slate-50 dark:bg-[#111] border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-black dark:text-white placeholder-slate-400 focus:outline-none focus:border-amber-500 transition-colors"
+                  />
+                  <button
+                    onClick={handleSend}
+                    disabled={sending || (!selectedQ && !customQ) || !email}
+                    className="bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-black font-black text-[10px] uppercase tracking-widest px-6 rounded-xl transition-all">
+                    {sending ? '...' : t.lang === 'EN' ? 'Send →' : 'Wyślij →'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+// =========================================================================
 const HomeView = ({ t, onLoginRequest }) => {
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -416,27 +580,70 @@ const HomeView = ({ t, onLoginRequest }) => {
               {t.lang === 'EN' ? '— Featured Content —' : '— Wyróżniony Materiał —'}
             </p>
           </div>
-          {/* Under Construction placeholder */}
-          <div className="relative rounded-2xl overflow-hidden border border-black/5 dark:border-white/5 aspect-video bg-black flex flex-col items-center justify-center text-center px-8">
-            <div className="absolute inset-0 opacity-[0.03]" style={{backgroundImage:'linear-gradient(#f59e0b 1px,transparent 1px),linear-gradient(90deg,#f59e0b 1px,transparent 1px)',backgroundSize:'40px 40px'}}/>
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-amber-500/5 rounded-full blur-[80px] pointer-events-none"/>
-            <div className="relative z-10">
-              <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-6">
-                <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse"/>
-                {t.lang === 'EN' ? 'Coming Soon' : 'Już wkrótce'}
+          {/* Manifest / Historia */}
+          <div className="relative rounded-2xl overflow-hidden border border-black/5 dark:border-amber-500/10 bg-white dark:bg-[#0A0A0A] px-8 py-12 md:px-16">
+            <div className="absolute top-0 left-0 w-1 h-full bg-amber-500 rounded-l-2xl"/>
+            <div className="absolute top-1/2 right-0 -translate-y-1/2 w-64 h-64 bg-amber-500/5 rounded-full blur-[80px] pointer-events-none"/>
+
+            <div className="relative z-10 max-w-2xl">
+              <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-8">
+                <span className="w-1.5 h-1.5 bg-amber-500 rounded-full"/>
+                {t.lang === 'EN' ? 'Our Story' : 'Nasza Historia'}
               </div>
-              <h3 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tighter mb-3">
-                {t.lang === 'EN' ? 'Content in preparation' : 'Treści w przygotowaniu'}
-              </h3>
-              <p className="text-white/30 text-sm max-w-md">
-                {t.lang === 'EN' ? 'Our team is working on exclusive video content. Stay tuned!' : 'Nasz zespół pracuje nad ekskluzywnym contentem wideo. Wkrótce premiera!'}
-              </p>
+
+              <h2 className="text-2xl md:text-3xl font-black text-black dark:text-white uppercase tracking-tighter mb-6 leading-tight">
+                {t.lang === 'EN' ? 'Why AI Flow Academy?' : 'Dlaczego AI Flow Academy?'}
+              </h2>
+
+              <div className="space-y-4 text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
+                <p>{t.lang === 'EN'
+                  ? 'Like many people — I started with an investment in ready-made solutions.'
+                  : 'Jak wiele osób — zacząłem od inwestycji w gotowe rozwiązania.'}</p>
+                <p>{t.lang === 'EN'
+                  ? 'It turned out to be a good lesson. Not so much about AI, but about looking around before the next purchase. It turned out that most things can be done yourself — cheaper, and often better.'
+                  : 'Okazała się to dobra lekcja. Nie tyle o AI, co o tym żeby przed kolejnym zakupem najpierw się rozejrzeć. Okazało się że większość rzeczy można zrobić samemu — taniej, a często lepiej.'}</p>
+                <p className="text-black dark:text-white font-bold">
+                  {t.lang === 'EN' ? 'From that lesson, AI Flow Academy was born.' : 'Z tej lekcji powstała AI Flow Academy.'}
+                </p>
+
+                <div className="pt-2 space-y-2">
+                  {[
+                    t.lang === 'EN' ? '🎬 Create AI videos and avatars without expensive apps' : '🎬 Tworzyć filmy i awatary AI bez drogich aplikacji',
+                    t.lang === 'EN' ? '🆓 Use tools that are free or almost free' : '🆓 Używać narzędzi które są dostępne za darmo lub prawie za darmo',
+                    t.lang === 'EN' ? '⚡ Automate work to save hours every week' : '⚡ Automatyzować pracę tak żeby oszczędzać godziny tygodniowo',
+                  ].map((item, i) => (
+                    <div key={i} className="flex items-start gap-3">
+                      <span className="text-sm">{item}</span>
+                    </div>
+                  ))}
+                </div>
+
+                <p className="text-slate-500 dark:text-slate-500 italic text-xs pt-2">
+                  {t.lang === 'EN'
+                    ? 'Without selling you more things during the lesson.'
+                    : 'Bez sprzedawania Ci kolejnych rzeczy w trakcie nauki.'}
+                </p>
+
+                <p className="pt-2">{t.lang === 'EN'
+                  ? 'The result of this philosophy? Profiles with over a million views. Built without big budgets — just knowledge and the right tools.'
+                  : 'Efekt tej filozofii? Profile z ponad milionem wyświetleń. Zbudowane bez wielkich budżetów — tylko z wiedzą i odpowiednimi narzędziami.'}
+                </p>
+              </div>
+
+              <div className="mt-8 pt-6 border-t border-black/5 dark:border-white/5 flex items-center justify-between flex-wrap gap-4">
+                <p className="text-xs text-slate-500 italic">— Damian, AI Flow Academy</p>
+                <div className="inline-flex items-center gap-2 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em]">
+                  <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"/>
+                  {t.lang === 'EN' ? 'First tutorials coming soon' : 'Pierwsze tutoriale już wkrótce'}
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── WHAT YOU GET ──────────────────────────────────── */}
+      {/* ── FAQ + KONTAKT ─────────────────────────────────── */}
+      <FAQSection t={t} />
       <section className="bg-slate-50 dark:bg-[#050505] py-24 px-4 border-t border-black/5 dark:border-white/5 transition-colors duration-700">
         <div className="max-w-5xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-black text-black dark:text-white uppercase tracking-tighter text-center mb-16">
@@ -665,7 +872,7 @@ const TutorialsView = ({ t, user, onLoginRequest }) => {
 // =========================================================================
 // STUDIO PRO — NARZĘDZIA AI
 // =========================================================================
-const StudioProView = ({ t, user, onLoginRequest }) => {
+const StudioProView = ({ t, user, onLoginRequest, onNavigate }) => {
   const isLoggedIn = user && !user.isAnonymous;
 
   const tools = [
@@ -749,6 +956,16 @@ const StudioProView = ({ t, user, onLoginRequest }) => {
       color: 'from-sky-500/20 to-blue-500/20',
       border: 'border-sky-500/20',
     },
+    {
+      name: t.lang === 'EN' ? 'Avatar Builder' : 'Kreator Awatarów',
+      category: t.lang === 'EN' ? 'Prompt Generator' : 'Generator Promptów',
+      desc: t.lang === 'EN' ? 'Our built-in avatar prompt creator. Choose body type, clothing, background and generate a perfect prompt for any AI image generator.' : 'Nasz wbudowany kreator promptów do awatarów. Wybierz sylwetkę, ubranie, tło i wygeneruj idealny prompt do dowolnego generatora AI.',
+      free: t.lang === 'EN' ? '100% free — built into AI Flow Academy' : '100% darmowy — wbudowany w AI Flow Academy',
+      link: 'internal:avatar-builder',
+      icon: '👤',
+      color: 'from-amber-500/20 to-yellow-500/20',
+      border: 'border-amber-500/30',
+    },
   ];
 
   return (
@@ -794,18 +1011,16 @@ const StudioProView = ({ t, user, onLoginRequest }) => {
 
               {/* Buttons */}
               <div className="flex gap-2">
-                <a href={tool.link} target="_blank" rel="noopener noreferrer"
-                  className="flex-grow py-2.5 bg-black dark:bg-white text-white dark:text-black font-black text-[10px] uppercase tracking-widest rounded-xl text-center hover:bg-amber-500 dark:hover:bg-amber-500 dark:hover:text-black transition-all">
-                  {t.lang === 'EN' ? 'Open Tool →' : 'Otwórz →'}
-                </a>
-                {isLoggedIn ? (
-                  <button className="px-3 py-2.5 border border-black/10 dark:border-white/10 rounded-xl text-[10px] font-bold text-slate-500 hover:border-amber-500/50 hover:text-amber-500 transition-all uppercase tracking-widest">
-                    {t.lang === 'EN' ? 'Tutorial' : 'Tutorial'}
+                {tool.link.startsWith('internal:') ? (
+                  <button onClick={() => onNavigate(tool.link.replace('internal:', ''))}
+                    className="flex-grow py-2.5 bg-amber-500 text-black font-black text-[10px] uppercase tracking-widest rounded-xl text-center hover:bg-amber-400 transition-all">
+                    {t.lang === 'EN' ? 'Open Tool →' : 'Otwórz →'}
                   </button>
                 ) : (
-                  <button onClick={onLoginRequest} className="px-3 py-2.5 border border-amber-500/30 rounded-xl text-[10px] font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 transition-all uppercase tracking-widest">
-                    <Lock className="w-3 h-3"/>
-                  </button>
+                  <a href={tool.link} target="_blank" rel="noopener noreferrer"
+                    className="flex-grow py-2.5 bg-black dark:bg-white text-white dark:text-black font-black text-[10px] uppercase tracking-widest rounded-xl text-center hover:bg-amber-500 dark:hover:bg-amber-500 dark:hover:text-black transition-all">
+                    {t.lang === 'EN' ? 'Open Tool →' : 'Otwórz →'}
+                  </a>
                 )}
               </div>
             </div>
@@ -836,9 +1051,6 @@ const StudioProView = ({ t, user, onLoginRequest }) => {
 // =========================================================================
 const AvatarBuilderView = ({ t }) => {
   const [copied, setCopied] = useState(false);
-  const [aiPrompt, setAiPrompt] = useState('');
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiCopied, setAiCopied] = useState(false);
   const [subject, setSubject] = useState('1girl, beautiful woman');
   const [bodyType, setBodyType] = useState('slim and toned body');
   const [breastSize, setBreastSize] = useState('medium breasts');
@@ -873,33 +1085,6 @@ const AvatarBuilderView = ({ t }) => {
     navigator.clipboard.writeText(generatePrompt()).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    });
-  };
-
-  const generateAiPrompt = async () => {
-    setAiLoading(true);
-    setAiPrompt('');
-    const rawPrompt = generatePrompt();
-    try {
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          model: "claude-sonnet-4-20250514",
-          max_tokens: 1000,
-          messages: [{ role: "user", content: `You are an expert AI image prompt engineer. Based on these parameters: ${rawPrompt} — generate ONE professional, highly detailed image generation prompt for Midjourney/Stable Diffusion. Write ONLY the final prompt, 80-150 words, entirely in English, no explanations.` }]
-        })
-      });
-      const data = await response.json();
-      setAiPrompt(data.content?.map(i => i.text || '').join('').trim() || '');
-    } catch (err) { setAiPrompt('Error. Try again.'); }
-    setAiLoading(false);
-  };
-
-  const handleAiCopy = () => {
-    navigator.clipboard.writeText(aiPrompt).then(() => {
-      setAiCopied(true);
-      setTimeout(() => setAiCopied(false), 2000);
     });
   };
 
@@ -1008,22 +1193,9 @@ const AvatarBuilderView = ({ t }) => {
                 <div className="bg-slate-100 dark:bg-[#121212] p-4 min-h-[200px] text-black dark:text-white font-mono text-[10px] leading-relaxed break-words border border-black/10 dark:border-[#222] mb-4 rounded-xl">
                   <span className="text-amber-500 font-bold">{`> `}</span>{generatePrompt()}
                 </div>
-                <button onClick={handleCopy} className={`w-full py-3 font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all mb-3 ${copied ? 'bg-emerald-500 text-black' : 'bg-black dark:bg-amber-500 text-white dark:text-black hover:bg-amber-500 hover:text-black'}`}>
+                <button onClick={handleCopy} className={`w-full py-3 font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all ${copied ? 'bg-emerald-500 text-black' : 'bg-black dark:bg-amber-500 text-white dark:text-black hover:bg-amber-500 hover:text-black'}`}>
                   {copied ? '✓ Skopiowano!' : 'Kopiuj Prompt'}
                 </button>
-                <button onClick={generateAiPrompt} disabled={aiLoading} className="w-full py-3 font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all border border-amber-500/50 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 disabled:opacity-50">
-                  {aiLoading ? '⏳ Generuję...' : '✨ Ulepszony AI'}
-                </button>
-                {aiPrompt && (
-                  <div className="mt-4">
-                    <div className="bg-slate-100 dark:bg-[#121212] p-4 text-black dark:text-white font-mono text-[10px] leading-relaxed break-words border border-amber-500/30 rounded-xl mb-3">
-                      {aiPrompt}
-                    </div>
-                    <button onClick={handleAiCopy} className={`w-full py-3 font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all ${aiCopied ? 'bg-emerald-500 text-black' : 'bg-amber-500 text-black hover:bg-amber-400'}`}>
-                      {aiCopied ? '✓ Skopiowano!' : 'Kopiuj AI Prompt'}
-                    </button>
-                  </div>
-                )}
               </div>
             </div>
           </div>
@@ -1206,7 +1378,7 @@ export default function App() {
         <main className="pt-16">
           {currentView === 'home' && <HomeView t={t} />}
           {currentView === 'tutorials' && <TutorialsView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
-          {currentView === 'prompt-builder' && <StudioProView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
+          {currentView === 'prompt-builder' && <StudioProView t={t} user={user} onLoginRequest={() => setShowLogin(true)} onNavigate={setCurrentView} />}
           {currentView === 'avatar-builder' && <AvatarBuilderView t={t} />}
           {currentView === 'impressum' && <ImpressumView setCurrentView={setCurrentView} lang={lang} />}
           {currentView === 'datenschutz' && <DatenschutzView setCurrentView={setCurrentView} lang={lang} />}
