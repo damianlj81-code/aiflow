@@ -832,6 +832,208 @@ const StudioProView = ({ t, user, onLoginRequest }) => {
 };
 
 // =========================================================================
+// KREATOR AWATARÓW — PROMPT STUDIO
+// =========================================================================
+const AvatarBuilderView = ({ t }) => {
+  const [copied, setCopied] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiCopied, setAiCopied] = useState(false);
+  const [subject, setSubject] = useState('1girl, beautiful woman');
+  const [bodyType, setBodyType] = useState('slim and toned body');
+  const [breastSize, setBreastSize] = useState('medium breasts');
+  const [lowerAnatomy, setLowerAnatomy] = useState('none');
+  const [bodyHair, setBodyHair] = useState('none');
+  const [faceSelect, setFaceSelect] = useState('detailed symmetrical face, sharp features, natural skin');
+  const [hairLength, setHairLength] = useState('long');
+  const [hairColor, setHairColor] = useState('blonde');
+  const [hairStyle, setHairStyle] = useState('elegant updo hair, wedding style, revealing ears and earrings');
+  const [shoes, setShoes] = useState('elegant high heels, stilettos');
+  const [topClothing, setTopClothing] = useState('casual white t-shirt');
+  const [bottomClothing, setBottomClothing] = useState('blue denim jeans');
+  const [legwear, setLegwear] = useState('none');
+  const [bgSelect, setBgSelect] = useState('luxurious mansion interior, marble floors');
+
+  const generatePrompt = () => {
+    const parts = [
+      "full body shot", subject, bodyType, breastSize,
+      lowerAnatomy !== 'none' ? lowerAnatomy : '',
+      bodyHair !== 'none' ? bodyHair : '',
+      faceSelect, "stunning detailed eyes",
+      `${hairLength} ${hairColor} ${hairStyle}`,
+      topClothing, bottomClothing,
+      legwear !== 'none' ? legwear : '',
+      shoes, "wearing luxury pearl drop earrings", "cat eyes, sharp winged eyeliner",
+      bgSelect, "photorealistic, 8k resolution", 'masterpiece, high-end fashion photography, ultra-detailed, sharp focus, cinematic lighting'
+    ];
+    return parts.filter(p => p && p.trim() !== '').join(', ');
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(generatePrompt()).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  const generateAiPrompt = async () => {
+    setAiLoading(true);
+    setAiPrompt('');
+    const rawPrompt = generatePrompt();
+    try {
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          messages: [{ role: "user", content: `You are an expert AI image prompt engineer. Based on these parameters: ${rawPrompt} — generate ONE professional, highly detailed image generation prompt for Midjourney/Stable Diffusion. Write ONLY the final prompt, 80-150 words, entirely in English, no explanations.` }]
+        })
+      });
+      const data = await response.json();
+      setAiPrompt(data.content?.map(i => i.text || '').join('').trim() || '');
+    } catch (err) { setAiPrompt('Error. Try again.'); }
+    setAiLoading(false);
+  };
+
+  const handleAiCopy = () => {
+    navigator.clipboard.writeText(aiPrompt).then(() => {
+      setAiCopied(true);
+      setTimeout(() => setAiCopied(false), 2000);
+    });
+  };
+
+  const sectionClass = "bg-white dark:bg-[#0A0A0A] border border-black/10 dark:border-[#222] p-5 rounded-2xl mb-6 transition-all duration-500";
+  const labelClass = "block text-[9px] uppercase tracking-widest text-slate-500 mb-1.5 font-bold";
+  const inputClass = "w-full bg-slate-100 dark:bg-[#121212] border border-black/10 dark:border-[#333] px-3 py-2 text-xs dark:text-white focus:border-amber-500 focus:outline-none transition-all rounded-lg appearance-none";
+  const headerClass = "text-xs font-bold tracking-widest text-black dark:text-amber-500 mb-5 flex items-center gap-2 border-b border-black/10 dark:border-[#222] pb-3 uppercase";
+
+  return (
+    <div className="pb-20 p-4 md:p-8 bg-slate-50 dark:bg-black transition-colors duration-700 min-h-screen">
+      <div className="max-w-6xl mx-auto">
+        <div className="mb-8">
+          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-4">
+            <Crown className="w-3 h-3"/>
+            Prompt Studio — Edition Limitée
+          </div>
+          <h1 className="text-3xl md:text-4xl font-black text-black dark:text-white uppercase tracking-tighter">
+            {t.lang === 'EN' ? 'Avatar Builder' : 'Kreator Awatarów'}
+          </h1>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          <div className="lg:col-span-3">
+            <div className={sectionClass}>
+              <h2 className={headerClass}><PersonStanding className="w-4 h-4"/> I. Sylwetka & Anatomia</h2>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                {[
+                  { label: 'Podmiot', value: subject, set: setSubject, opts: [['1girl, beautiful woman','1 Kobieta'],['1boy, handsome man','1 Mężczyzna'],['2girls, beautiful women','2 Kobiety'],['1boy and 1girl, couple','Para']] },
+                  { label: 'Sylwetka', value: bodyType, set: setBodyType, opts: [['slim and toned body','Szczupła'],['curvy, hourglass figure','Klepsydra'],['athletic, muscular body','Atletyczna']] },
+                  { label: 'Biust', value: breastSize, set: setBreastSize, opts: [['small breasts','Mały'],['medium breasts','Średni'],['large heavy breasts','Duży']] },
+                  { label: 'Dół', value: lowerAnatomy, set: setLowerAnatomy, opts: [['none','Standard'],['noticeable crotch bulge','Bulge (M)'],['cameltoe','Cameltoe (K)']] },
+                  { label: 'Owłosienie', value: bodyHair, set: setBodyHair, opts: [['none','Gładkie'],['light body hair','Lekkie'],['hairy body','Mocne']] },
+                ].map(f => (
+                  <div key={f.label}>
+                    <label className={labelClass}>{f.label}</label>
+                    <div className="relative">
+                      <select value={f.value} onChange={e => f.set(e.target.value)} className={inputClass}>
+                        {f.opts.map(([v,l]) => <option key={v} value={v}>{l}</option>)}
+                      </select>
+                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className={sectionClass}>
+              <h2 className={headerClass}><User className="w-4 h-4"/> II. Twarz & Włosy</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { label: 'Fryzura', value: hairStyle, set: setHairStyle, opts: [['elegant updo hair, wedding style, revealing ears and earrings','Upięcie ślubne'],['high bun hair, sleek look','Wysoki kok'],['tied in a ponytail','Kucyk']] },
+                  { label: 'Kolor', value: hairColor, set: setHairColor, opts: [['blonde','Blond'],['brunette','Brązowe'],['black','Czarne'],['red','Rude']] },
+                  { label: 'Długość', value: hairLength, set: setHairLength, opts: [['short','Krótkie'],['long','Długie']] },
+                  { label: 'Twarz', value: faceSelect, set: setFaceSelect, opts: [['detailed symmetrical face, sharp features, natural skin','Klasyczna'],['cute face, freckles','Piegi']] },
+                ].map(f => (
+                  <div key={f.label}>
+                    <label className={labelClass}>{f.label}</label>
+                    <div className="relative">
+                      <select value={f.value} onChange={e => f.set(e.target.value)} className={inputClass}>
+                        {f.opts.map(([v,l]) => <option key={v} value={v}>{l}</option>)}
+                      </select>
+                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className={sectionClass}>
+              <h2 className={headerClass}><Shirt className="w-4 h-4"/> III. Ubranie & Tło</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  { label: 'Góra', value: topClothing, set: setTopClothing, opts: [['casual white t-shirt','T-shirt'],['suit jacket, formal','Marynarka'],['bikini top','Bikini'],['cocktail dress, elegant','Sukienka']] },
+                  { label: 'Dół', value: bottomClothing, set: setBottomClothing, opts: [['blue denim jeans','Jeansy'],['mini skirt','Mini'],['elegant trousers','Spodnie']] },
+                  { label: 'Obuwie', value: shoes, set: setShoes, opts: [['elegant high heels, stilettos','Szpilki'],['modern sneakers','Sportowe'],['barefoot','Boso']] },
+                  { label: 'Nogi', value: legwear, set: setLegwear, opts: [['none','Gołe'],['pantyhose','Rajstopy'],['stockings with lace','Pończochy']] },
+                ].map(f => (
+                  <div key={f.label}>
+                    <label className={labelClass}>{f.label}</label>
+                    <div className="relative">
+                      <select value={f.value} onChange={e => f.set(e.target.value)} className={inputClass}>
+                        {f.opts.map(([v,l]) => <option key={v} value={v}>{l}</option>)}
+                      </select>
+                      <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4">
+                <label className={labelClass}>Tło</label>
+                <div className="relative">
+                  <select value={bgSelect} onChange={e => setBgSelect(e.target.value)} className={inputClass}>
+                    {[['luxurious mansion interior, marble floors','Rezydencja'],['tropical beach, golden sand, ocean waves','Plaża'],['modern city street, neon lights at night','Miasto nocą'],['professional studio, white background','Studio'],['forest, natural light, bokeh','Las']].map(([v,l]) => <option key={v} value={v}>{l}</option>)}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Panel promptu */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-24">
+              <div className="bg-white dark:bg-[#0A0A0A] border border-black/10 dark:border-[#333] p-6 rounded-2xl">
+                <h2 className="text-[10px] font-bold tracking-widest mb-4 border-b border-black/10 dark:border-[#333] pb-2 text-black dark:text-amber-500 uppercase">Prompt</h2>
+                <div className="bg-slate-100 dark:bg-[#121212] p-4 min-h-[200px] text-black dark:text-white font-mono text-[10px] leading-relaxed break-words border border-black/10 dark:border-[#222] mb-4 rounded-xl">
+                  <span className="text-amber-500 font-bold">{`> `}</span>{generatePrompt()}
+                </div>
+                <button onClick={handleCopy} className={`w-full py-3 font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all mb-3 ${copied ? 'bg-emerald-500 text-black' : 'bg-black dark:bg-amber-500 text-white dark:text-black hover:bg-amber-500 hover:text-black'}`}>
+                  {copied ? '✓ Skopiowano!' : 'Kopiuj Prompt'}
+                </button>
+                <button onClick={generateAiPrompt} disabled={aiLoading} className="w-full py-3 font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all border border-amber-500/50 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 disabled:opacity-50">
+                  {aiLoading ? '⏳ Generuję...' : '✨ Ulepszony AI'}
+                </button>
+                {aiPrompt && (
+                  <div className="mt-4">
+                    <div className="bg-slate-100 dark:bg-[#121212] p-4 text-black dark:text-white font-mono text-[10px] leading-relaxed break-words border border-amber-500/30 rounded-xl mb-3">
+                      {aiPrompt}
+                    </div>
+                    <button onClick={handleAiCopy} className={`w-full py-3 font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all ${aiCopied ? 'bg-emerald-500 text-black' : 'bg-amber-500 text-black hover:bg-amber-400'}`}>
+                      {aiCopied ? '✓ Skopiowano!' : 'Kopiuj AI Prompt'}
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// =========================================================================
 // COMING SOON
 // =========================================================================
 const ComingSoon = ({ t }) => {
@@ -975,7 +1177,7 @@ export default function App() {
             <div className="flex items-center gap-2">
               {/* Nav tabs */}
               <div className="hidden sm:flex items-center gap-1 p-1 rounded-xl transition-colors" style={{background: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', border: isDarkMode ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.08)'}}>
-                {[['home', t.nav_academy], ['tutorials', t.nav_tutorials], ['prompt-builder', t.nav_studio]].map(([view, label]) => (
+                {[['home', t.nav_academy], ['tutorials', t.nav_tutorials], ['prompt-builder', t.nav_studio], ['avatar-builder', t.lang === 'EN' ? 'Avatar Builder' : 'Kreator']].map(([view, label]) => (
                   <button key={view} onClick={() => setCurrentView(view)}
                     className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${currentView === view ? 'bg-amber-500 text-black' : isDarkMode ? 'text-white/40 hover:text-white/80' : 'text-black/40 hover:text-black/80'}`}>
                     {label}
@@ -1005,6 +1207,7 @@ export default function App() {
           {currentView === 'home' && <HomeView t={t} />}
           {currentView === 'tutorials' && <TutorialsView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
           {currentView === 'prompt-builder' && <StudioProView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
+          {currentView === 'avatar-builder' && <AvatarBuilderView t={t} />}
           {currentView === 'impressum' && <ImpressumView setCurrentView={setCurrentView} lang={lang} />}
           {currentView === 'datenschutz' && <DatenschutzView setCurrentView={setCurrentView} lang={lang} />}
           {currentView === 'regulamin' && <RegulaminView setCurrentView={setCurrentView} lang={lang} />}
