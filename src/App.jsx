@@ -834,6 +834,7 @@ const StudioProView = ({ t, user, onLoginRequest }) => {
 // =========================================================================
 // COMING SOON
 // =========================================================================
+const ComingSoon = ({ t }) => {
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
 
