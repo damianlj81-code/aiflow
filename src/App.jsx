@@ -1135,7 +1135,178 @@ const TutorialsView = ({ t, user, onLoginRequest }) => {
     </div>
   );
 };
-const ComingSoon = ({ t }) => {
+// =========================================================================
+// STUDIO PRO — NARZĘDZIA AI
+// =========================================================================
+const StudioProView = ({ t, user, onLoginRequest }) => {
+  const isLoggedIn = user && !user.isAnonymous;
+
+  const tools = [
+    {
+      name: 'Pika Labs',
+      category: t.lang === 'EN' ? 'Video Generation' : 'Generowanie Wideo',
+      desc: t.lang === 'EN' ? 'Generate stunning AI videos from text or images. Free tier available.' : 'Generuj niesamowite filmy AI z tekstu lub zdjęć. Darmowy tier dostępny.',
+      free: t.lang === 'EN' ? '150 credits/month free' : '150 kredytów/mies. za darmo',
+      link: 'https://pika.art',
+      icon: '🎬',
+      color: 'from-purple-500/20 to-pink-500/20',
+      border: 'border-purple-500/20',
+    },
+    {
+      name: 'Leonardo AI',
+      category: t.lang === 'EN' ? 'Image Generation' : 'Generowanie Obrazów',
+      desc: t.lang === 'EN' ? 'Professional AI image generation with fine-tuned models. Midjourney alternative.' : 'Profesjonalne generowanie obrazów AI. Alternatywa dla Midjourney.',
+      free: t.lang === 'EN' ? '150 tokens/day free' : '150 tokenów/dzień za darmo',
+      link: 'https://leonardo.ai',
+      icon: '🎨',
+      color: 'from-amber-500/20 to-orange-500/20',
+      border: 'border-amber-500/20',
+    },
+    {
+      name: 'D-ID',
+      category: t.lang === 'EN' ? 'AI Avatars' : 'Awatary AI',
+      desc: t.lang === 'EN' ? 'Create talking AI avatars from photos. Perfect for presentations and courses.' : 'Twórz mówiące awatary AI ze zdjęć. Idealne do prezentacji i kursów.',
+      free: t.lang === 'EN' ? '5 free videos/month' : '5 darmowych filmów/mies.',
+      link: 'https://www.d-id.com',
+      icon: '🧑‍💻',
+      color: 'from-blue-500/20 to-cyan-500/20',
+      border: 'border-blue-500/20',
+    },
+    {
+      name: 'Murf AI',
+      category: t.lang === 'EN' ? 'Voice Generation' : 'Generowanie Głosu',
+      desc: t.lang === 'EN' ? 'Convert text to natural-sounding speech. 120+ voices in 20 languages.' : 'Zamień tekst na naturalny głos. 120+ głosów w 20 językach.',
+      free: t.lang === 'EN' ? '10 min audio free' : '10 min audio za darmo',
+      link: 'https://murf.ai',
+      icon: '🎙️',
+      color: 'from-green-500/20 to-emerald-500/20',
+      border: 'border-green-500/20',
+    },
+    {
+      name: 'CapCut AI',
+      category: t.lang === 'EN' ? 'Video Editing' : 'Edycja Wideo',
+      desc: t.lang === 'EN' ? 'AI-powered video editor with auto-captions, background removal and effects.' : 'Edytor wideo z AI — auto-napisy, usuwanie tła i efekty.',
+      free: t.lang === 'EN' ? 'Mostly free' : 'Przeważnie darmowy',
+      link: 'https://www.capcut.com',
+      icon: '✂️',
+      color: 'from-red-500/20 to-pink-500/20',
+      border: 'border-red-500/20',
+    },
+    {
+      name: 'Adobe Firefly',
+      category: t.lang === 'EN' ? 'Image Editing' : 'Edycja Zdjęć',
+      desc: t.lang === 'EN' ? 'AI image generation and editing by Adobe. Commercially safe content.' : 'Generowanie i edycja zdjęć AI od Adobe. Bezpieczne komercyjnie.',
+      free: t.lang === 'EN' ? '25 credits/month free' : '25 kredytów/mies. za darmo',
+      link: 'https://firefly.adobe.com',
+      icon: '🔥',
+      color: 'from-orange-500/20 to-red-500/20',
+      border: 'border-orange-500/20',
+    },
+    {
+      name: 'ElevenLabs',
+      category: t.lang === 'EN' ? 'Voice Generation' : 'Generowanie Głosu',
+      desc: t.lang === 'EN' ? 'The most realistic AI voices available. Perfect for ads, courses and dialogues. Incredible value at $5/month.' : 'Najbardziej realistyczne głosy AI. Idealne do reklam, kursów i dialogów. Niesamowita wartość za $5/mies.',
+      free: t.lang === 'EN' ? '$5/mo — huge amount of audio' : '$5/mies. — ogromna ilość nagrań',
+      link: 'https://elevenlabs.io',
+      icon: '🎤',
+      color: 'from-violet-500/20 to-purple-500/20',
+      border: 'border-violet-500/20',
+    },
+    {
+      name: 'Grok Imagine',
+      category: t.lang === 'EN' ? 'Image & Video AI' : 'Obrazy i Wideo AI',
+      desc: t.lang === 'EN' ? 'xAI\'s image and video generator. SuperGrok gives unlimited images + 100 videos/day. Unique "Spicy mode" for bold content. Built into X (Twitter).' : 'Generator obrazów i filmów AI od xAI. SuperGrok daje nieograniczone obrazy + 100 filmów/dzień. Unikalny tryb "Spicy". Wbudowany w X (Twitter).',
+      free: t.lang === 'EN' ? 'Free: ~10 videos/day (may vary) • SuperGrok: 100/day' : 'Free: ~10 filmów/dzień (może się różnić) • SuperGrok: 100/dzień',
+      link: 'https://grok.com',
+      icon: '🤖',
+      color: 'from-sky-500/20 to-blue-500/20',
+      border: 'border-sky-500/20',
+    },
+  ];
+
+  return (
+    <div className="min-h-screen bg-white dark:bg-black transition-colors duration-700 font-sans px-4 py-12">
+      <div className="max-w-6xl mx-auto">
+
+        {/* Header */}
+        <div className="mb-12 text-center">
+          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-4">
+            <Sparkles className="w-3 h-3"/>
+            {t.lang === 'EN' ? 'AI Toolkit' : 'Zestaw Narzędzi AI'}
+          </div>
+          <h1 className="text-3xl md:text-5xl font-black text-black dark:text-white uppercase tracking-tighter mb-4">
+            Studio Pro
+          </h1>
+          <p className="text-slate-500 max-w-xl mx-auto text-sm">
+            {t.lang === 'EN'
+              ? 'Curated collection of the best AI tools — with tutorials showing exactly how to use them professionally.'
+              : 'Wyselekcjonowana kolekcja najlepszych narzędzi AI — z tutorialami jak używać ich profesjonalnie.'}
+          </p>
+        </div>
+
+        {/* Tools grid */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {tools.map(tool => (
+            <div key={tool.name} className={`relative rounded-2xl p-6 border bg-gradient-to-br ${tool.color} ${tool.border} flex flex-col group hover:scale-[1.02] transition-all duration-300`}>
+              {/* Icon + name */}
+              <div className="flex items-start justify-between mb-4">
+                <div className="text-4xl">{tool.icon}</div>
+                <span className="text-[9px] font-bold uppercase tracking-widest text-slate-500 bg-black/5 dark:bg-white/5 px-2 py-1 rounded-full">
+                  {tool.category}
+                </span>
+              </div>
+
+              <h3 className="text-black dark:text-white font-black text-xl mb-2">{tool.name}</h3>
+              <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed mb-4 flex-grow">{tool.desc}</p>
+
+              {/* Free tier badge */}
+              <div className="flex items-center gap-1 mb-4">
+                <Check className="w-3 h-3 text-emerald-500 flex-shrink-0"/>
+                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">{tool.free}</span>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-2">
+                <a href={tool.link} target="_blank" rel="noopener noreferrer"
+                  className="flex-grow py-2.5 bg-black dark:bg-white text-white dark:text-black font-black text-[10px] uppercase tracking-widest rounded-xl text-center hover:bg-amber-500 dark:hover:bg-amber-500 dark:hover:text-black transition-all">
+                  {t.lang === 'EN' ? 'Open Tool →' : 'Otwórz →'}
+                </a>
+                {isLoggedIn ? (
+                  <button className="px-3 py-2.5 border border-black/10 dark:border-white/10 rounded-xl text-[10px] font-bold text-slate-500 hover:border-amber-500/50 hover:text-amber-500 transition-all uppercase tracking-widest">
+                    {t.lang === 'EN' ? 'Tutorial' : 'Tutorial'}
+                  </button>
+                ) : (
+                  <button onClick={onLoginRequest} className="px-3 py-2.5 border border-amber-500/30 rounded-xl text-[10px] font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 transition-all uppercase tracking-widest">
+                    <Lock className="w-3 h-3"/>
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Bottom CTA */}
+        {!isLoggedIn && (
+          <div className="mt-12 text-center p-8 rounded-2xl border border-amber-500/20 bg-amber-500/5">
+            <h3 className="text-black dark:text-white font-black text-xl uppercase tracking-tighter mb-2">
+              {t.lang === 'EN' ? 'Unlock Video Tutorials' : 'Odblokuj Tutoriale Wideo'}
+            </h3>
+            <p className="text-slate-500 text-sm mb-4">
+              {t.lang === 'EN' ? 'Log in to watch step-by-step video guides for each tool.' : 'Zaloguj się aby oglądać przewodniki wideo krok po kroku dla każdego narzędzia.'}
+            </p>
+            <button onClick={onLoginRequest} className="bg-amber-500 hover:bg-amber-400 text-black font-black text-[11px] uppercase tracking-widest px-8 py-3 rounded-xl transition-all hover:scale-105">
+              {t.lang === 'EN' ? 'Log In / Register' : 'Zaloguj / Zarejestruj'}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// =========================================================================
+// COMING SOON
+// =========================================================================
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
 
@@ -1305,7 +1476,7 @@ export default function App() {
         <main className="pt-16">
           {currentView === 'home' && <HomeView t={t} />}
           {currentView === 'tutorials' && <TutorialsView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
-          {currentView === 'prompt-builder' && <ComingSoon t={t} />}
+          {currentView === 'prompt-builder' && <StudioProView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
           {currentView === 'impressum' && <ImpressumView setCurrentView={setCurrentView} lang={lang} />}
           {currentView === 'datenschutz' && <DatenschutzView setCurrentView={setCurrentView} lang={lang} />}
           {currentView === 'regulamin' && <RegulaminView setCurrentView={setCurrentView} lang={lang} />}
