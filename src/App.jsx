@@ -385,10 +385,6 @@ const HomeView = ({ t, onLoginRequest }) => {
               <span className="relative z-10">{t.lang === 'EN' ? '🚀 Get Full Access' : '🚀 Uzyskaj Pełny Dostęp'}</span>
               <div className="absolute inset-0 bg-amber-400 translate-y-full group-hover:translate-y-0 transition-transform duration-300"/>
             </button>
-            <button onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })} className="px-8 py-4 border text-black dark:text-white font-bold text-sm uppercase tracking-widest rounded-xl transition-all flex items-center gap-2 hover:border-amber-500/50 dark:border-white/20 border-black/20 hover:bg-amber-500/5">
-              <Play className="w-4 h-4 text-amber-500" />
-              {t.lang === 'EN' ? 'Watch Demo' : 'Obejrzyj Demo'}
-            </button>
           </div>
 
           {/* Stats row */}
@@ -412,31 +408,30 @@ const HomeView = ({ t, onLoginRequest }) => {
         </div>
       </section>
 
-      {/* ── VIDEO SECTION ─────────────────────────────────── */}
-      <section id="video-section" className="bg-black py-20 px-4">
+      {/* ── VIDEO / UNDER CONSTRUCTION ────────────────────── */}
+      <section id="video-section" className="bg-slate-50 dark:bg-black py-20 px-4 transition-colors duration-700">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-8">
-            <p className="text-[10px] text-amber-500 font-bold uppercase tracking-[0.4em] mb-3">
+            <p className="text-[10px] text-amber-600 dark:text-amber-500 font-bold uppercase tracking-[0.4em] mb-3">
               {t.lang === 'EN' ? '— Featured Content —' : '— Wyróżniony Materiał —'}
             </p>
           </div>
-          <div className="relative rounded-2xl overflow-hidden shadow-[0_0_80px_rgba(245,158,11,0.15)] border border-white/5 aspect-video">
-            {!isVideoActive && !isLocked && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-[url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1964&auto=format&fit=crop')] bg-cover bg-center">
-                <div className="absolute inset-0 bg-black/70"/>
-                <button onClick={() => setIsVideoActive(true)} className="relative z-10 w-24 h-24 bg-amber-500 hover:bg-amber-400 text-black rounded-full flex items-center justify-center transition-all hover:scale-110 shadow-[0_0_60px_rgba(245,158,11,0.5)]">
-                  <Play className="w-10 h-10 ml-1" />
-                </button>
-                <p className="relative z-10 text-white mt-6 font-bold tracking-widest text-xs uppercase">{t.home_play_demo}</p>
+          {/* Under Construction placeholder */}
+          <div className="relative rounded-2xl overflow-hidden border border-black/5 dark:border-white/5 aspect-video bg-black flex flex-col items-center justify-center text-center px-8">
+            <div className="absolute inset-0 opacity-[0.03]" style={{backgroundImage:'linear-gradient(#f59e0b 1px,transparent 1px),linear-gradient(90deg,#f59e0b 1px,transparent 1px)',backgroundSize:'40px 40px'}}/>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-amber-500/5 rounded-full blur-[80px] pointer-events-none"/>
+            <div className="relative z-10">
+              <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-6">
+                <span className="w-1.5 h-1.5 bg-amber-400 rounded-full animate-pulse"/>
+                {t.lang === 'EN' ? 'Coming Soon' : 'Już wkrótce'}
               </div>
-            )}
-            {isVideoActive && (
-              <iframe width="100%" height="100%"
-                src={`https://www.youtube.com/embed/${YOUTUBE_VIDEO_ID}?autoplay=1&mute=1&controls=1&rel=0&start=7`}
-                title="AI Flow Demo" frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen className="w-full h-full absolute inset-0"/>
-            )}
+              <h3 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tighter mb-3">
+                {t.lang === 'EN' ? 'Content in preparation' : 'Treści w przygotowaniu'}
+              </h3>
+              <p className="text-white/30 text-sm max-w-md">
+                {t.lang === 'EN' ? 'Our team is working on exclusive video content. Stay tuned!' : 'Nasz zespół pracuje nad ekskluzywnym contentem wideo. Wkrótce premiera!'}
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -1049,8 +1044,97 @@ Rules:
 
 
 // =========================================================================
-// COMING SOON
+// WIDOK TUTORIALE
 // =========================================================================
+const TutorialsView = ({ t, user, onLoginRequest }) => {
+  const isLoggedIn = user && !user.isAnonymous;
+  const YOUTUBE_VIDEO_ID = "1_1oHwOZMe4";
+
+  const videos = [
+    { id: 1, title: t.lang === 'EN' ? 'Introduction to AI Avatars' : 'Wprowadzenie do Awatarów AI', duration: '12:34', thumb: `https://img.youtube.com/vi/${YOUTUBE_VIDEO_ID}/maxresdefault.jpg`, ytId: YOUTUBE_VIDEO_ID },
+    { id: 2, title: t.lang === 'EN' ? 'Prompt Engineering Basics' : 'Podstawy Inżynierii Promptów', duration: '18:21', thumb: `https://img.youtube.com/vi/${YOUTUBE_VIDEO_ID}/maxresdefault.jpg`, ytId: YOUTUBE_VIDEO_ID },
+    { id: 3, title: t.lang === 'EN' ? 'Workflow Automation' : 'Automatyzacja Workflow', duration: '24:05', thumb: `https://img.youtube.com/vi/${YOUTUBE_VIDEO_ID}/maxresdefault.jpg`, ytId: YOUTUBE_VIDEO_ID },
+    { id: 4, title: t.lang === 'EN' ? 'Advanced AI Techniques' : 'Zaawansowane Techniki AI', duration: '31:12', thumb: `https://img.youtube.com/vi/${YOUTUBE_VIDEO_ID}/maxresdefault.jpg`, ytId: YOUTUBE_VIDEO_ID },
+  ];
+
+  const [activeVideo, setActiveVideo] = useState(videos[0]);
+
+  return (
+    <div className="min-h-screen bg-white dark:bg-black transition-colors duration-700 font-sans px-4 py-12">
+      <div className="max-w-6xl mx-auto">
+        {/* Header */}
+        <div className="mb-10">
+          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-4">
+            <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"/>
+            {t.lang === 'EN' ? 'Video Library' : 'Biblioteka Wideo'}
+          </div>
+          <h1 className="text-3xl md:text-4xl font-black text-black dark:text-white uppercase tracking-tighter">
+            {t.nav_tutorials}
+          </h1>
+        </div>
+
+        <div className="grid lg:grid-cols-3 gap-8">
+          {/* Main video player */}
+          <div className="lg:col-span-2">
+            <div className="relative rounded-2xl overflow-hidden aspect-video border border-black/5 dark:border-white/5 bg-black">
+              {isLoggedIn ? (
+                <iframe width="100%" height="100%"
+                  src={`https://www.youtube.com/embed/${activeVideo.ytId}?autoplay=1&controls=1&rel=0`}
+                  title={activeVideo.title} frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen className="w-full h-full absolute inset-0"/>
+              ) : (
+                <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center">
+                  <img src={activeVideo.thumb} alt="" className="absolute inset-0 w-full h-full object-cover opacity-20"/>
+                  <div className="absolute inset-0 bg-black/80"/>
+                  <div className="relative z-10">
+                    <Lock className="w-12 h-12 text-amber-500 mx-auto mb-4"/>
+                    <h3 className="text-white font-black text-xl uppercase tracking-tighter mb-2">
+                      {t.lang === 'EN' ? 'Members Only' : 'Tylko dla Członków'}
+                    </h3>
+                    <p className="text-white/40 text-sm mb-6">
+                      {t.lang === 'EN' ? 'Log in to watch all videos' : 'Zaloguj się aby oglądać wszystkie filmy'}
+                    </p>
+                    <button onClick={onLoginRequest} className="bg-amber-500 hover:bg-amber-400 text-black font-black text-[11px] uppercase tracking-widest px-6 py-3 rounded-xl transition-all hover:scale-105">
+                      {t.lang === 'EN' ? 'Log In / Register' : 'Zaloguj / Zarejestruj'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+            <h2 className="text-black dark:text-white font-black text-lg mt-4 uppercase tracking-tight">{activeVideo.title}</h2>
+          </div>
+
+          {/* Video list */}
+          <div className="flex flex-col gap-3">
+            <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500 mb-2">
+              {t.lang === 'EN' ? 'All Videos' : 'Wszystkie Filmy'}
+            </h3>
+            {videos.map(video => (
+              <button key={video.id} onClick={() => setActiveVideo(video)}
+                className={`flex items-center gap-3 p-3 rounded-xl text-left transition-all border ${activeVideo.id === video.id ? 'border-amber-500/50 bg-amber-500/10' : 'border-black/5 dark:border-white/5 hover:border-amber-500/30 bg-white dark:bg-black'}`}>
+                <div className="relative w-20 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-slate-900">
+                  <img src={video.thumb} alt="" className="w-full h-full object-cover opacity-70"/>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    {isLoggedIn ? (
+                      <Play className="w-4 h-4 text-white"/>
+                    ) : (
+                      <Lock className="w-3 h-3 text-amber-500"/>
+                    )}
+                  </div>
+                </div>
+                <div className="flex-grow min-w-0">
+                  <p className="text-black dark:text-white font-bold text-xs truncate">{video.title}</p>
+                  <p className="text-slate-500 text-[10px] mt-0.5">{video.duration}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 const ComingSoon = ({ t }) => {
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
@@ -1220,7 +1304,7 @@ export default function App() {
 
         <main className="pt-16">
           {currentView === 'home' && <HomeView t={t} />}
-          {currentView === 'tutorials' && <ComingSoon t={t} />}
+          {currentView === 'tutorials' && <TutorialsView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
           {currentView === 'prompt-builder' && <ComingSoon t={t} />}
           {currentView === 'impressum' && <ImpressumView setCurrentView={setCurrentView} lang={lang} />}
           {currentView === 'datenschutz' && <DatenschutzView setCurrentView={setCurrentView} lang={lang} />}
