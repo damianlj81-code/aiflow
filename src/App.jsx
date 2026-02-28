@@ -555,53 +555,55 @@ const HomeView = ({ t, onLoginRequest }) => {
 
       {/* ── HERO ─────────────────────────────────────────── */}
       <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-white dark:bg-black px-4 transition-colors duration-700">
-        {/* Animated grid background */}
-        <div className="absolute inset-0 opacity-[0.04] dark:opacity-[0.04]" style={{backgroundImage:'linear-gradient(#f59e0b 1px,transparent 1px),linear-gradient(90deg,#f59e0b 1px,transparent 1px)',backgroundSize:'60px 60px'}}/>
-        {/* Glow orbs */}
+        <div className="absolute inset-0 opacity-[0.04]" style={{backgroundImage:'linear-gradient(#f59e0b 1px,transparent 1px),linear-gradient(90deg,#f59e0b 1px,transparent 1px)',backgroundSize:'60px 60px'}}/>
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-amber-500/10 rounded-full blur-[120px] pointer-events-none"/>
-        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-blue-500/10 rounded-full blur-[100px] pointer-events-none"/>
+        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-orange-500/10 rounded-full blur-[100px] pointer-events-none"/>
 
-        <div className="relative z-10 max-w-5xl mx-auto text-center">
-          {/* Pill badge */}
+        <div className="relative z-10 max-w-4xl mx-auto text-center">
+
+          {/* Badge */}
           <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-8">
             <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"/>
             {t.lang === 'EN' ? 'AI Education Platform' : 'Platforma Edukacji AI'}
           </div>
 
-          {/* Main headline */}
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-black dark:text-white mb-4 leading-[0.9] tracking-tighter">
-            AI FLOW<br/>
-            <span className="text-transparent bg-clip-text" style={{backgroundImage:'linear-gradient(135deg,#f59e0b,#fbbf24,#f97316)'}}>ACADEMY</span>
+          {/* Główny nagłówek — hook */}
+          <h1 className="text-5xl md:text-7xl font-black text-black dark:text-white mb-6 leading-[0.95] tracking-tighter">
+            {t.lang === 'EN' ? 'Learn AI.' : 'Naucz się AI.'}<br/>
+            <span className="text-transparent bg-clip-text" style={{backgroundImage:'linear-gradient(135deg,#f59e0b,#fbbf24,#f97316)'}}>
+              {t.lang === 'EN' ? 'Without wasting money.' : 'Bez marnowania pieniędzy.'}
+            </span>
           </h1>
 
-          {/* Rotating feature text */}
-          <div className="h-10 mb-8 overflow-hidden relative">
-            {features.map((f, i) => (
-              <p key={f} className={`text-slate-600 dark:text-slate-300 text-base uppercase tracking-[0.3em] font-bold transition-all duration-1000 ${i === activeFeature ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6 absolute inset-x-0'}`}>
-                {f}
-              </p>
-            ))}
-          </div>
-
-          {/* Tagline */}
-          <p className="text-slate-500 dark:text-slate-500 text-lg max-w-xl mx-auto mb-12 leading-relaxed">
-            {t.home_tagline}
+          {/* Podtytuł — konkretny */}
+          <p className="text-slate-500 dark:text-slate-400 text-lg md:text-xl max-w-2xl mx-auto mb-4 leading-relaxed">
+            {t.lang === 'EN'
+              ? 'Tutorials, live sessions and AI tools — everything you need to create videos, avatars and automations. Step by step, without expensive extras.'
+              : 'Tutoriale, live sesje i narzędzia AI — wszystko czego potrzebujesz żeby tworzyć filmy, awatary i automatyzacje. Krok po kroku, bez drogich dodatków.'}
           </p>
 
-          {/* CTA buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
-            <button onClick={scrollToPricing} className="group relative px-8 py-4 bg-amber-500 text-black font-black text-sm uppercase tracking-widest rounded-xl overflow-hidden transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(245,158,11,0.4)]">
-              <span className="relative z-10">{t.lang === 'EN' ? '🚀 Get Full Access' : '🚀 Uzyskaj Pełny Dostęp'}</span>
+          {/* Dla kogo */}
+          <p className="text-amber-600 dark:text-amber-400 text-sm font-bold uppercase tracking-widest mb-10">
+            {t.lang === 'EN' ? '✓ For complete beginners · No experience needed' : '✓ Dla kompletnych początkujących · Zero doświadczenia'}
+          </p>
+
+          {/* CTA */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+            <button onClick={scrollToPricing} className="group relative px-10 py-4 bg-amber-500 text-black font-black text-sm uppercase tracking-widest rounded-xl overflow-hidden transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(245,158,11,0.4)]">
+              <span className="relative z-10">{t.lang === 'EN' ? '🚀 See Plans & Pricing' : '🚀 Zobacz plany i ceny'}</span>
               <div className="absolute inset-0 bg-amber-400 translate-y-full group-hover:translate-y-0 transition-transform duration-300"/>
+            </button>
+            <button onClick={() => document.getElementById('historia')?.scrollIntoView({behavior:'smooth'})} className="px-10 py-4 border border-black/10 dark:border-white/10 text-black dark:text-white font-bold text-sm uppercase tracking-widest rounded-xl hover:border-amber-500/50 transition-all">
+              {t.lang === 'EN' ? 'Our Story →' : 'Nasza Historia →'}
             </button>
           </div>
 
-          {/* Stats row */}
-          <div className="grid grid-cols-3 gap-8 max-w-lg mx-auto border-t border-black/10 dark:border-white/10 pt-8">
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-8 max-w-sm mx-auto border-t border-black/10 dark:border-white/10 pt-8">
             {[
               { n: '100+', l: t.lang === 'EN' ? 'Videos' : 'Filmów' },
-              { n: '3x', l: t.lang === 'EN' ? 'Weekly Live' : 'Live/Tydzień' },
-              { n: '24/7', l: t.lang === 'EN' ? 'Access' : 'Dostęp' },
+              { n: '3x', l: t.lang === 'EN' ? 'Live/week' : 'Live/tydz.' },
+              { n: '1M+', l: t.lang === 'EN' ? 'Views' : 'Wyświetleń' },
             ].map(s => (
               <div key={s.n} className="text-center">
                 <div className="text-2xl font-black text-amber-500">{s.n}</div>
@@ -611,14 +613,17 @@ const HomeView = ({ t, onLoginRequest }) => {
           </div>
         </div>
 
-        {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
-          <div className="w-px h-12 bg-gradient-to-b from-transparent to-amber-500/50"/>
+        {/* Scroll indicator — animowany */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 cursor-pointer" onClick={() => document.getElementById('historia')?.scrollIntoView({behavior:'smooth'})}>
+          <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">{t.lang === 'EN' ? 'Scroll to discover' : 'Przewiń i odkryj'}</p>
+          <div className="w-6 h-10 border-2 border-slate-300 dark:border-slate-700 rounded-full flex items-start justify-center p-1">
+            <div className="w-1 h-2 bg-amber-500 rounded-full animate-bounce"/>
+          </div>
         </div>
       </section>
 
       {/* ── VIDEO / UNDER CONSTRUCTION ────────────────────── */}
-      <section id="video-section" className="bg-slate-50 dark:bg-black py-20 px-4 transition-colors duration-700">
+      <section id="historia" className="bg-slate-50 dark:bg-black py-20 px-4 transition-colors duration-700">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-8">
             <p className="text-[10px] text-amber-600 dark:text-amber-500 font-bold uppercase tracking-[0.4em] mb-3">
