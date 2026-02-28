@@ -319,6 +319,51 @@ const LoginModal = ({ onClose, lang }) => {
 // WIDOK 1: GŁÓWNA PLATFORMA (VOD) — REDESIGN
 // =========================================================================
 // =========================================================================
+// PRICING BUTTON — Stripe Checkout
+// =========================================================================
+const PricingButton = ({ plan, t, highlight }) => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleCheckout = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const response = await fetch('/.netlify/functions/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          plan,
+          successUrl: `${window.location.origin}/?payment=success`,
+          cancelUrl: `${window.location.origin}/`,
+        }),
+      });
+      const data = await response.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setError(t.lang === 'EN' ? 'Something went wrong. Try again.' : 'Coś poszło nie tak. Spróbuj ponownie.');
+      }
+    } catch (err) {
+      setError(t.lang === 'EN' ? 'Connection error. Try again.' : 'Błąd połączenia. Spróbuj ponownie.');
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div>
+      <button
+        onClick={handleCheckout}
+        disabled={loading}
+        className={`w-full py-3.5 font-black text-[11px] uppercase tracking-widest rounded-xl transition-all disabled:opacity-50 ${highlight ? 'bg-amber-500 hover:bg-amber-400 text-black shadow-lg shadow-amber-500/20' : 'bg-black dark:bg-white text-white dark:text-black hover:bg-amber-500 hover:text-black dark:hover:bg-amber-500 dark:hover:text-black'}`}>
+        {loading ? '⏳ ...' : t.lang === 'EN' ? 'Get Access →' : 'Uzyskaj dostęp →'}
+      </button>
+      {error && <p className="text-red-500 text-[10px] mt-2 text-center">{error}</p>}
+    </div>
+  );
+};
+
+// =========================================================================
 // FAQ SECTION
 // =========================================================================
 const FAQSection = ({ t }) => {
@@ -667,25 +712,99 @@ const HomeView = ({ t, onLoginRequest }) => {
         </div>
       </section>
 
-      {/* ── PRICING HIDDEN — COMING SOON ─────────────────── */}
-      <section className="bg-white dark:bg-black py-16 px-4 border-t border-black/5 dark:border-white/5 transition-colors duration-700">
-        <div className="max-w-2xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-6">
-            <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"/>
-            {t.lang === 'EN' ? 'Launching Soon' : 'Wkrótce w sprzedaży'}
+      {/* ── PRICING ───────────────────────────────────────── */}
+      <section id="pricing-section" className="bg-white dark:bg-black py-24 px-4 border-t border-black/5 dark:border-white/5 transition-colors duration-700">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-6">
+              <span className="w-1.5 h-1.5 bg-amber-500 rounded-full"/>
+              {t.lang === 'EN' ? 'Pricing' : 'Cennik'}
+            </div>
+            <h2 className="text-3xl md:text-4xl font-black text-black dark:text-white uppercase tracking-tighter">
+              {t.lang === 'EN' ? 'Choose your plan' : 'Wybierz swój plan'}
+              <span className="text-amber-500">.</span>
+            </h2>
           </div>
-          <h2 className="text-2xl md:text-3xl font-black text-black dark:text-white uppercase tracking-tighter mb-4">
-            {t.lang === 'EN' ? 'Founding Member Pricing' : 'Ceny dla Założycieli'}
-          </h2>
-          <p className="text-black/30 dark:text-white/30 text-sm mb-4">
-            {t.lang === 'EN'
-              ? 'We\'re putting the finishing touches on our platform. Early members will get exclusive founding rates.'
-              : 'Finalizujemy platformę. Pierwsi członkowie otrzymają ekskluzywne ceny założycielskie.'}
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {[
+              {
+                plan: 'basic',
+                name: t.lang === 'EN' ? 'Basic' : 'Podstawowy',
+                price: '50',
+                period: t.lang === 'EN' ? '/month' : '/mies.',
+                desc: t.lang === 'EN' ? 'Access to video tutorials library' : 'Dostęp do biblioteki tutoriali wideo',
+                features: [
+                  t.lang === 'EN' ? '✓ Full video library' : '✓ Pełna biblioteka wideo',
+                  t.lang === 'EN' ? '✓ AI tools directory' : '✓ Katalog narzędzi AI',
+                  t.lang === 'EN' ? '✓ Avatar builder' : '✓ Kreator awatarów',
+                  t.lang === 'EN' ? '✗ Live sessions' : '✗ Live sesje',
+                  t.lang === 'EN' ? '✗ Community' : '✗ Społeczność',
+                ],
+                highlight: false,
+              },
+              {
+                plan: 'monthly',
+                name: t.lang === 'EN' ? 'Pro' : 'Pro',
+                price: '199',
+                period: t.lang === 'EN' ? '/month' : '/mies.',
+                desc: t.lang === 'EN' ? 'Full access + live coaching' : 'Pełny dostęp + live coaching',
+                features: [
+                  t.lang === 'EN' ? '✓ Full video library' : '✓ Pełna biblioteka wideo',
+                  t.lang === 'EN' ? '✓ AI tools directory' : '✓ Katalog narzędzi AI',
+                  t.lang === 'EN' ? '✓ Avatar builder' : '✓ Kreator awatarów',
+                  t.lang === 'EN' ? '✓ 3x live/week with Damian' : '✓ Live 3x/tydz. z Damianem',
+                  t.lang === 'EN' ? '✓ Private community' : '✓ Zamknięta społeczność',
+                ],
+                highlight: true,
+              },
+              {
+                plan: 'annual',
+                name: t.lang === 'EN' ? 'Annual' : 'Roczny',
+                price: '1799',
+                period: t.lang === 'EN' ? '/year' : '/rok',
+                desc: t.lang === 'EN' ? 'Pro plan — save 25%' : 'Plan Pro — oszczędzasz 25%',
+                features: [
+                  t.lang === 'EN' ? '✓ Everything in Pro' : '✓ Wszystko z Pro',
+                  t.lang === 'EN' ? '✓ Save 25% vs monthly' : '✓ Oszczędzasz 25%',
+                  t.lang === 'EN' ? '✓ Priority support' : '✓ Priorytetowe wsparcie',
+                  t.lang === 'EN' ? '✓ Early access to new content' : '✓ Wczesny dostęp do treści',
+                  t.lang === 'EN' ? '✓ Cancel anytime' : '✓ Anuluj w dowolnym momencie',
+                ],
+                highlight: false,
+              },
+            ].map(({ plan, name, price, period, desc, features, highlight }) => (
+              <div key={plan} className={`relative rounded-2xl p-8 border transition-all ${highlight ? 'border-amber-500 bg-amber-500/5 shadow-[0_0_40px_rgba(245,158,11,0.1)]' : 'border-black/5 dark:border-white/5 bg-white dark:bg-[#0A0A0A]'}`}>
+                {highlight && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-500 text-black text-[10px] font-black uppercase tracking-widest px-4 py-1 rounded-full">
+                    {t.lang === 'EN' ? 'Most Popular' : 'Najpopularniejszy'}
+                  </div>
+                )}
+                <div className="mb-6">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">{name}</p>
+                  <div className="flex items-end gap-1 mb-2">
+                    <span className="text-4xl font-black text-black dark:text-white">{price}</span>
+                    <span className="text-sm text-slate-500 mb-1">PLN{period}</span>
+                  </div>
+                  <p className="text-xs text-slate-500">{desc}</p>
+                </div>
+                <div className="space-y-2 mb-8">
+                  {features.map((f, i) => (
+                    <p key={i} className={`text-xs ${f.startsWith('✓') ? 'text-black dark:text-white' : 'text-slate-400'}`}>{f}</p>
+                  ))}
+                </div>
+                <PricingButton plan={plan} t={t} highlight={highlight} />
+              </div>
+            ))}
+          </div>
+          <p className="text-center text-xs text-slate-400 mt-8">
+            {t.lang === 'EN' ? '🔒 Secure payment via Stripe. Cancel anytime.' : '🔒 Bezpieczna płatność przez Stripe. Anuluj w dowolnym momencie.'}
           </p>
         </div>
       </section>
     </div>
   );
+};
 };
 
 // =========================================================================
