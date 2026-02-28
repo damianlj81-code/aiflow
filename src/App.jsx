@@ -613,11 +613,12 @@ const HomeView = ({ t, onLoginRequest }) => {
           </div>
         </div>
 
-        {/* Scroll indicator — animowany */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 cursor-pointer" onClick={() => document.getElementById('historia')?.scrollIntoView({behavior:'smooth'})}>
-          <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">{t.lang === 'EN' ? 'Scroll to discover' : 'Przewiń i odkryj'}</p>
-          <div className="w-6 h-10 border-2 border-slate-300 dark:border-slate-700 rounded-full flex items-start justify-center p-1">
-            <div className="w-1 h-2 bg-amber-500 rounded-full animate-bounce"/>
+        {/* Scroll indicator — wyraźny */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 cursor-pointer group" onClick={() => document.getElementById('historia')?.scrollIntoView({behavior:'smooth'})}>
+          <p className="text-xs text-slate-400 dark:text-slate-500 uppercase tracking-widest font-bold group-hover:text-amber-500 transition-colors">{t.lang === 'EN' ? 'Scroll to discover' : 'Przewiń i odkryj więcej'}</p>
+          <div className="flex flex-col items-center gap-1">
+            <ChevronDown className="w-6 h-6 text-amber-500 animate-bounce"/>
+            <ChevronDown className="w-6 h-6 text-amber-500/50 animate-bounce" style={{animationDelay:'0.2s'}}/>
           </div>
         </div>
       </section>
