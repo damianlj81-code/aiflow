@@ -12,7 +12,7 @@ import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc } from 'fi
 
 const firebaseConfig = {
   apiKey: "AIzaSyB36wJrKgkyH0_ev6uyzVWKc2gQdXZNaWA",
-  authDomain: "loveaiflow.com",
+  authDomain: "aiflow-academy.firebaseapp.com",
   projectId: "aiflow-academy",
   storageBucket: "aiflow-academy.firebasestorage.app",
   messagingSenderId: "397056782057",
@@ -518,6 +518,7 @@ const StudioProView = ({ t, user, onLoginRequest, onNavigate }) => {
 
 const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
   const isLoggedIn = user && !user.isAnonymous;
+  const [clicked, setClicked] = useState(false);
   if (!isLoggedIn) return (
     <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center px-4 font-sans">
       <div className="text-center max-w-sm">
@@ -616,6 +617,7 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
 
 const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
   const isLoggedIn = user && !user.isAnonymous;
+  const [clicked, setClicked] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const [product, setProduct] = useState('butelka szklana, elegancka');
@@ -662,9 +664,9 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
   const headerClass = "text-xs font-bold tracking-widest text-black dark:text-amber-500 mb-5 flex items-center gap-2 border-b border-black/10 dark:border-[#222] pb-3 uppercase";
 
   return (
-    <div className="relative pb-20 p-4 md:p-8 bg-slate-50 dark:bg-black transition-colors duration-700 min-h-screen">
-      {!isLoggedIn && (
-        <div className="absolute inset-0 z-50 backdrop-blur-md bg-black/60 flex items-center justify-center px-4">
+    <div className="relative pb-20 p-4 md:p-8 bg-slate-50 dark:bg-black transition-colors duration-700 min-h-screen" onClick={() => !isLoggedIn && setClicked(true)}>
+      {!isLoggedIn && clicked && (
+        <div className="absolute inset-0 z-50 backdrop-blur-md bg-black/60 flex items-center justify-center px-4" onClick={e => e.stopPropagation()}>
           <div className="text-center max-w-sm">
             <div className="text-6xl mb-6">🔒</div>
             <h2 className="text-2xl font-black text-white uppercase tracking-tighter mb-3">
