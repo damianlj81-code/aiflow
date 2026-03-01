@@ -12,7 +12,7 @@ import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc } from 'fi
 
 const firebaseConfig = {
   apiKey: "AIzaSyB36wJrKgkyH0_ev6uyzVWKc2gQdXZNaWA",
-  authDomain: "aiflow-academy.firebaseapp.com",
+  authDomain: "loveaiflow.com",
   projectId: "aiflow-academy",
   storageBucket: "aiflow-academy.firebasestorage.app",
   messagingSenderId: "397056782057",
@@ -613,6 +613,137 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
   );
 };
 
+
+const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
+  const isLoggedIn = user && !user.isAnonymous;
+  const [copied, setCopied] = useState(false);
+
+  const [product, setProduct] = useState('butelka szklana, elegancka');
+  const [productColor, setProductColor] = useState('przezroczysty z etykietą');
+  const [effect, setEffect] = useState('krople wody spływające po powierzchni');
+  const [splashEffect, setSplashEffect] = useState('odpryski wody wokół produktu');
+  const [rotation, setRotation] = useState('powolny obrót 360 stopni');
+  const [speed, setSpeed] = useState('wolno i elegancko');
+  const [bg, setBg] = useState('ciemne studyjne tło, czarny gradient');
+  const [lighting, setLighting] = useState('dramatyczne oświetlenie studyjne, refleksy światła');
+  const [style, setStyle] = useState('fotorealistyczny, 8K, kinowy');
+  const [camera, setCamera] = useState('zbliżenie produktu, ujęcie z przodu');
+  const [mood, setMood] = useState('luksusowy, premium, elegancki');
+
+  const generatePrompt = () => {
+    const parts = [
+      'cinematic product advertisement video',
+      product,
+      `kolor: ${productColor}`,
+      effect,
+      splashEffect !== 'brak' ? splashEffect : '',
+      `ruch: ${rotation}`,
+      `prędkość: ${speed}`,
+      `tło: ${bg}`,
+      lighting,
+      `nastrój: ${mood}`,
+      camera,
+      style,
+      'masterpiece, ultra-detailed, sharp focus, commercial photography, award-winning advertisement',
+    ];
+    return parts.filter(p => p && p.trim() !== '').join(', ');
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(generatePrompt()).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  const sectionClass = "bg-white dark:bg-[#0A0A0A] border border-black/10 dark:border-[#222] p-5 rounded-2xl mb-6 transition-all duration-500 font-sans";
+  const labelClass = "block text-[9px] uppercase tracking-widest text-slate-500 mb-1.5 font-bold";
+  const inputClass = "w-full bg-slate-100 dark:bg-[#121212] border border-black/10 dark:border-[#333] px-3 py-2 text-xs dark:text-white focus:border-amber-500 focus:outline-none transition-all rounded-lg appearance-none";
+  const headerClass = "text-xs font-bold tracking-widest text-black dark:text-amber-500 mb-5 flex items-center gap-2 border-b border-black/10 dark:border-[#222] pb-3 uppercase";
+
+  return (
+    <div className="relative pb-20 p-4 md:p-8 bg-slate-50 dark:bg-black transition-colors duration-700 min-h-screen">
+      {!isLoggedIn && (
+        <div className="absolute inset-0 z-50 backdrop-blur-md bg-black/60 flex items-center justify-center px-4">
+          <div className="text-center max-w-sm">
+            <div className="text-6xl mb-6">🔒</div>
+            <h2 className="text-2xl font-black text-white uppercase tracking-tighter mb-3">
+              {t.lang === 'EN' ? 'Login Required' : 'Kreator tylko dla zalogowanych użytkowników!'}
+            </h2>
+            <p className="text-white/60 text-sm mb-8">
+              {t.lang === 'EN' ? 'Log in for free to access the Ad Builder.' : 'Zaloguj się bezpłatnie. To nic nie kosztuje!'}
+            </p>
+            <button onClick={onLoginRequest} className="bg-amber-500 hover:bg-amber-400 text-black font-black text-[11px] uppercase tracking-widest px-8 py-4 rounded-xl transition-all hover:scale-105">
+              {t.lang === 'EN' ? 'Log In / Register →' : 'Zaloguj się / Zarejestruj →'}
+            </button>
+          </div>
+        </div>
+      )}
+      <div className="max-w-6xl mx-auto">
+        <div className="mb-8">
+          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-4"><Sparkles className="w-3 h-3"/>Ad Prompt Studio</div>
+          <h1 className="text-3xl md:text-4xl font-black text-black dark:text-white uppercase tracking-tighter">{t.lang === 'EN' ? 'Product Ad Builder' : 'Kreator Reklam Produktowych'}</h1>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          <div className="lg:col-span-3">
+            <div className={sectionClass}>
+              <h2 className={headerClass}><span className="text-lg">📦</span> I. Produkt</h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {[
+                  {label:'Rodzaj produktu',value:product,set:setProduct,opts:[['butelka szklana, elegancka','Butelka szklana'],['puszka aluminiowa, nowoczesna','Puszka aluminiowa'],['flakon perfum, luksusowy','Flakon perfum'],['pudełko kosmetyczne, minimalistyczne','Pudełko kosmetyczne'],['butelka sportowa, plastikowa','Butelka sportowa'],['słoik szklany, premium','Słoik szklany']]},
+                  {label:'Kolor produktu',value:productColor,set:setProductColor,opts:[['przezroczysty z etykietą','Przezroczysty'],['czarny matowy','Czarny mat'],['złoty błyszczący','Złoty'],['biały elegancki','Biały'],['czerwony intensywny','Czerwony'],['srebrny metaliczny','Srebrny']]},
+                  {label:'Nastrój marki',value:mood,set:setMood,opts:[['luksusowy, premium, elegancki','Luksus'],['świeży, naturalny, organiczny','Naturalny'],['energetyczny, dynamiczny, sportowy','Sportowy'],['minimalistyczny, czysty, nowoczesny','Minimalizm'],['zimowy, odświeżający, lodowy','Lodowy']]},
+                ].map(f => (
+                  <div key={f.label}><label className={labelClass}>{f.label}</label><div className="relative"><select value={f.value} onChange={e => f.set(e.target.value)} className={inputClass}>{f.opts.map(([v,l]) => <option key={v} value={v}>{l}</option>)}</select><ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/></div></div>
+                ))}
+              </div>
+            </div>
+
+            <div className={sectionClass}>
+              <h2 className={headerClass}><span className="text-lg">💧</span> II. Efekty</h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {[
+                  {label:'Efekt główny',value:effect,set:setEffect,opts:[['krople wody spływające po powierzchni','Krople wody'],['para i mgła unosząca się wokół','Para i mgła'],['lód i kryształy lodu wokół produktu','Lód'],['ogień i płomienie w tle','Ogień'],['błyski światła i refleksy','Refleksy światła'],['bąbelki powietrza unoszące się','Bąbelki']]},
+                  {label:'Efekt dodatkowy',value:splashEffect,set:setSplashEffect,opts:[['odpryski wody wokół produktu','Odpryski wody'],['brak','Brak'],['eksplozja proszku kolorowego','Eksplozja proszku'],['liście i natura w tle','Liście i natura'],['śnieg i płatki śniegu','Śnieg'],['złote drobinki unoszące się','Złote drobinki']]},
+                  {label:'Oświetlenie',value:lighting,set:setLighting,opts:[['dramatyczne oświetlenie studyjne, refleksy światła','Studyjne dramatyczne'],['miękkie naturalne światło dzienne','Naturalne'],['neonowe oświetlenie, cyberpunk','Neon'],['złote ciepłe oświetlenie, zachód słońca','Złote ciepłe'],['zimne niebieskie światło, lodowe','Zimne niebieskie']]},
+                ].map(f => (
+                  <div key={f.label}><label className={labelClass}>{f.label}</label><div className="relative"><select value={f.value} onChange={e => f.set(e.target.value)} className={inputClass}>{f.opts.map(([v,l]) => <option key={v} value={v}>{l}</option>)}</select><ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/></div></div>
+                ))}
+              </div>
+            </div>
+
+            <div className={sectionClass}>
+              <h2 className={headerClass}><span className="text-lg">🎬</span> III. Ruch i Kamera</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[
+                  {label:'Obrót produktu',value:rotation,set:setRotation,opts:[['powolny obrót 360 stopni','360° powoli'],['szybki obrót 360 stopni','360° szybko'],['delikatne kołysanie lewo-prawo','Kołysanie'],['unoszenie się w górę i dół','Unoszenie'],['brak ruchu, statyczny','Statyczny']]},
+                  {label:'Prędkość',value:speed,set:setSpeed,opts:[['wolno i elegancko','Wolno'],['normalnie','Normalnie'],['dynamicznie i szybko','Szybko'],['ultra slow motion','Slow motion']]},
+                  {label:'Ujęcie kamery',value:camera,set:setCamera,opts:[['zbliżenie produktu, ujęcie z przodu','Zbliżenie front'],['ujęcie z góry, bird eye view','Z góry'],['ujęcie z dołu, dramatyczne','Z dołu'],['obrót kamery wokół produktu','Orbita kamery'],['oddalenie od produktu, reveal shot','Reveal']]},
+                  {label:'Tło',value:bg,set:setBg,opts:[['ciemne studyjne tło, czarny gradient','Czarne studio'],['białe czyste tło, minimalizm','Białe studio'],['gradient niebieski do fioletu','Gradient niebieski'],['natura, zielone liście, bokeh','Natura'],['marmurowa powierzchnia, luksus','Marmur'],['woda i ocean w tle','Ocean']]},
+                ].map(f => (
+                  <div key={f.label}><label className={labelClass}>{f.label}</label><div className="relative"><select value={f.value} onChange={e => f.set(e.target.value)} className={inputClass}>{f.opts.map(([v,l]) => <option key={v} value={v}>{l}</option>)}</select><ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/></div></div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="lg:col-span-1">
+            <div className="sticky top-24">
+              <div className="bg-white dark:bg-[#0A0A0A] border border-black/10 dark:border-[#333] p-6 rounded-2xl">
+                <h2 className="text-[10px] font-bold uppercase tracking-widest mb-4 border-b border-black/10 dark:border-[#333] pb-2 text-black dark:text-amber-500 uppercase">Prompt</h2>
+                <div className="bg-slate-100 dark:bg-[#121212] p-4 min-h-[200px] text-black dark:text-white font-mono text-[10px] leading-relaxed break-words border border-black/10 dark:border-[#222] mb-4 rounded-xl">
+                  <span className="text-amber-500 font-bold">{`> `}</span>{generatePrompt()}
+                </div>
+                <button onClick={handleCopy} className={`w-full py-3 font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all ${copied ? 'bg-emerald-500 text-black' : 'bg-black dark:bg-amber-500 text-white dark:text-black hover:bg-amber-500 hover:text-black'}`}>{copied ? '✔ Skopiowano!' : 'Kopiuj Prompt'}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const ImpressumView = ({ setCurrentView, lang }) => (
   <div className="min-h-screen bg-white dark:bg-black p-6 md:p-16 font-sans transition-colors duration-500">
     <div className="max-w-3xl mx-auto">
@@ -665,8 +796,13 @@ export default function App() {
   const isLoggedIn = user && !user.isAnonymous;
 
   useEffect(() => {
-    signInAnonymously(auth).catch(err => console.error("Auth error:", err));
-    const unsubscribe = onAuthStateChanged(auth, setUser);
+    const unsubscribe = onAuthStateChanged(auth, (u) => {
+      setUser(u);
+      // Only sign in anonymously if no user is logged in
+      if (!u) {
+        signInAnonymously(auth).catch(err => console.error("Auth error:", err));
+      }
+    });
     return () => unsubscribe();
   }, []);
 
@@ -695,7 +831,7 @@ export default function App() {
             </div>
             <div className="flex items-center gap-2">
               <div className="hidden sm:flex items-center gap-1 p-1 rounded-xl transition-colors" style={{background: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', border: isDarkMode ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.08)'}}>
-                {[['home', t.nav_academy], ['tutorials', t.nav_tutorials], ['prompt-builder', t.nav_studio], ['avatar-builder', t.lang === 'EN' ? 'Avatar Builder' : 'Kreator']].map(([view, label]) => (
+                {[['home', t.nav_academy], ['tutorials', t.nav_tutorials], ['prompt-builder', t.nav_studio], ['avatar-builder', t.lang === 'EN' ? 'Avatars' : 'Awatary'], ['ad-builder', t.lang === 'EN' ? 'Ad Builder' : 'Reklamy']].map(([view, label]) => (
                   <button key={view} onClick={() => setCurrentView(view)} className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${currentView === view ? 'bg-amber-500 text-black' : isDarkMode ? 'text-white/40 hover:text-white/80' : 'text-black/40 hover:text-black/80'}`}>{label}</button>
                 ))}
               </div>
@@ -720,6 +856,7 @@ export default function App() {
           {currentView === 'tutorials' && <TutorialsView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
           {currentView === 'prompt-builder' && <StudioProView t={t} user={user} onLoginRequest={() => setShowLogin(true)} onNavigate={setCurrentView} />}
           {currentView === 'avatar-builder' && <AvatarBuilderView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
+          {currentView === 'ad-builder' && <ProductAdBuilderView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
           {currentView === 'impressum' && <ImpressumView setCurrentView={setCurrentView} lang={lang} />}
           {currentView === 'datenschutz' && <DatenschutzView setCurrentView={setCurrentView} lang={lang} />}
           {currentView === 'regulamin' && <RegulaminView setCurrentView={setCurrentView} lang={lang} />}
