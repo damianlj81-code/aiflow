@@ -1,12 +1,7 @@
-import Stripe from 'stripe';
-
 export async function onRequestPost(context) {
   const { request, env } = context;
-
   try {
     const { plan, successUrl, cancelUrl } = await request.json();
-
-    const stripe = new Stripe(env.STRIPE_SECRET_KEY);
 
     const PRICES = {
       basic: env.STRIPE_PRICE_BASIC,
@@ -22,22 +17,42 @@ export async function onRequestPost(context) {
       });
     }
 
-    const session = await stripe.checkout.sessions.create({
+    const origin = new URL(request.url).origin;
+
+    const body = new URLSearchParams({
       mode: 'subscription',
-      payment_method_types: ['card'],
-      line_items: [{ price: priceId, quantity: 1 }],
-      success_url: successUrl || `${new URL(request.url).origin}/?payment=success`,
-      cancel_url: cancelUrl || `${new URL(request.url).origin}/`,
+      'payment_method_types[]': 'card',
+      'line_items[0][price]': priceId,
+      'line_items[0][quantity]': '1',
+      success_url: successUrl || `${origin}/?payment=success`,
+      cancel_url: cancelUrl || `${origin}/`,
       locale: 'pl',
-      allow_promotion_codes: true,
+      allow_promotion_codes: 'true',
     });
 
-    return new Response(JSON.stringify({ url: session.url }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
+    const response = await fetch('https://api.stripe.com/v1/checkout/sessions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${env.STRIPE_SECRET_KEY}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: body.toString(),
     });
+
+    const session = await response.json();
+
+    if (session.url) {
+      return new Response(JSON.stringify({ url: session.url }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    } else {
+      return new Response(JSON.stringify({ error: session.error?.message || 'Unknown error' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
   } catch (err) {
-    console.error('Stripe error:', err);
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
