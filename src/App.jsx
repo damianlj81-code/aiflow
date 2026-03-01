@@ -12,7 +12,7 @@ import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc } from 'fi
 
 const firebaseConfig = {
   apiKey: "AIzaSyB36wJrKgkyH0_ev6uyzVWKc2gQdXZNaWA",
-  authDomain: "loveaiflow.com",
+  authDomain: "aiflow-academy.firebaseapp.com",
   projectId: "aiflow-academy",
   storageBucket: "aiflow-academy.firebasestorage.app",
   messagingSenderId: "397056782057",
