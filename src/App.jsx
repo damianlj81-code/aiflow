@@ -546,7 +546,7 @@ const HomeView = ({ t, onLoginRequest }) => {
     return () => clearInterval(fi);
   }, []);
 
-  const scrollToPricing = () => { pricingRef.current?.scrollIntoView({ behavior: 'smooth' }); };
+  const scrollToPricing = () => { document.getElementById('pricing-section')?.scrollIntoView({ behavior: 'smooth' }); };
   const handlePurchase = (planName) => { setSelectedPlan(planName); setIsModalOpen(true); setShowIban(false); };
   const closeModal = () => { setIsModalOpen(false); setSelectedPlan(null); };
 
