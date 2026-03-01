@@ -400,7 +400,7 @@ const HomeView = ({ t, onLoginRequest }) => {
   );
 };
 
-const TutorialsView = ({ t, user, isPremium, onLoginRequest }) => {
+const TutorialsView = ({ t, user, onLoginRequest }) => {
   const isLoggedIn = user && !user.isAnonymous;
   const YOUTUBE_VIDEO_ID = "1_1oHwOZMe4";
   const videos = [
@@ -423,7 +423,7 @@ const TutorialsView = ({ t, user, isPremium, onLoginRequest }) => {
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <div className="relative rounded-2xl overflow-hidden aspect-video border border-black/5 dark:border-white/5 bg-black">
-              {isPremium ? (
+              {isLoggedIn ? (
                 <iframe width="100%" height="100%" src={`https://www.youtube.com/embed/${activeVideo.ytId}?autoplay=1&controls=1&rel=0`} title={activeVideo.title} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen className="w-full h-full absolute inset-0"/>
               ) : (
                 <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center">
@@ -446,7 +446,7 @@ const TutorialsView = ({ t, user, isPremium, onLoginRequest }) => {
               <button key={video.id} onClick={() => setActiveVideo(video)} className={`flex items-center gap-3 p-3 rounded-xl text-left transition-all border ${activeVideo.id === video.id ? 'border-amber-500/50 bg-amber-500/10' : 'border-black/5 dark:border-white/5 hover:border-amber-500/30 bg-white dark:bg-black'}`}>
                 <div className="relative w-20 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-slate-900">
                   <img src={video.thumb} alt="" className="w-full h-full object-cover opacity-70"/>
-                  <div className="absolute inset-0 flex items-center justify-center">{isPremium ? <Play className="w-4 h-4 text-white"/> : <Lock className="w-3 h-3 text-amber-500"/>}</div>
+                  <div className="absolute inset-0 flex items-center justify-center">{isLoggedIn ? <Play className="w-4 h-4 text-white"/> : <Lock className="w-3 h-3 text-amber-500"/>}</div>
                 </div>
                 <div className="flex-grow min-w-0">
                   <p className="text-black dark:text-white font-bold text-xs truncate">{video.title}</p>
@@ -509,7 +509,24 @@ const StudioProView = ({ t, user, onLoginRequest, onNavigate }) => {
   );
 };
 
-const AvatarBuilderView = ({ t }) => {
+const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
+  const isLoggedIn = user && !user.isAnonymous;
+  if (!isLoggedIn) return (
+    <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center px-4 font-sans">
+      <div className="text-center max-w-sm">
+        <div className="text-6xl mb-6">🔒</div>
+        <h2 className="text-2xl font-black text-black dark:text-white uppercase tracking-tighter mb-3">
+          {t.lang === 'EN' ? 'Login Required' : 'Kreator tylko dla zalogowanych użytkowników!'}
+        </h2>
+        <p className="text-slate-500 text-sm mb-8">
+          {t.lang === 'EN' ? 'Log in for free to access the Avatar Builder.' : 'Zaloguj się bezpłatnie aby korzystać z Kreatora Awatarów.'}
+        </p>
+        <button onClick={onLoginRequest} className="bg-amber-500 hover:bg-amber-400 text-black font-black text-[11px] uppercase tracking-widest px-8 py-4 rounded-xl transition-all hover:scale-105">
+          {t.lang === 'EN' ? 'Log In / Register →' : 'Zaloguj się / Zarejestruj →'}
+        </button>
+      </div>
+    </div>
+  );
   const [copied, setCopied] = useState(false);
   const [subject, setSubject] = useState('1girl, beautiful woman');
   const [bodyType, setBodyType] = useState('slim and toned body');
@@ -637,24 +654,12 @@ export default function App() {
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterSent, setNewsletterSent] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
-  const [isPremium, setIsPremium] = useState(false);
   const t = { ...translations[lang], lang };
   const isLoggedIn = user && !user.isAnonymous;
 
   useEffect(() => {
     signInAnonymously(auth).catch(err => console.error("Auth error:", err));
-    const unsubscribe = onAuthStateChanged(auth, (u) => {
-      setUser(u);
-      if (u && !u.isAnonymous && u.email) {
-        fetch('https://aiflow-checkout.47y85nfm6p.workers.dev/check-premium', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: u.email }),
-        }).then(r => r.json()).then(data => setIsPremium(data.premium === true)).catch(() => {});
-      } else {
-        setIsPremium(false);
-      }
-    });
+    const unsubscribe = onAuthStateChanged(auth, setUser);
     return () => unsubscribe();
   }, []);
 
@@ -705,9 +710,9 @@ export default function App() {
         </nav>
         <main className="pt-16">
           {currentView === 'home' && <HomeView t={t} onLoginRequest={() => setShowLogin(true)} />}
-          {currentView === 'tutorials' && <TutorialsView t={t} user={user} isPremium={isPremium} onLoginRequest={() => setShowLogin(true)} />}
+          {currentView === 'tutorials' && <TutorialsView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
           {currentView === 'prompt-builder' && <StudioProView t={t} user={user} onLoginRequest={() => setShowLogin(true)} onNavigate={setCurrentView} />}
-          {currentView === 'avatar-builder' && <AvatarBuilderView t={t} />}
+          {currentView === 'avatar-builder' && <AvatarBuilderView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
           {currentView === 'impressum' && <ImpressumView setCurrentView={setCurrentView} lang={lang} />}
           {currentView === 'datenschutz' && <DatenschutzView setCurrentView={setCurrentView} lang={lang} />}
           {currentView === 'regulamin' && <RegulaminView setCurrentView={setCurrentView} lang={lang} />}
