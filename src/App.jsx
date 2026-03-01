@@ -322,47 +322,22 @@ const LoginModal = ({ onClose, lang }) => {
 // PRICING BUTTON — Stripe Checkout
 // =========================================================================
 const PricingButton = ({ plan, t, highlight }) => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const handleCheckout = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const response = await fetch('/functions/create-checkout-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          plan,
-          successUrl: `${window.location.origin}/?payment=success`,
-          cancelUrl: `${window.location.origin}/`,
-        }),
-      });
-      const data = await response.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        setError(t.lang === 'EN' ? 'Something went wrong. Try again.' : 'Coś poszło nie tak. Spróbuj ponownie.');
-      }
-    } catch (err) {
-      setError(t.lang === 'EN' ? 'Connection error. Try again.' : 'Błąd połączenia. Spróbuj ponownie.');
-    }
-    setLoading(false);
+  const LINKS = {
+    basic: 'https://buy.stripe.com/28EfZg0Y1aqzcbmdYm8bS00',
+    monthly: 'https://buy.stripe.com/cNiaEWbCF6aj7V63jI8bS01',
+    annual: 'https://buy.stripe.com/9B6cN4eOR8ir1wIcUi8bS02',
   };
 
   return (
-    <div>
-      <button
-        onClick={handleCheckout}
-        disabled={loading}
-        className={`w-full py-3.5 font-black text-[11px] uppercase tracking-widest rounded-xl transition-all disabled:opacity-50 ${highlight ? 'bg-amber-500 hover:bg-amber-400 text-black shadow-lg shadow-amber-500/20' : 'bg-black dark:bg-white text-white dark:text-black hover:bg-amber-500 hover:text-black dark:hover:bg-amber-500 dark:hover:text-black'}`}>
-        {loading ? '⏳ ...' : t.lang === 'EN' ? 'Get Access →' : 'Uzyskaj dostęp →'}
-      </button>
-      {error && <p className="text-red-500 text-[10px] mt-2 text-center">{error}</p>}
-    </div>
+    
+      href={LINKS[plan]}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`block w-full py-3.5 font-black text-[11px] uppercase tracking-widest rounded-xl transition-all text-center ${highlight ? 'bg-amber-500 hover:bg-amber-400 text-black shadow-lg shadow-amber-500/20' : 'bg-black dark:bg-white text-white dark:text-black hover:bg-amber-500 hover:text-black dark:hover:bg-amber-500 dark:hover:text-black'}`}>
+      {t.lang === 'EN' ? 'Get Access →' : 'Uzyskaj dostęp →'}
+    </a>
   );
 };
-
 // =========================================================================
 // FAQ SECTION
 // =========================================================================
