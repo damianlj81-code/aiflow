@@ -85,11 +85,18 @@ const LoginModal = ({ onClose, lang }) => {
 
   const handleGoogle = async () => {
     setLoading(true); setError('');
+    setError('⚠️ Jeśli przeglądarka zablokuje okno — kliknij ikonkę w pasku adresu i zezwól na wyskakujące okienka, a następnie spróbuj ponownie.');
     try { 
       const result = await signInWithPopup(auth, googleProvider); 
-      if (result?.user) onClose();
+      if (result?.user) { setError(''); onClose(); }
     } catch (e) { 
-      if (e.code !== 'auth/popup-closed-by-user') setError(errorMsg(e.code)); 
+      if (e.code === 'auth/popup-blocked') {
+        setError('🔒 Przeglądarka zablokowała okno. Kliknij ikonkę w pasku adresu → Zezwól na wyskakujące okienka → spróbuj ponownie.');
+      } else if (e.code !== 'auth/popup-closed-by-user') {
+        setError(errorMsg(e.code));
+      } else {
+        setError('');
+      }
     }
     setLoading(false);
   };
