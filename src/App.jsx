@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInAnonymously, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, signOut } from 'firebase/auth';
+import { getAuth, signInAnonymously, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
 import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, getDoc, setDoc, updateDoc, increment } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -118,11 +118,17 @@ const LoginModal = ({ onClose, lang }) => {
   const handleGoogle = async () => {
     setLoading(true); setError('');
     try { 
-      await signInWithRedirect(auth, googleProvider);
+      const result = await signInWithPopup(auth, googleProvider); 
+      console.log('Google result:', result);
+      if (result?.user) {
+        console.log('User:', result.user.email);
+        onClose();
+      }
     } catch (e) { 
-      setError(errorMsg(e.code));
-      setLoading(false);
+      console.log('Google error:', e.code, e.message);
+      if (e.code !== 'auth/popup-closed-by-user') setError(errorMsg(e.code));
     }
+    setLoading(false);
   };
 
   const handleEmail = async (e) => {
@@ -921,10 +927,6 @@ export default function App() {
   const isLoggedIn = user && !user.isAnonymous;
 
   useEffect(() => {
-    getRedirectResult(auth).then(result => {
-      if (result?.user) setUser(result.user);
-    }).catch(() => {});
-
     const unsubscribe = onAuthStateChanged(auth, (u) => {
       setUser(u);
       if (!u) {
