@@ -44,24 +44,33 @@ const STRIPE_PRO_LINK_TEST = 'https://buy.stripe.com/test_28E00jehn5wt2RN6uS4ow0
 const ADMIN_EMAIL = 'damianlj@gmail.com';
 const stripeLink = (baseUrl, uid, email) => { const base = email === ADMIN_EMAIL ? STRIPE_PRO_LINK_TEST : baseUrl; return uid ? `${base}?client_reference_id=${uid}` : base; };
 
-async function getTokens(db, uid) {
+async function getTokenData(db, uid) {
   const ref = doc(db, 'artifacts', appId, 'public', 'data', 'tokens', uid);
   const snap = await getDoc(ref);
   if (!snap.exists()) {
-    await setDoc(ref, { tokens: TOKENS_FREE, used: 0, createdAt: new Date().toISOString() });
-    return TOKENS_FREE;
+    await setDoc(ref, { tokens: TOKENS_FREE, used: 0, createdAt: new Date().toISOString(), pro: false });
+    return { tokens: TOKENS_FREE, isPro: false };
   }
-  return snap.data().tokens;
+  const data = snap.data();
+  return { tokens: data.tokens, isPro: data.pro === true };
+}
+
+// Keep for backward compat
+async function getTokens(db, uid) {
+  const { tokens } = await getTokenData(db, uid);
+  return tokens;
 }
 
 async function useToken(db, uid) {
   const ref = doc(db, 'artifacts', appId, 'public', 'data', 'tokens', uid);
   const snap = await getDoc(ref);
   if (!snap.exists()) {
-    await setDoc(ref, { tokens: TOKENS_FREE - 1, used: 1, createdAt: new Date().toISOString() });
+    await setDoc(ref, { tokens: TOKENS_FREE - 1, used: 1, createdAt: new Date().toISOString(), pro: false });
     return true;
   }
   const data = snap.data();
+  // Pro users never run out
+  if (data.pro === true) return true;
   if (data.tokens <= 0) return false;
   await updateDoc(ref, { tokens: increment(-1), used: increment(1) });
   return true;
@@ -551,7 +560,7 @@ const StudioProView = ({ t, user, onLoginRequest, onNavigate }) => {
 
 
 const TokensExhaustedOverlay = ({ t, stripeUrl }) => (
-  <div className="absolute inset-0 z-[100] backdrop-blur-xl bg-black/80 flex items-center justify-center px-6 rounded-2xl">
+  <div className="fixed inset-0 z-[100] backdrop-blur-xl bg-black/80 flex items-center justify-center px-6">
     <div className="text-center max-w-sm w-full bg-[#0d0d0d] border border-amber-500/30 rounded-3xl p-10">
       <div className="text-5xl mb-4">🔒</div>
       <h2 className="text-xl font-black text-white uppercase tracking-tighter mb-2">
@@ -578,6 +587,23 @@ const TokensExhaustedOverlay = ({ t, stripeUrl }) => (
 const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
   const isLoggedIn = user && !user.isAnonymous;
   const [clicked, setClicked] = useState(false);
+  const [tokens, setTokens] = useState(null);
+  const [isPro, setIsPro] = useState(false);
+  const [loadingTokens, setLoadingTokens] = useState(false);
+
+  useEffect(() => {
+    if (isLoggedIn && user?.uid) {
+      setLoadingTokens(true);
+      getTokenData(db, user.uid).then(({ tokens, isPro }) => {
+        setTokens(tokens);
+        setIsPro(isPro);
+        setLoadingTokens(false);
+      }).catch(() => setLoadingTokens(false));
+    } else {
+      setTokens(null);
+      setIsPro(false);
+    }
+  }, [isLoggedIn, user?.uid]);
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -627,12 +653,12 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
 
   const handleCopy = async () => {
     if (!isLoggedIn) { setClicked(true); return; }
-    if (tokens <= 0) return;
+    if (!isPro && tokens <= 0) return;
     const ok = await useToken(db, user.uid);
     if (ok) {
       navigator.clipboard.writeText(generatePrompt());
       setCopied(true);
-      setTokens(prev => prev - 1);
+      if (!isPro) setTokens(prev => prev - 1);
       setTimeout(() => setCopied(false), 2000);
     }
   };
@@ -643,11 +669,19 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
 
   return (
     <div className="relative pb-20 p-4 md:p-8 bg-slate-50 dark:bg-black transition-colors duration-700 min-h-screen">
-      {isLoggedIn && tokens !== null && tokens <= 0 && <TokensExhaustedOverlay t={t} stripeUrl={stripeLink(STRIPE_PRO_LINK, user && user.uid)} />}
+      {isLoggedIn && !isPro && tokens !== null && tokens <= 0 && <TokensExhaustedOverlay t={t} stripeUrl={stripeLink(STRIPE_PRO_LINK, user && user.uid)} />}
       <div className="max-w-6xl mx-auto">
-        <div className="mb-8">
-          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-4"><Crown className="w-3 h-3"/>Prompt Studio — Edition Limitée</div>
-          <h1 className="text-3xl md:text-4xl font-black text-black dark:text-white uppercase tracking-tighter">{t.lang === 'EN' ? 'Avatar Builder' : 'Kreator Awatarów'}</h1>
+        <div className="mb-8 flex items-start justify-between flex-wrap gap-4">
+          <div>
+            <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-4"><Crown className="w-3 h-3"/>Prompt Studio — Edition Limitée</div>
+            <h1 className="text-3xl md:text-4xl font-black text-black dark:text-white uppercase tracking-tighter">{t.lang === 'EN' ? 'Avatar Builder' : 'Kreator Awatarów'}</h1>
+          </div>
+          {isLoggedIn && (
+            <div className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black ${isPro ? 'bg-amber-500/10 border border-amber-500/30 text-amber-500' : tokens > 0 ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-500' : 'bg-red-500/10 border border-red-500/30 text-red-500'}`}>
+              <span>{isPro ? '👑' : '🎟'}</span>
+              {loadingTokens ? '...' : isPro ? 'Pro — nielimitowany' : `${tokens}/3 ${t.lang === 'EN' ? 'demo prompts' : 'promptów demo'}`}
+            </div>
+          )}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <div className="lg:col-span-3">
@@ -680,7 +714,7 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
           <div className="lg:col-span-1">
             <div className="sticky top-24">
               <div className="relative bg-white dark:bg-[#0A0A0A] border border-black/10 dark:border-[#333] p-6 rounded-2xl">
-                {isLoggedIn && tokens !== null && tokens <= 0 && <TokensExhaustedOverlay t={t} stripeUrl={stripeLink(STRIPE_PRO_LINK, user && user.uid)} />}
+                {isLoggedIn && !isPro && tokens !== null && tokens <= 0 && <TokensExhaustedOverlay t={t} stripeUrl={stripeLink(STRIPE_PRO_LINK, user && user.uid)} />}
                 <h2 className="text-[10px] font-bold tracking-widest mb-4 border-b border-black/10 dark:border-[#333] pb-2 text-black dark:text-amber-500 uppercase">Prompt</h2>
                 <div className="relative">
                   <div className={`bg-slate-100 dark:bg-[#121212] p-4 min-h-[200px] text-black dark:text-white font-mono text-[10px] leading-relaxed break-words border border-black/10 dark:border-[#222] mb-4 rounded-xl ${!isLoggedIn ? 'select-none' : ''}`}>
@@ -695,8 +729,8 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
                   )}
                 </div>
                                 {isLoggedIn ? (
-                  <button onClick={handleCopy} disabled={tokens <= 0} className={`w-full py-3 font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all ${copied ? 'bg-emerald-500 text-black' : tokens <= 0 ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed' : 'bg-black dark:bg-amber-500 text-white dark:text-black hover:bg-amber-500 hover:text-black'}`}>
-                    {copied ? '✔ Skopiowano!' : tokens > 0 ? `${t.lang === 'EN' ? 'Copy Prompt' : 'Kopiuj Prompt'} (${tokens} 🎟)` : t.lang === 'EN' ? 'No prompts left' : 'Brak promptów'}
+                  <button onClick={handleCopy} disabled={!isPro && tokens <= 0} className={`w-full py-3 font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all ${copied ? 'bg-emerald-500 text-black' : (!isPro && tokens <= 0) ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed' : 'bg-black dark:bg-amber-500 text-white dark:text-black hover:bg-amber-500 hover:text-black'}`}>
+                    {copied ? '✔ Skopiowano!' : isPro ? `${t.lang === 'EN' ? 'Copy Prompt' : 'Kopiuj Prompt'} (∞ Pro)` : tokens > 0 ? `${t.lang === 'EN' ? 'Copy Prompt' : 'Kopiuj Prompt'} (${tokens}/3 🎟)` : t.lang === 'EN' ? 'No prompts left — upgrade' : 'Brak promptów — kup Pro'}
                   </button>
                 ) : (
                   <button onClick={onLoginRequest} className="w-full py-3 font-bold text-[10px] uppercase tracking-widest rounded-xl bg-amber-500 hover:bg-amber-400 text-black transition-all">
@@ -718,15 +752,21 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
   const [clicked, setClicked] = useState(false);
   const [copied, setCopied] = useState(false);
   const [tokens, setTokens] = useState(null);
+  const [isPro, setIsPro] = useState(false);
   const [loadingTokens, setLoadingTokens] = useState(false);
 
   // Load tokens when user logs in
   useEffect(() => {
     if (isLoggedIn && user?.uid) {
       setLoadingTokens(true);
-      getTokens(db, user.uid).then(t => { setTokens(t); setLoadingTokens(false); }).catch(() => setLoadingTokens(false));
+      getTokenData(db, user.uid).then(({ tokens, isPro }) => {
+        setTokens(tokens);
+        setIsPro(isPro);
+        setLoadingTokens(false);
+      }).catch(() => setLoadingTokens(false));
     } else {
       setTokens(null);
+      setIsPro(false);
     }
   }, [isLoggedIn, user?.uid]);
 
@@ -793,12 +833,12 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
 
   const handleCopy = async () => {
     if (!isLoggedIn) { setClicked(true); return; }
-    if (tokens <= 0) return;
+    if (!isPro && tokens <= 0) return;
     const ok = await useToken(db, user.uid);
     if (ok) {
       navigator.clipboard.writeText(generatePrompt());
       setCopied(true);
-      setTokens(prev => prev - 1);
+      if (!isPro) setTokens(prev => prev - 1);
       setTimeout(() => setCopied(false), 2000);
     }
   };
@@ -810,7 +850,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
 
   return (
     <div className="relative pb-20 p-4 md:p-8 bg-slate-50 dark:bg-black transition-colors duration-700 min-h-screen" onClick={() => !isLoggedIn && setClicked(true)}>
-      {isLoggedIn && tokens !== null && tokens <= 0 && <TokensExhaustedOverlay t={t} stripeUrl={stripeLink(STRIPE_PRO_LINK, user && user.uid)} />}
+      {isLoggedIn && !isPro && tokens !== null && tokens <= 0 && <TokensExhaustedOverlay t={t} stripeUrl={stripeLink(STRIPE_PRO_LINK, user && user.uid)} />}
       {!isLoggedIn && clicked && (
         <div className="absolute inset-0 z-50 backdrop-blur-md bg-black/60 flex items-center justify-center px-4" onClick={e => e.stopPropagation()}>
           <div className="text-center max-w-sm">
@@ -835,9 +875,9 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
           </div>
           {isLoggedIn && (
             <div className="flex flex-col items-end gap-2">
-              <div className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black ${tokens > 0 ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-500' : 'bg-red-500/10 border border-red-500/30 text-red-500'}`}>
-                <span>🎟</span>
-                {loadingTokens ? '...' : `${tokens} ${t.lang === 'EN' ? 'prompts left' : 'promptów pozostało'}`}
+              <div className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black ${isPro ? 'bg-amber-500/10 border border-amber-500/30 text-amber-500' : tokens > 0 ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-500' : 'bg-red-500/10 border border-red-500/30 text-red-500'}`}>
+                <span>{isPro ? '👑' : '🎟'}</span>
+                {loadingTokens ? '...' : isPro ? 'Pro — nielimitowany' : `${tokens}/3 ${t.lang === 'EN' ? 'demo prompts' : 'promptów demo'}`}
               </div>
 
             </div>
@@ -912,7 +952,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
           <div className="lg:col-span-1">
             <div className="sticky top-24">
               <div className="relative bg-white dark:bg-[#0A0A0A] border border-black/10 dark:border-[#333] p-6 rounded-2xl">
-                {isLoggedIn && tokens !== null && tokens <= 0 && <TokensExhaustedOverlay t={t} stripeUrl={stripeLink(STRIPE_PRO_LINK, user && user.uid)} />}
+                {isLoggedIn && !isPro && tokens !== null && tokens <= 0 && <TokensExhaustedOverlay t={t} stripeUrl={stripeLink(STRIPE_PRO_LINK, user && user.uid)} />}
                 <h2 className="text-[10px] font-bold uppercase tracking-widest mb-4 border-b border-black/10 dark:border-[#333] pb-2 text-black dark:text-amber-500">Prompt</h2>
                 <div className="relative">
                   <div className={`bg-slate-100 dark:bg-[#121212] p-4 min-h-[200px] text-black dark:text-white font-mono text-[10px] leading-relaxed break-words border border-black/10 dark:border-[#222] mb-4 rounded-xl ${!isLoggedIn ? 'select-none' : ''}`}>
@@ -937,9 +977,9 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
                   )}
                 </div>
                 {isLoggedIn ? (
-                  tokens > 0 ? (
+                  (isPro || tokens > 0) ? (
                     <button onClick={handleCopy} className={`w-full py-3 font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all ${copied ? 'bg-emerald-500 text-black' : 'bg-black dark:bg-amber-500 text-white dark:text-black hover:bg-amber-500 hover:text-black'}`}>
-                      {copied ? '✔ Skopiowano!' : `Kopiuj Prompt (${tokens} 🎟)`}
+                      {copied ? '✔ Skopiowano!' : isPro ? `Kopiuj Prompt (∞ Pro)` : `Kopiuj Prompt (${tokens}/3 🎟)`}
                     </button>
                   ) : (
                     <a href={stripeLink(STRIPE_PRO_LINK, user?.uid, user?.email)} target="_blank" rel="noopener noreferrer" className="block w-full py-3 font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all bg-amber-500 hover:bg-amber-400 text-black text-center">
