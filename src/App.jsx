@@ -551,7 +551,7 @@ const StudioProView = ({ t, user, onLoginRequest, onNavigate }) => {
 
 
 const TokensExhaustedOverlay = ({ t, stripeUrl }) => (
-  <div className="fixed inset-0 z-[100] backdrop-blur-xl bg-black/80 flex items-center justify-center px-6">
+  <div className="absolute inset-0 z-[100] backdrop-blur-xl bg-black/80 flex items-center justify-center px-6 rounded-2xl">
     <div className="text-center max-w-sm w-full bg-[#0d0d0d] border border-amber-500/30 rounded-3xl p-10">
       <div className="text-5xl mb-4">🔒</div>
       <h2 className="text-xl font-black text-white uppercase tracking-tighter mb-2">
