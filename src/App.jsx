@@ -40,7 +40,9 @@ const getYTId = (url) => {
 const TOKENS_FREE = 5;
 const TOKENS_PER_PACK = 20;
 const STRIPE_PRO_LINK = 'https://buy.stripe.com/bJe6oGeORfKTdfq4nM8bS03';
-const stripeLink = (baseUrl, uid) => uid ? `${baseUrl}?client_reference_id=${uid}` : baseUrl;
+const STRIPE_PRO_LINK_TEST = 'https://buy.stripe.com/test_28E00jehn5wt2RN6uS4ow00';
+const ADMIN_EMAIL = 'damianlj@gmail.com';
+const stripeLink = (baseUrl, uid, email) => { const base = email === ADMIN_EMAIL ? STRIPE_PRO_LINK_TEST : baseUrl; return uid ? `${base}?client_reference_id=${uid}` : base; };
 
 async function getTokens(db, uid) {
   const ref = doc(db, 'artifacts', appId, 'public', 'data', 'tokens', uid);
@@ -550,6 +552,16 @@ const StudioProView = ({ t, user, onLoginRequest, onNavigate }) => {
 const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
   const isLoggedIn = user && !user.isAnonymous;
   const [clicked, setClicked] = useState(false);
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      const noRight = e => e.preventDefault();
+      const noF12 = e => { if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I','J','C'].includes(e.key)) || (e.ctrlKey && e.key === 'U')) e.preventDefault(); };
+      document.addEventListener('contextmenu', noRight);
+      document.addEventListener('keydown', noF12);
+      return () => { document.removeEventListener('contextmenu', noRight); document.removeEventListener('keydown', noF12); };
+    }
+  }, [isLoggedIn]);
   if (!isLoggedIn) return (
     <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center px-4 font-sans">
       <div className="text-center max-w-sm">
@@ -590,7 +602,7 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
   const handleCopy = () => { navigator.clipboard.writeText(generatePrompt()).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); }); };
   const sectionClass = "bg-white dark:bg-[#0A0A0A] border border-black/10 dark:border-[#222] p-5 rounded-2xl mb-6 transition-all duration-500";
   const labelClass = "block text-[9px] uppercase tracking-widest text-slate-500 mb-1.5 font-bold";
-  const inputClass = "w-full bg-slate-100 dark:bg-[#121212] border border-black/10 dark:border-[#333] px-3 py-2 text-xs dark:text-white focus:border-amber-500 focus:outline-none transition-all rounded-lg appearance-none";
+  const inputClass = "w-full bg-slate-100 dark:bg-[#121212] border border-black/10 dark:border-[#333] px-3 py-2 text-[13px] dark:text-white focus:border-amber-500 focus:outline-none transition-all rounded-lg appearance-none";
   const headerClass = "text-xs font-bold tracking-widest text-black dark:text-amber-500 mb-5 flex items-center gap-2 border-b border-black/10 dark:border-[#222] pb-3 uppercase";
 
   return (
@@ -605,7 +617,7 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
             <div className={sectionClass}>
               <h2 className={headerClass}><PersonStanding className="w-4 h-4"/> I. Sylwetka & Anatomia</h2>
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                {[{label:'Podmiot',value:subject,set:setSubject,opts:[['1girl, beautiful woman','1 Kobieta'],['1boy, handsome man','1 Mężczyzna'],['2girls, beautiful women','2 Kobiety'],['1boy and 1girl, couple','Para']]},{label:'Sylwetka',value:bodyType,set:setBodyType,opts:[['slim and toned body','Szczupła'],['curvy, hourglass figure','Klepsydra'],['athletic, muscular body','Atletyczna']]},{label:'Biust',value:breastSize,set:setBreastSize,opts:[['small breasts','Mały'],['medium breasts','Średni'],['large heavy breasts','Duży']]},{label:'Dół',value:lowerAnatomy,set:setLowerAnatomy,opts:[['none','Standard'],['noticeable crotch bulge','Bulge (M)'],['cameltoe','Cameltoe (K)']]},{label:'Owłosienie',value:bodyHair,set:setBodyHair,opts:[['none','Gładkie'],['light body hair','Lekkie'],['hairy body','Mocne']]}].map(f => (
+                {[{label:'Podmiot',value:subject,set:setSubject,opts:[['1girl, beautiful woman', t.lang==='EN'?'1 Woman':'1 Kobieta'],['1boy, handsome man', t.lang==='EN'?'1 Man':'1 Mężczyzna'],['2girls, beautiful women', t.lang==='EN'?'2 Women':'2 Kobiety'],['1boy and 1girl, couple', t.lang==='EN'?'Couple':'Para']]},{label:'Sylwetka',value:bodyType,set:setBodyType,opts:[['slim and toned body', t.lang==='EN'?'Slim':'Szczupła'],['curvy, hourglass figure', t.lang==='EN'?'Curvy':'Klepsydra'],['athletic, muscular body', t.lang==='EN'?'Athletic':'Atletyczna']]},{label:'Biust',value:breastSize,set:setBreastSize,opts:[['small breasts', t.lang==='EN'?'Small':'Mały'],['medium breasts', t.lang==='EN'?'Medium':'Średni'],['large heavy breasts', t.lang==='EN'?'Large':'Duży']]},{label:'Dół',value:lowerAnatomy,set:setLowerAnatomy,opts:[['none','Standard'],['noticeable crotch bulge','Bulge (M)'],['cameltoe','Cameltoe (F)']]},{label:'Owłosienie',value:bodyHair,set:setBodyHair,opts:[['none', t.lang==='EN'?'Smooth':'Gładkie'],['light body hair', t.lang==='EN'?'Light':'Lekkie'],['hairy body', t.lang==='EN'?'Heavy':'Mocne']]}].map(f => (
                   <div key={f.label}><label className={labelClass}>{f.label}</label><div className="relative"><select value={f.value} onChange={e => f.set(e.target.value)} className={inputClass}>{f.opts.map(([v,l]) => <option key={v} value={v}>{l}</option>)}</select><ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/></div></div>
                 ))}
               </div>
@@ -613,7 +625,7 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
             <div className={sectionClass}>
               <h2 className={headerClass}><User className="w-4 h-4"/> II. Twarz & Włosy</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[{label:'Fryzura',value:hairStyle,set:setHairStyle,opts:[['elegant updo hair, wedding style, revealing ears and earrings','Upięcie ślubne'],['high bun hair, sleek look','Wysoki kok'],['tied in a ponytail','Kucyk']]},{label:'Kolor',value:hairColor,set:setHairColor,opts:[['blonde','Blond'],['brunette','Brązowe'],['black','Czarne'],['red','Rude']]},{label:'Długość',value:hairLength,set:setHairLength,opts:[['short','Krótkie'],['long','Długie']]},{label:'Twarz',value:faceSelect,set:setFaceSelect,opts:[['detailed symmetrical face, sharp features, natural skin','Klasyczna'],['cute face, freckles','Piegi']]}].map(f => (
+                {[{label:'Fryzura',value:hairStyle,set:setHairStyle,opts:[['elegant updo hair, wedding style, revealing ears and earrings', t.lang==='EN'?'Wedding updo':'Upięcie ślubne'],['high bun hair, sleek look', t.lang==='EN'?'High bun':'Wysoki kok'],['tied in a ponytail', t.lang==='EN'?'Ponytail':'Kucyk']]},{label:'Kolor',value:hairColor,set:setHairColor,opts:[['blonde', t.lang==='EN'?'Blonde':'Blond'],['brunette', t.lang==='EN'?'Brunette':'Brązowe'],['black', t.lang==='EN'?'Black':'Czarne'],['red', t.lang==='EN'?'Red':'Rude']]},{label:'Długość',value:hairLength,set:setHairLength,opts:[['short', t.lang==='EN'?'Short':'Krótkie'],['long', t.lang==='EN'?'Long':'Długie']]},{label:'Twarz',value:faceSelect,set:setFaceSelect,opts:[['detailed symmetrical face, sharp features, natural skin', t.lang==='EN'?'Classic':'Klasyczna'],['cute face, freckles', t.lang==='EN'?'Freckles':'Piegi']]}].map(f => (
                   <div key={f.label}><label className={labelClass}>{f.label}</label><div className="relative"><select value={f.value} onChange={e => f.set(e.target.value)} className={inputClass}>{f.opts.map(([v,l]) => <option key={v} value={v}>{l}</option>)}</select><ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/></div></div>
                 ))}
               </div>
@@ -632,8 +644,17 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
             <div className="sticky top-24">
               <div className="bg-white dark:bg-[#0A0A0A] border border-black/10 dark:border-[#333] p-6 rounded-2xl">
                 <h2 className="text-[10px] font-bold tracking-widest mb-4 border-b border-black/10 dark:border-[#333] pb-2 text-black dark:text-amber-500 uppercase">Prompt</h2>
-                <div className="bg-slate-100 dark:bg-[#121212] p-4 min-h-[200px] text-black dark:text-white font-mono text-[10px] leading-relaxed break-words border border-black/10 dark:border-[#222] mb-4 rounded-xl">
-                  <span className="text-amber-500 font-bold">{`> `}</span>{generatePrompt()}
+                <div className="relative">
+                  <div className={`bg-slate-100 dark:bg-[#121212] p-4 min-h-[200px] text-black dark:text-white font-mono text-[10px] leading-relaxed break-words border border-black/10 dark:border-[#222] mb-4 rounded-xl ${!isLoggedIn ? 'select-none' : ''}`}>
+                    <span className="text-amber-500 font-bold">{"> "}</span>{generatePrompt()}
+                  </div>
+                  {!isLoggedIn && (
+                    <div className="absolute inset-0 mb-4 rounded-xl backdrop-blur-sm bg-black/50 flex flex-col items-center justify-center p-4 text-center cursor-pointer" onClick={onLoginRequest}>
+                      <div className="text-2xl mb-2">🔒</div>
+                      <p className="text-white font-black text-xs uppercase tracking-widest mb-1">Zaloguj się aby zobaczyć prompt</p>
+                      <p className="text-white/60 text-[10px]">Bezpłatnie • 5 promptów gratis</p>
+                    </div>
+                  )}
                 </div>
                 <button onClick={handleCopy} className={`w-full py-3 font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all ${copied ? 'bg-emerald-500 text-black' : 'bg-black dark:bg-amber-500 text-white dark:text-black hover:bg-amber-500 hover:text-black'}`}>{copied ? '✔ Skopiowano!' : 'Kopiuj Prompt'}</button>
               </div>
@@ -738,7 +759,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
 
   const sectionClass = "bg-white dark:bg-[#0A0A0A] border border-black/10 dark:border-[#222] p-5 rounded-2xl mb-6 transition-all duration-500 font-sans";
   const labelClass = "block text-[9px] uppercase tracking-widest text-slate-500 mb-1.5 font-bold";
-  const inputClass = "w-full bg-slate-100 dark:bg-[#121212] border border-black/10 dark:border-[#333] px-3 py-2 text-xs dark:text-white focus:border-amber-500 focus:outline-none transition-all rounded-lg appearance-none";
+  const inputClass = "w-full bg-slate-100 dark:bg-[#121212] border border-black/10 dark:border-[#333] px-3 py-2 text-[13px] dark:text-white focus:border-amber-500 focus:outline-none transition-all rounded-lg appearance-none";
   const headerClass = "text-xs font-bold tracking-widest text-black dark:text-amber-500 mb-5 flex items-center gap-2 border-b border-black/10 dark:border-[#222] pb-3 uppercase";
 
   return (
@@ -772,7 +793,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
                 {loadingTokens ? '...' : `${tokens} ${t.lang === 'EN' ? 'prompts left' : 'promptów pozostało'}`}
               </div>
               {tokens <= 0 && (
-                <a href={stripeLink(STRIPE_PRO_LINK, user?.uid)} target="_blank" rel="noopener noreferrer" className="bg-amber-500 hover:bg-amber-400 text-black font-black text-[10px] uppercase tracking-widest px-4 py-2 rounded-xl transition-all">
+                <a href={stripeLink(STRIPE_PRO_LINK, user?.uid, user?.email)} target="_blank" rel="noopener noreferrer" className="bg-amber-500 hover:bg-amber-400 text-black font-black text-[10px] uppercase tracking-widest px-4 py-2 rounded-xl transition-all">
                   {t.lang === 'EN' ? '+ Buy 20 prompts →' : '+ Kup 20 promptów →'}
                 </a>
               )}
@@ -849,8 +870,27 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
             <div className="sticky top-24">
               <div className="bg-white dark:bg-[#0A0A0A] border border-black/10 dark:border-[#333] p-6 rounded-2xl">
                 <h2 className="text-[10px] font-bold uppercase tracking-widest mb-4 border-b border-black/10 dark:border-[#333] pb-2 text-black dark:text-amber-500">Prompt</h2>
-                <div className="bg-slate-100 dark:bg-[#121212] p-4 min-h-[200px] text-black dark:text-white font-mono text-[10px] leading-relaxed break-words border border-black/10 dark:border-[#222] mb-4 rounded-xl">
-                  <span className="text-amber-500 font-bold">{`> `}</span>{generatePrompt()}
+                <div className="relative">
+                  <div className={`bg-slate-100 dark:bg-[#121212] p-4 min-h-[200px] text-black dark:text-white font-mono text-[10px] leading-relaxed break-words border border-black/10 dark:border-[#222] mb-4 rounded-xl ${!isLoggedIn ? 'select-none' : ''}`}>
+                    <span className="text-amber-500 font-bold">{"> "}</span>{generatePrompt()}
+                  </div>
+                  {!isLoggedIn && (
+                    <div className="absolute inset-0 mb-4 rounded-xl backdrop-blur-sm bg-black/50 flex flex-col items-center justify-center p-4 text-center cursor-pointer" onClick={onLoginRequest}>
+                      <div className="text-2xl mb-2">🔒</div>
+                      <p className="text-white font-black text-xs uppercase tracking-widest mb-1">Zaloguj się aby zobaczyć prompt</p>
+                      <p className="text-white/60 text-[10px]">Bezpłatnie • 5 promptów gratis</p>
+                    </div>
+                  )}
+                  {isLoggedIn && tokens <= 0 && (
+                    <div className="absolute inset-0 mb-4 rounded-xl backdrop-blur-sm bg-black/70 flex flex-col items-center justify-center p-4 text-center">
+                      <div className="text-2xl mb-2">💳</div>
+                      <p className="text-white font-black text-xs uppercase tracking-widest mb-1">Brak promptów</p>
+                      <p className="text-white/60 text-[10px] mb-3">Przejdź na Pro — 29 zł/mies</p>
+                      <a href={stripeLink(STRIPE_PRO_LINK, user?.uid, user?.email)} target="_blank" rel="noopener noreferrer" className="bg-amber-500 hover:bg-amber-400 text-black font-black text-[10px] uppercase tracking-widest px-4 py-2 rounded-xl transition-all">
+                        Kup Pro →
+                      </a>
+                    </div>
+                  )}
                 </div>
                 {isLoggedIn ? (
                   tokens > 0 ? (
@@ -858,7 +898,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
                       {copied ? '✔ Skopiowano!' : `Kopiuj Prompt (${tokens} 🎟)`}
                     </button>
                   ) : (
-                    <a href={stripeLink(STRIPE_PRO_LINK, user?.uid)} target="_blank" rel="noopener noreferrer" className="block w-full py-3 font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all bg-amber-500 hover:bg-amber-400 text-black text-center">
+                    <a href={stripeLink(STRIPE_PRO_LINK, user?.uid, user?.email)} target="_blank" rel="noopener noreferrer" className="block w-full py-3 font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all bg-amber-500 hover:bg-amber-400 text-black text-center">
                       {t.lang === 'EN' ? '+ Buy prompts to continue →' : '+ Kup prompty aby kontynuować →'}
                     </a>
                   )
