@@ -11,7 +11,7 @@ import { getAuth, signInAnonymously, onAuthStateChanged, createUserWithEmailAndP
 import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, getDoc, setDoc, updateDoc, increment } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyB36wJrKgkyH0_ev6uyzVWKc2gQdXZNaWA",
+  apiKey: "AIzaSyCkwadV6OAvNW8NASmZ6qYh7zKV1xBLnss",
   authDomain: "aiflow-academy.firebaseapp.com",
   projectId: "aiflow-academy",
   storageBucket: "aiflow-academy.firebasestorage.app",
