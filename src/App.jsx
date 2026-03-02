@@ -38,7 +38,7 @@ const getYTId = (url) => {
 // =========================================================================
 const TOKENS_FREE = 5;
 const TOKENS_PER_PACK = 20;
-const STRIPE_TOKEN_LINK = 'https://buy.stripe.com/28EfZg0Y1aqzcbmdYm8bS00'; // Basic link - zmień na właściwy
+const STRIPE_TOKEN_LINK = 'https://buy.stripe.com/bJe6oGeORfKTdfq4nM8bS03'; // Basic link - zmień na właściwy
 
 async function getTokens(db, uid) {
   const ref = doc(db, 'artifacts', appId, 'public', 'data', 'tokens', uid);
