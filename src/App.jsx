@@ -37,7 +37,7 @@ const getYTId = (url) => {
 // =========================================================================
 // TOKEN SYSTEM
 // =========================================================================
-const TOKENS_FREE = 5;
+const TOKENS_FREE = 3;
 const TOKENS_PER_PACK = 20;
 const STRIPE_PRO_LINK = 'https://buy.stripe.com/bJe6oGeORfKTdfq4nM8bS03';
 const STRIPE_PRO_LINK_TEST = 'https://buy.stripe.com/test_28E00jehn5wt2RN6uS4ow00';
@@ -549,6 +549,32 @@ const StudioProView = ({ t, user, onLoginRequest, onNavigate }) => {
   );
 };
 
+
+const TokensExhaustedOverlay = ({ t, stripeUrl }) => (
+  <div className="fixed inset-0 z-[100] backdrop-blur-xl bg-black/80 flex items-center justify-center px-6">
+    <div className="text-center max-w-sm w-full bg-[#0d0d0d] border border-amber-500/30 rounded-3xl p-10">
+      <div className="text-5xl mb-4">🔒</div>
+      <h2 className="text-xl font-black text-white uppercase tracking-tighter mb-2">
+        {t.lang === 'EN' ? 'Demo Limit Reached' : 'Wykorzystano limit demo'}
+      </h2>
+      <p className="text-white/60 text-xs mb-2 leading-relaxed">
+        {t.lang === 'EN' 
+          ? 'You used all 3 free prompts (shared between both creators).' 
+          : 'Wykorzystałeś 3 darmowe prompty (wspólne dla obu kreatorów).'}
+      </p>
+      <p className="text-amber-400 text-xs font-bold mb-6 uppercase tracking-wider">
+        {t.lang === 'EN' ? '⚠ Prompts do not renew — upgrade to Pro' : '⚠ Prompty się nie odnawiają — kup wersję Pro'}
+      </p>
+      <a href={stripeUrl} target="_blank" rel="noopener noreferrer" className="block w-full py-4 font-black text-[11px] uppercase tracking-widest rounded-xl bg-amber-500 hover:bg-amber-400 text-black transition-all hover:scale-105">
+        {t.lang === 'EN' ? '→ Go Pro — 29 PLN/month' : '→ Kup Pro — 29 zł / miesiąc'}
+      </a>
+      <p className="text-white/30 text-[10px] mt-3">
+        {t.lang === 'EN' ? 'Unlimited prompts · Cancel anytime' : 'Nielimitowane prompty · Anuluj kiedy chcesz'}
+      </p>
+    </div>
+  </div>
+);
+
 const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
   const isLoggedIn = user && !user.isAnonymous;
   const [clicked, setClicked] = useState(false);
@@ -599,14 +625,25 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
     return parts.filter(p => p && p.trim() !== '').join(', ');
   };
 
-  const handleCopy = () => { navigator.clipboard.writeText(generatePrompt()).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); }); };
+  const handleCopy = async () => {
+    if (!isLoggedIn) { setClicked(true); return; }
+    if (tokens <= 0) return;
+    const ok = await useToken(db, user.uid);
+    if (ok) {
+      navigator.clipboard.writeText(generatePrompt());
+      setCopied(true);
+      setTokens(prev => prev - 1);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
   const sectionClass = "bg-white dark:bg-[#0A0A0A] border border-black/10 dark:border-[#222] p-5 rounded-2xl mb-6 transition-all duration-500";
   const labelClass = "block text-[9px] uppercase tracking-widest text-slate-500 mb-1.5 font-bold";
   const inputClass = "w-full bg-slate-100 dark:bg-[#121212] border border-black/10 dark:border-[#333] px-3 py-2 text-[13px] dark:text-white focus:border-amber-500 focus:outline-none transition-all rounded-lg appearance-none";
   const headerClass = "text-xs font-bold tracking-widest text-black dark:text-amber-500 mb-5 flex items-center gap-2 border-b border-black/10 dark:border-[#222] pb-3 uppercase";
 
   return (
-    <div className="pb-20 p-4 md:p-8 bg-slate-50 dark:bg-black transition-colors duration-700 min-h-screen">
+    <div className="relative pb-20 p-4 md:p-8 bg-slate-50 dark:bg-black transition-colors duration-700 min-h-screen">
+      {isLoggedIn && tokens !== null && tokens <= 0 && <TokensExhaustedOverlay t={t} stripeUrl={stripeLink(STRIPE_PRO_LINK, user && user.uid)} />}
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-4"><Crown className="w-3 h-3"/>Prompt Studio — Edition Limitée</div>
@@ -642,7 +679,8 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
           </div>
           <div className="lg:col-span-1">
             <div className="sticky top-24">
-              <div className="bg-white dark:bg-[#0A0A0A] border border-black/10 dark:border-[#333] p-6 rounded-2xl">
+              <div className="relative bg-white dark:bg-[#0A0A0A] border border-black/10 dark:border-[#333] p-6 rounded-2xl">
+                {isLoggedIn && tokens !== null && tokens <= 0 && <TokensExhaustedOverlay t={t} stripeUrl={stripeLink(STRIPE_PRO_LINK, user && user.uid)} />}
                 <h2 className="text-[10px] font-bold tracking-widest mb-4 border-b border-black/10 dark:border-[#333] pb-2 text-black dark:text-amber-500 uppercase">Prompt</h2>
                 <div className="relative">
                   <div className={`bg-slate-100 dark:bg-[#121212] p-4 min-h-[200px] text-black dark:text-white font-mono text-[10px] leading-relaxed break-words border border-black/10 dark:border-[#222] mb-4 rounded-xl ${!isLoggedIn ? 'select-none' : ''}`}>
@@ -656,7 +694,15 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
                     </div>
                   )}
                 </div>
-                <button onClick={handleCopy} className={`w-full py-3 font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all ${copied ? 'bg-emerald-500 text-black' : 'bg-black dark:bg-amber-500 text-white dark:text-black hover:bg-amber-500 hover:text-black'}`}>{copied ? '✔ Skopiowano!' : 'Kopiuj Prompt'}</button>
+                                {isLoggedIn ? (
+                  <button onClick={handleCopy} disabled={tokens <= 0} className={`w-full py-3 font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all ${copied ? 'bg-emerald-500 text-black' : tokens <= 0 ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed' : 'bg-black dark:bg-amber-500 text-white dark:text-black hover:bg-amber-500 hover:text-black'}`}>
+                    {copied ? '✔ Skopiowano!' : tokens > 0 ? `${t.lang === 'EN' ? 'Copy Prompt' : 'Kopiuj Prompt'} (${tokens} 🎟)` : t.lang === 'EN' ? 'No prompts left' : 'Brak promptów'}
+                  </button>
+                ) : (
+                  <button onClick={onLoginRequest} className="w-full py-3 font-bold text-[10px] uppercase tracking-widest rounded-xl bg-amber-500 hover:bg-amber-400 text-black transition-all">
+                    {t.lang === 'EN' ? 'Log in to copy →' : 'Zaloguj się aby skopiować →'}
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -708,12 +754,12 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
   const [mood, setMood] = useState('luksusowy, premium, elegancki');
 
   const CATEGORIES = {
-    perfumy: { label: '🌸 Perfumy/Kosmetyki', product: 'luksusowy flakon perfum, matowy czarny', material: 'szklany, premium' },
-    torebka: { label: '👜 Torebka', product: 'luksusowa torebka damska', material: 'skóra naturalna, gładka' },
-    buty: { label: '👠 Szpilki/Buty', product: 'eleganckie szpilki damskie, wysokie obcasy', material: 'skóra lakierowana' },
-    bizuteria: { label: '💎 Biżuteria', product: 'luksusowy naszyjnik z diamentami', material: 'złoto 18k, błyszczący' },
-    zegarek: { label: '⌚ Zegarek', product: 'luksusowy zegarek męski', material: 'stal szlachetna, szkło szafirowe' },
-    napoj: { label: '🥤 Napój/Butelka', product: 'elegancka butelka szklana z napojem', material: 'szkło przezroczyste' },
+    perfumy: { label: t.lang==='EN'?'🌸 Perfume/Cosmetics':'🌸 Perfumy/Kosmetyki', product: 'luksusowy flakon perfum, matowy czarny', material: 'szklany, premium' },
+    torebka: { label: t.lang==='EN'?'👜 Handbag':'👜 Torebka', product: 'luksusowa torebka damska', material: 'skóra naturalna, gładka' },
+    buty: { label: t.lang==='EN'?'👠 Heels/Shoes':'👠 Szpilki/Buty', product: 'eleganckie szpilki damskie, wysokie obcasy', material: 'skóra lakierowana' },
+    bizuteria: { label: t.lang==='EN'?'💎 Jewelry':'💎 Biżuteria', product: 'luksusowy naszyjnik z diamentami', material: 'złoto 18k, błyszczący' },
+    zegarek: { label: t.lang==='EN'?'⌚ Watch':'⌚ Zegarek', product: 'luksusowy zegarek męski', material: 'stal szlachetna, szkło szafirowe' },
+    napoj: { label: t.lang==='EN'?'🥤 Drink/Bottle':'🥤 Napój/Butelka', product: 'elegancka butelka szklana z napojem', material: 'szkło przezroczyste' },
   };
 
   const handleCategoryChange = (cat) => {
@@ -764,6 +810,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
 
   return (
     <div className="relative pb-20 p-4 md:p-8 bg-slate-50 dark:bg-black transition-colors duration-700 min-h-screen" onClick={() => !isLoggedIn && setClicked(true)}>
+      {isLoggedIn && tokens !== null && tokens <= 0 && <TokensExhaustedOverlay t={t} stripeUrl={stripeLink(STRIPE_PRO_LINK, user && user.uid)} />}
       {!isLoggedIn && clicked && (
         <div className="absolute inset-0 z-50 backdrop-blur-md bg-black/60 flex items-center justify-center px-4" onClick={e => e.stopPropagation()}>
           <div className="text-center max-w-sm">
@@ -792,11 +839,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
                 <span>🎟</span>
                 {loadingTokens ? '...' : `${tokens} ${t.lang === 'EN' ? 'prompts left' : 'promptów pozostało'}`}
               </div>
-              {tokens <= 0 && (
-                <a href={stripeLink(STRIPE_PRO_LINK, user?.uid, user?.email)} target="_blank" rel="noopener noreferrer" className="bg-amber-500 hover:bg-amber-400 text-black font-black text-[10px] uppercase tracking-widest px-4 py-2 rounded-xl transition-all">
-                  {t.lang === 'EN' ? '+ Buy 20 prompts →' : '+ Kup 20 promptów →'}
-                </a>
-              )}
+
             </div>
           )}
         </div>
@@ -824,7 +867,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
                     category === 'napoj' ? [['elegancka butelka szklana z napojem','Butelka szklana'],['puszka aluminiowa, nowoczesna','Puszka'],['butelka sportowa, premium','Butelka sportowa'],['karafka z napojem, luksusowa','Karafka']] :
                     [['luksusowy flakon perfum, matowy czarny','Flakon perfum'],['butelka kosmetyczna, elegancka','Butelka kosmetyczna'],['pudełko kosmetyczne, premium','Pudełko kosmetyczne'],['słoik z kremem, luksusowy','Słoik kremu']]
                   },
-                  {label:'Kolor',value:productColor,set:setProductColor,opts:[['matowy czarny','Czarny mat'],['błyszczący złoty','Złoty'],['perłowy biały','Perłowy biały'],['głęboka czerwień','Czerwony'],['szampański beż','Szampański'],['srebrny metaliczny','Srebrny'],['granatowy głęboki','Granatowy'],['burgund, wino','Burgund']]},
+                  {label:t.lang==='EN'?'Color':'Kolor',value:productColor,set:setProductColor,opts:[['matowy czarny',t.lang==='EN'?'Matte Black':'Czarny mat'],['błyszczący złoty',t.lang==='EN'?'Shiny Gold':'Złoty'],['perłowy biały',t.lang==='EN'?'Pearl White':'Perłowy biały'],['głęboka czerwień',t.lang==='EN'?'Deep Red':'Czerwony'],['szampański beż',t.lang==='EN'?'Champagne':'Szampański'],['srebrny metaliczny',t.lang==='EN'?'Silver':'Srebrny'],['granatowy głęboki',t.lang==='EN'?'Navy Blue':'Granatowy'],['burgund, wino',t.lang==='EN'?'Burgundy':'Burgund']]},
                   {label:'Materiał',value:material,set:setMaterial,opts:
                     category === 'torebka' ? [['skóra naturalna, gładka','Skóra gładka'],['skóra pikowana, Chanel style','Skóra pikowana'],['skóra krokodyla, egzotyczna','Skóra krokodyla'],['zamsz, matowy','Zamsz'],['tkanina, płótno premium','Tkanina'],['patent, lakierowana skóra','Patent/Lakier']] :
                     category === 'buty' ? [['skóra lakierowana','Lakierowana'],['skóra naturalna, matowa','Skóra naturalna'],['zamsz','Zamsz'],['satyna, wieczorowa','Satyna'],['patent, błyszcząca','Patent']] :
@@ -841,9 +884,9 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
               <h2 className={headerClass}><span className="text-lg">💧</span> II. Efekty i Oświetlenie</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {[
-                  {label:'Efekt główny',value:effect,set:setEffect,opts:[['para i mgła unosząca się elegancko wokół','Para i mgła'],['krople wody spływające powoli po powierzchni','Krople wody'],['lód i kryształy lodu otaczające produkt','Lód i kryształy'],['złote drobinki i brokat unoszące się','Złoty brokat'],['delikatne płatki kwiatów opadające','Płatki kwiatów'],['refleksy i błyski światła na powierzchni','Refleksy światła']]},
-                  {label:'Efekt dodatkowy',value:splashEffect,set:setSplashEffect,opts:[['eksplozja kolorowego proszku w slow motion','Eksplozja proszku'],['brak','Brak'],['odpryski wody w slow motion','Odpryski wody'],['śnieg i płatki śniegu opadające','Śnieg'],['płomienie i ogień w tle','Ogień'],['bąbelki powietrza unoszące się','Bąbelki']]},
-                  {label:'Oświetlenie',value:lighting,set:setLighting,opts:[['złote ciepłe światło, golden hour, zachód słońca','Golden hour'],['dramatyczne studyjne, twarde cienie','Studyjne'],['miękkie naturalne, rozproszone','Naturalne miękkie'],['neonowe, cyberpunk, nocne miasto','Neon'],['zimne niebieskie, lodowe, zimowe','Zimne niebieskie'],['świece i ciepłe punktowe','Świece']]},
+                  {label:t.lang==='EN'?'Main Effect':'Efekt główny',value:effect,set:setEffect,opts:[['para i mgła unosząca się elegancko wokół',t.lang==='EN'?'Steam & Mist':'Para i mgła'],['krople wody spływające powoli po powierzchni',t.lang==='EN'?'Water Drops':'Krople wody'],['lód i kryształy lodu otaczające produkt',t.lang==='EN'?'Ice & Crystals':'Lód i kryształy'],['złote drobinki i brokat unoszące się',t.lang==='EN'?'Gold Glitter':'Złoty brokat'],['delikatne płatki kwiatów opadające',t.lang==='EN'?'Flower Petals':'Płatki kwiatów'],['refleksy i błyski światła na powierzchni',t.lang==='EN'?'Light Reflections':'Refleksy światła']]},
+                  {label:t.lang==='EN'?'Extra Effect':'Efekt dodatkowy',value:splashEffect,set:setSplashEffect,opts:[['eksplozja kolorowego proszku w slow motion',t.lang==='EN'?'Powder Explosion':'Eksplozja proszku'],['brak',t.lang==='EN'?'None':'Brak'],['odpryski wody w slow motion',t.lang==='EN'?'Water Splash':'Odpryski wody'],['śnieg i płatki śniegu opadające',t.lang==='EN'?'Snow':'Śnieg'],['płomienie i ogień w tle',t.lang==='EN'?'Fire':'Ogień'],['bąbelki powietrza unoszące się',t.lang==='EN'?'Bubbles':'Bąbelki']]},
+                  {label:t.lang==='EN'?'Lighting':'Oświetlenie',value:lighting,set:setLighting,opts:[['złote ciepłe światło, golden hour, zachód słońca','Golden hour'],['dramatyczne studyjne, twarde cienie',t.lang==='EN'?'Studio Dramatic':'Studyjne'],['miękkie naturalne, rozproszone',t.lang==='EN'?'Soft Natural':'Naturalne miękkie'],['neonowe, cyberpunk, nocne miasto','Neon'],['zimne niebieskie, lodowe, zimowe',t.lang==='EN'?'Cold Blue':'Zimne niebieskie'],['świece i ciepłe punktowe',t.lang==='EN'?'Candles':'Świece']]},
                 ].map(f => (
                   <div key={f.label}><label className={labelClass}>{f.label}</label><div className="relative"><select value={f.value} onChange={e => { e.stopPropagation(); f.set(e.target.value); }} className={inputClass}>{f.opts.map(([v,l]) => <option key={v} value={v}>{l}</option>)}</select><ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/></div></div>
                 ))}
@@ -854,21 +897,22 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
               <h2 className={headerClass}><span className="text-lg">🎬</span> III. Ruch, Kamera i Nastrój</h2>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
-                  {label:'Obrót',value:rotation,set:setRotation,opts:[['powolny obrót 360 stopni, sweeping orbit kamery','360° sweeping orbit'],['delikatne kołysanie lewo-prawo','Kołysanie'],['kamera orbituje wokół produktu','Orbita kamery'],['statyczny, bez ruchu','Statyczny'],['zoom in powoli na produkt','Zoom in']]},
-                  {label:'Ruch produktu',value:levitation,set:setLevitation,opts:[['unoszenie się w górę i dół, eleganckie i płynne','Levitation'],['brak ruchu produktu','Brak'],['delikatne drżenie, jak oddech','Oddech'],['obrót produktu w miejscu','Obrót w miejscu']]},
-                  {label:'Prędkość',value:speed,set:setSpeed,opts:[['wolno i elegancko, ultra slow motion','Ultra slow motion'],['normalnie, płynnie','Normalnie'],['dynamicznie i szybko','Dynamicznie'],['ramping speed, od slow do fast','Speed ramp']]},
-                  {label:'Nastrój',value:mood,set:setMood,opts:[['luksusowy, premium, elegancki','Luksus'],['świeży, naturalny, organiczny','Naturalny'],['energetyczny, dynamiczny, sportowy','Sportowy'],['romantyczny, zmysłowy, delikatny','Romantyczny'],['minimalistyczny, czysty','Minimalizm'],['tajemniczy, mroczny, noir','Noir']]},
+                  {label:t.lang==='EN'?'Rotation':'Obrót',value:rotation,set:setRotation,opts:[['powolny obrót 360 stopni, sweeping orbit kamery','360° sweeping orbit'],['delikatne kołysanie lewo-prawo',t.lang==='EN'?'Gentle Sway':'Kołysanie'],['kamera orbituje wokół produktu',t.lang==='EN'?'Camera Orbit':'Orbita kamery'],['statyczny, bez ruchu',t.lang==='EN'?'Static':'Statyczny'],['zoom in powoli na produkt','Zoom in']]},
+                  {label:t.lang==='EN'?'Product Motion':'Ruch produktu',value:levitation,set:setLevitation,opts:[['unoszenie się w górę i dół, eleganckie i płynne','Levitation'],['brak ruchu produktu',t.lang==='EN'?'None':'Brak'],['delikatne drżenie, jak oddech',t.lang==='EN'?'Breathing':'Oddech'],['obrót produktu w miejscu',t.lang==='EN'?'Spin in place':'Obrót w miejscu']]},
+                  {label:t.lang==='EN'?'Speed':'Prędkość',value:speed,set:setSpeed,opts:[['wolno i elegancko, ultra slow motion','Ultra slow motion'],['normalnie, płynnie',t.lang==='EN'?'Normal':'Normalnie'],['dynamicznie i szybko',t.lang==='EN'?'Dynamic':'Dynamicznie'],['ramping speed, od slow do fast','Speed ramp']]},
+                  {label:t.lang==='EN'?'Mood':'Nastrój',value:mood,set:setMood,opts:[['luksusowy, premium, elegancki',t.lang==='EN'?'Luxury':'Luksus'],['świeży, naturalny, organiczny',t.lang==='EN'?'Natural':'Naturalny'],['energetyczny, dynamiczny, sportowy',t.lang==='EN'?'Sporty':'Sportowy'],['romantyczny, zmysłowy, delikatny',t.lang==='EN'?'Romantic':'Romantyczny'],['minimalistyczny, czysty',t.lang==='EN'?'Minimal':'Minimalizm'],['tajemniczy, mroczny, noir','Noir']]},
                 ].map(f => (
                   <div key={f.label}><label className={labelClass}>{f.label}</label><div className="relative"><select value={f.value} onChange={e => { e.stopPropagation(); f.set(e.target.value); }} className={inputClass}>{f.opts.map(([v,l]) => <option key={v} value={v}>{l}</option>)}</select><ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/></div></div>
                 ))}
               </div>
-              <div className="mt-4"><label className={labelClass}>Tło</label><div className="relative"><select value={bg} onChange={e => { e.stopPropagation(); setBg(e.target.value); }} className={inputClass}><option value="spokojny ocean o zachodzie słońca, golden hour">Ocean o zachodzie słońca</option><option value="ciemne studyjne tło, czarny gradient">Czarne studio</option><option value="białe czyste minimalistyczne studio">Białe studio</option><option value="marmurowa posadzka, luksusowe wnętrze">Marmur i luksus</option><option value="natura, zielone liście, bokeh">Natura z bokeh</option><option value="nocne miasto, neon, deszcz">Nocne miasto</option><option value="śnieg i góry, zimowy krajobraz">Zimowy krajobraz</option></select><ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/></div></div>
+              <div className="mt-4"><label className={labelClass}>Tło</label><div className="relative"><select value={bg} onChange={e => { e.stopPropagation(); setBg(e.target.value); }} className={inputClass}><option value="spokojny ocean o zachodzie słońca, golden hour">{t.lang==='EN'?'Ocean Sunset':'Ocean o zachodzie słońca'}</option><option value="ciemne studyjne tło, czarny gradient">{t.lang==='EN'?'Black Studio':'Czarne studio'}</option><option value="białe czyste minimalistyczne studio">{t.lang==='EN'?'White Studio':'Białe studio'}</option><option value="marmurowa posadzka, luksusowe wnętrze">{t.lang==='EN'?'Marble Luxury':'Marmur i luksus'}</option><option value="natura, zielone liście, bokeh">{t.lang==='EN'?'Nature Bokeh':'Natura z bokeh'}</option><option value="nocne miasto, neon, deszcz">{t.lang==='EN'?'Night City':'Nocne miasto'}</option><option value="śnieg i góry, zimowy krajobraz">{t.lang==='EN'?'Winter Landscape':'Zimowy krajobraz'}</option></select><ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/></div></div>
             </div>
           </div>
 
           <div className="lg:col-span-1">
             <div className="sticky top-24">
-              <div className="bg-white dark:bg-[#0A0A0A] border border-black/10 dark:border-[#333] p-6 rounded-2xl">
+              <div className="relative bg-white dark:bg-[#0A0A0A] border border-black/10 dark:border-[#333] p-6 rounded-2xl">
+                {isLoggedIn && tokens !== null && tokens <= 0 && <TokensExhaustedOverlay t={t} stripeUrl={stripeLink(STRIPE_PRO_LINK, user && user.uid)} />}
                 <h2 className="text-[10px] font-bold uppercase tracking-widest mb-4 border-b border-black/10 dark:border-[#333] pb-2 text-black dark:text-amber-500">Prompt</h2>
                 <div className="relative">
                   <div className={`bg-slate-100 dark:bg-[#121212] p-4 min-h-[200px] text-black dark:text-white font-mono text-[10px] leading-relaxed break-words border border-black/10 dark:border-[#222] mb-4 rounded-xl ${!isLoggedIn ? 'select-none' : ''}`}>
