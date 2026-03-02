@@ -669,7 +669,6 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
 
   return (
     <div className="relative pb-20 p-4 md:p-8 bg-slate-50 dark:bg-black transition-colors duration-700 min-h-screen">
-      {isLoggedIn && !isPro && tokens !== null && tokens <= 0 && <TokensExhaustedOverlay t={t} stripeUrl={stripeLink(STRIPE_PRO_LINK, user && user.uid)} />}
       <div className="max-w-6xl mx-auto">
         <div className="mb-8 flex items-start justify-between flex-wrap gap-4">
           <div>
@@ -683,6 +682,8 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
             </div>
           )}
         </div>
+        <div className="relative rounded-2xl overflow-hidden">
+          {isLoggedIn && !isPro && tokens !== null && tokens <= 0 && <TokensExhaustedOverlay t={t} stripeUrl={stripeLink(STRIPE_PRO_LINK, user && user.uid)} />}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <div className="lg:col-span-3">
             <div className={sectionClass}>
@@ -714,7 +715,6 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
           <div className="lg:col-span-1">
             <div className="sticky top-24">
               <div className="relative bg-white dark:bg-[#0A0A0A] border border-black/10 dark:border-[#333] p-6 rounded-2xl">
-                {isLoggedIn && !isPro && tokens !== null && tokens <= 0 && <TokensExhaustedOverlay t={t} stripeUrl={stripeLink(STRIPE_PRO_LINK, user && user.uid)} />}
                 <h2 className="text-[10px] font-bold tracking-widest mb-4 border-b border-black/10 dark:border-[#333] pb-2 text-black dark:text-amber-500 uppercase">Prompt</h2>
                 <div className="relative">
                   <div className={`bg-slate-100 dark:bg-[#121212] p-4 min-h-[200px] text-black dark:text-white font-mono text-[10px] leading-relaxed break-words border border-black/10 dark:border-[#222] mb-4 rounded-xl ${!isLoggedIn ? 'select-none' : ''}`}>
@@ -741,6 +741,7 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
             </div>
           </div>
         </div>
+        </div>{/* end relative wrapper */}
       </div>
     </div>
   );
@@ -850,7 +851,6 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
 
   return (
     <div className="relative pb-20 p-4 md:p-8 bg-slate-50 dark:bg-black transition-colors duration-700 min-h-screen" onClick={() => !isLoggedIn && setClicked(true)}>
-      {isLoggedIn && !isPro && tokens !== null && tokens <= 0 && <TokensExhaustedOverlay t={t} stripeUrl={stripeLink(STRIPE_PRO_LINK, user && user.uid)} />}
       {!isLoggedIn && clicked && (
         <div className="absolute inset-0 z-50 backdrop-blur-md bg-black/60 flex items-center justify-center px-4" onClick={e => e.stopPropagation()}>
           <div className="text-center max-w-sm">
@@ -893,6 +893,8 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
           ))}
         </div>
 
+        <div className="relative rounded-2xl overflow-hidden">
+          {isLoggedIn && !isPro && tokens !== null && tokens <= 0 && <TokensExhaustedOverlay t={t} stripeUrl={stripeLink(STRIPE_PRO_LINK, user && user.uid)} />}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <div className="lg:col-span-3">
             <div className={sectionClass}>
@@ -952,7 +954,6 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
           <div className="lg:col-span-1">
             <div className="sticky top-24">
               <div className="relative bg-white dark:bg-[#0A0A0A] border border-black/10 dark:border-[#333] p-6 rounded-2xl">
-                {isLoggedIn && !isPro && tokens !== null && tokens <= 0 && <TokensExhaustedOverlay t={t} stripeUrl={stripeLink(STRIPE_PRO_LINK, user && user.uid)} />}
                 <h2 className="text-[10px] font-bold uppercase tracking-widest mb-4 border-b border-black/10 dark:border-[#333] pb-2 text-black dark:text-amber-500">Prompt</h2>
                 <div className="relative">
                   <div className={`bg-slate-100 dark:bg-[#121212] p-4 min-h-[200px] text-black dark:text-white font-mono text-[10px] leading-relaxed break-words border border-black/10 dark:border-[#222] mb-4 rounded-xl ${!isLoggedIn ? 'select-none' : ''}`}>
@@ -995,6 +996,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
             </div>
           </div>
         </div>
+        </div>{/* end relative wrapper */}
       </div>
     </div>
   );
