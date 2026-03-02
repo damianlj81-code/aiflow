@@ -39,7 +39,8 @@ const getYTId = (url) => {
 // =========================================================================
 const TOKENS_FREE = 5;
 const TOKENS_PER_PACK = 20;
-const STRIPE_TOKEN_LINK = 'https://buy.stripe.com/bJe6oGeORfKTdfq4nM8bS03'; // Basic link - zmień na właściwy
+const STRIPE_PRO_LINK = 'https://buy.stripe.com/bJe6oGeORfKTdfq4nM8bS03';
+const stripeLink = (baseUrl, uid) => uid ? `${baseUrl}?client_reference_id=${uid}` : baseUrl;
 
 async function getTokens(db, uid) {
   const ref = doc(db, 'artifacts', appId, 'public', 'data', 'tokens', uid);
@@ -771,7 +772,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
                 {loadingTokens ? '...' : `${tokens} ${t.lang === 'EN' ? 'prompts left' : 'promptów pozostało'}`}
               </div>
               {tokens <= 0 && (
-                <a href={STRIPE_TOKEN_LINK} target="_blank" rel="noopener noreferrer" className="bg-amber-500 hover:bg-amber-400 text-black font-black text-[10px] uppercase tracking-widest px-4 py-2 rounded-xl transition-all">
+                <a href={stripeLink(STRIPE_PRO_LINK, user?.uid)} target="_blank" rel="noopener noreferrer" className="bg-amber-500 hover:bg-amber-400 text-black font-black text-[10px] uppercase tracking-widest px-4 py-2 rounded-xl transition-all">
                   {t.lang === 'EN' ? '+ Buy 20 prompts →' : '+ Kup 20 promptów →'}
                 </a>
               )}
@@ -857,7 +858,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
                       {copied ? '✔ Skopiowano!' : `Kopiuj Prompt (${tokens} 🎟)`}
                     </button>
                   ) : (
-                    <a href={STRIPE_TOKEN_LINK} target="_blank" rel="noopener noreferrer" className="block w-full py-3 font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all bg-amber-500 hover:bg-amber-400 text-black text-center">
+                    <a href={stripeLink(STRIPE_PRO_LINK, user?.uid)} target="_blank" rel="noopener noreferrer" className="block w-full py-3 font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all bg-amber-500 hover:bg-amber-400 text-black text-center">
                       {t.lang === 'EN' ? '+ Buy prompts to continue →' : '+ Kup prompty aby kontynuować →'}
                     </a>
                   )
