@@ -168,8 +168,8 @@ const LoginModal = ({ onClose, lang }) => {
   const handleGoogle = async () => {
     setLoading(true); setError('');
     try {
-      const result = await signInWithPopup(auth, googleProvider);
-      if (result?.user) onClose();
+      await signInWithPopup(auth, googleProvider);
+      onClose();
     } catch (e) {
       if (e.code !== 'auth/popup-closed-by-user') setError(errorMsg(e.code));
     }
@@ -446,37 +446,86 @@ const HomeView = ({ t, onLoginRequest }) => {
       </section>
 
       <section id="pricing-section" className="bg-white dark:bg-black py-24 px-4 border-t border-black/5 dark:border-white/5 transition-colors duration-700">
-        <div className="max-w-4xl mx-auto">
+        <style>{`
+          .plan-card { transform: perspective(800px) rotateX(4deg); transition: all 0.4s cubic-bezier(0.23,1,0.32,1); }
+          .plan-card:hover { transform: perspective(800px) rotateX(0deg) translateY(-10px) scale(1.02); }
+        `}</style>
+        <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-6">
-              <span className="w-1.5 h-1.5 bg-amber-500 rounded-full"/>{t.lang === 'EN' ? 'Pricing' : 'Cennik'}
+              <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"/>{t.lang === 'EN' ? 'Pricing' : 'Cennik'}
             </div>
             <h2 className="text-3xl md:text-4xl font-black text-black dark:text-white uppercase tracking-tighter">{t.lang === 'EN' ? 'Choose your plan' : 'Wybierz swój plan'}<span className="text-amber-500">.</span></h2>
+            <p className="text-slate-500 text-sm mt-4 max-w-lg mx-auto">{t.lang === 'EN' ? 'Start free. Upgrade when you're ready.' : 'Zacznij za darmo. Rozbuduj kiedy chcesz.'}</p>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
-            {[
-              { plan:'basic', name:t.lang==='EN'?'Basic':'Podstawowy', price:'49', period:t.lang==='EN'?'/week':'/tydz.', desc:t.lang==='EN'?'Access to video tutorials library':'Dostęp do biblioteki tutoriali wideo', features:[t.lang==='EN'?'✔ Full video library':'✔ Pełna biblioteka wideo',t.lang==='EN'?'✔ AI tools directory':'✔ Katalog narzędzi AI',t.lang==='EN'?'✔ Avatar builder':'✔ Kreator awatarów',t.lang==='EN'?'✘ Live sessions':'✘ Live sesje',t.lang==='EN'?'✘ Community':'✘ Społeczność'], highlight:false },
-              { plan:'monthly', name:'Pro', price:'199', period:t.lang==='EN'?'/month':'/mies.', desc:t.lang==='EN'?'Full access + live coaching':'Pełny dostęp + live coaching', features:[t.lang==='EN'?'✔ Full video library':'✔ Pełna biblioteka wideo',t.lang==='EN'?'✔ AI tools directory':'✔ Katalog narzędzi AI',t.lang==='EN'?'✔ Avatar builder':'✔ Kreator awatarów',t.lang==='EN'?'✔ 3x live/week with Damian':'✔ Live 3x/tydz. z Damianem',t.lang==='EN'?'✔ Private community':'✔ Zamknięta społeczność'], highlight:true },
-              { plan:'annual', name:t.lang==='EN'?'Annual':'Roczny', price:'1899', period:t.lang==='EN'?'/year':'/rok', desc:t.lang==='EN'?'Pro plan — best value':'Plan Pro — najlepsza wartość', features:[t.lang==='EN'?'✔ Everything in Pro':'✔ Wszystko z Pro',t.lang==='EN'?'✔ Best value':'✔ Najlepsza cena',t.lang==='EN'?'✔ Priority support':'✔ Priorytetowe wsparcie',t.lang==='EN'?'✔ Early access to new content':'✔ Wczesny dostęp do treści',t.lang==='EN'?'✔ Cancel anytime':'✔ Anuluj w dowolnym momencie'], highlight:false },
-            ].map(({ plan, name, price, period, desc, features, highlight }) => (
-              <div key={plan} className={`relative rounded-2xl p-8 border transition-all ${highlight ? 'border-amber-500 bg-amber-500/5 shadow-[0_0_40px_rgba(245,158,11,0.1)]' : 'border-black/5 dark:border-white/5 bg-white dark:bg-[#0A0A0A]'}`}>
-                {highlight && <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-amber-500 text-black text-[10px] font-black uppercase tracking-widest px-4 py-1 rounded-full">{t.lang === 'EN' ? 'Most Popular' : 'Najpopularniejszy'}</div>}
-                <div className="mb-6">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2">{name}</p>
-                  <div className="flex items-end gap-1 mb-2">
-                    <span className="text-4xl font-black text-black dark:text-white">{price}</span>
-                    <span className="text-sm text-slate-500 mb-1">PLN{period}</span>
-                  </div>
-                  <p className="text-xs text-slate-500">{desc}</p>
-                </div>
-                <div className="space-y-2 mb-8">
-                  {features.map((f, i) => (<p key={i} className={`text-xs ${f.startsWith('✔') ? 'text-black dark:text-white' : 'text-slate-400'}`}>{f}</p>))}
-                </div>
-                <PricingButton plan={plan} t={t} highlight={highlight} />
+            {/* PLAN 1 — Aplikacje */}
+            <div className="plan-card relative rounded-3xl p-8 border border-amber-500/20 bg-gradient-to-br from-amber-500/10 to-orange-500/5 flex flex-col"
+              style={{boxShadow:'0 20px 60px rgba(245,158,11,0.1)'}}>
+              <div className="text-5xl mb-4" style={{filter:'drop-shadow(0 8px 16px rgba(245,158,11,0.4))',transform:'perspective(200px) rotateX(10deg)'}}>⚡</div>
+              <div className="text-[9px] font-black uppercase tracking-[0.3em] text-amber-500 mb-2">Starter</div>
+              <div className="flex items-end gap-1 mb-1">
+                <span className="text-5xl font-black text-white">30</span>
+                <span className="text-sm text-slate-400 mb-2">PLN/{t.lang==='EN'?'mo':'mies.'}</span>
               </div>
-            ))}
+              <p className="text-slate-400 text-xs mb-6">{t.lang==='EN'?'Access to AI creator apps':'Dostęp do aplikacji AI'}</p>
+              <div className="space-y-2 mb-8 flex-grow">
+                {['✔ Avatar Builder','✔ Product Ad Builder',t.lang==='EN'?'✔ 3 free prompts/day':'✔ 3 darmowe prompty/dzień',t.lang==='EN'?'✘ Tutorials':'✘ Tutoriale',t.lang==='EN'?'✘ All-in-one':'✘ All-in-one'].map((f,i)=>(
+                  <p key={i} className={`text-xs ${f.startsWith('✔') ? 'text-white' : 'text-slate-600'}`}>{f}</p>
+                ))}
+              </div>
+              <a href={STRIPE_PRO_LINK} target="_blank" rel="noopener noreferrer"
+                className="block w-full py-3.5 font-black text-[11px] uppercase tracking-widest rounded-xl text-center bg-amber-500/20 border border-amber-500/40 text-amber-400 hover:bg-amber-500 hover:text-black transition-all">
+                {t.lang==='EN'?'Get Starter →':'Wybierz Starter →'}
+              </a>
+            </div>
+
+            {/* PLAN 2 — Tutoriale */}
+            <div className="plan-card relative rounded-3xl p-8 border border-white/10 bg-gradient-to-br from-white/5 to-white/0 flex flex-col"
+              style={{boxShadow:'0 20px 40px rgba(0,0,0,0.3)'}}>
+              <div className="text-5xl mb-4" style={{filter:'drop-shadow(0 8px 16px rgba(100,100,255,0.4))',transform:'perspective(200px) rotateX(10deg)'}}>🎬</div>
+              <div className="text-[9px] font-black uppercase tracking-[0.3em] text-blue-400 mb-2">Tutorial</div>
+              <div className="flex items-end gap-1 mb-1">
+                <span className="text-5xl font-black text-white">50</span>
+                <span className="text-sm text-slate-400 mb-2">PLN/{t.lang==='EN'?'tutorial':'tutorial'}</span>
+              </div>
+              <p className="text-slate-400 text-xs mb-6">{t.lang==='EN'?'Individual video tutorials':'Pojedyncze tutoriale wideo'}</p>
+              <div className="space-y-2 mb-8 flex-grow">
+                {[t.lang==='EN'?'✔ Step-by-step video guide':'✔ Przewodnik wideo krok po kroku',t.lang==='EN'?'✔ Lifetime access':'✔ Dostęp dożywotni',t.lang==='EN'?'✔ Buy what you need':'✔ Kup tylko to czego potrzebujesz',t.lang==='EN'?'✘ App access':'✘ Dostęp do aplikacji',t.lang==='EN'?'✘ All-in-one':'✘ All-in-one'].map((f,i)=>(
+                  <p key={i} className={`text-xs ${f.startsWith('✔') ? 'text-white' : 'text-slate-600'}`}>{f}</p>
+                ))}
+              </div>
+              <a href="https://naffy.io" target="_blank" rel="noopener noreferrer"
+                className="block w-full py-3.5 font-black text-[11px] uppercase tracking-widest rounded-xl text-center bg-white/5 border border-white/10 text-white hover:bg-blue-500 hover:border-blue-500 transition-all">
+                {t.lang==='EN'?'Browse Tutorials →':'Przeglądaj Tutoriale →'}
+              </a>
+            </div>
+
+            {/* PLAN 3 — All-in-one HIGHLIGHT */}
+            <div className="plan-card relative rounded-3xl p-8 border border-amber-500 bg-gradient-to-br from-amber-500/15 to-orange-600/10 flex flex-col"
+              style={{boxShadow:'0 0 60px rgba(245,158,11,0.25), 0 20px 60px rgba(245,158,11,0.1)'}}>
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-amber-500 text-black text-[10px] font-black uppercase tracking-widest px-5 py-1.5 rounded-full whitespace-nowrap">
+                👑 {t.lang==='EN'?'Best Value':'Najlepsza wartość'}
+              </div>
+              <div className="text-5xl mb-4" style={{filter:'drop-shadow(0 8px 20px rgba(245,158,11,0.6))',transform:'perspective(200px) rotateX(10deg)'}}>🚀</div>
+              <div className="text-[9px] font-black uppercase tracking-[0.3em] text-amber-400 mb-2">All-in-one</div>
+              <div className="flex items-end gap-1 mb-1">
+                <span className="text-5xl font-black text-white">200</span>
+                <span className="text-sm text-slate-400 mb-2">PLN/{t.lang==='EN'?'mo':'mies.'}</span>
+              </div>
+              <p className="text-slate-400 text-xs mb-6">{t.lang==='EN'?'Full platform access':'Pełny dostęp do platformy'}</p>
+              <div className="space-y-2 mb-8 flex-grow">
+                {['✔ Avatar Builder + Ad Builder',t.lang==='EN'?'✔ All tutorials included':'✔ Wszystkie tutoriale w cenie',t.lang==='EN'?'✔ Unlimited prompts':'✔ Nielimitowane prompty',t.lang==='EN'?'✔ New content every week':'✔ Nowe treści co tydzień',t.lang==='EN'?'✔ Cancel anytime':'✔ Anuluj w dowolnym momencie'].map((f,i)=>(
+                  <p key={i} className="text-xs text-white">{f}</p>
+                ))}
+              </div>
+              <a href={STRIPE_PRO_LINK} target="_blank" rel="noopener noreferrer"
+                className="block w-full py-3.5 font-black text-[11px] uppercase tracking-widest rounded-xl text-center bg-amber-500 hover:bg-amber-400 text-black transition-all shadow-lg shadow-amber-500/30">
+                {t.lang==='EN'?'Get All-in-one →':'Wybierz All-in-one →'}
+              </a>
+            </div>
           </div>
-          <p className="text-center text-xs text-slate-400 mt-8">{t.lang === 'EN' ? '🔒 Secure payment via Stripe. Cancel anytime.' : '🔒 Bezpieczna płatność przez Stripe. Anuluj w dowolnym momencie.'}</p>
+          <p className="text-center text-xs text-slate-500 mt-8">🔒 {t.lang==='EN'?'Secure payment via Stripe. Cancel anytime.':'Bezpieczna płatność przez Stripe. Anuluj kiedy chcesz.'}</p>
         </div>
       </section>
     </div>
@@ -489,64 +538,126 @@ const HomeView = ({ t, onLoginRequest }) => {
 // =========================================================================
 const TutorialsView = ({ t, user, onLoginRequest }) => {
   const isLoggedIn = user && !user.isAnonymous;
-  const YOUTUBE_VIDEO_ID = "1_1oHwOZMe4";
-  const videos = [
-    { id:1, title:t.lang==='EN'?'Introduction to AI Avatars':'Wprowadzenie do Awatarów AI', duration:'12:34', thumb:`https://img.youtube.com/vi/${YOUTUBE_VIDEO_ID}/maxresdefault.jpg`, ytId:YOUTUBE_VIDEO_ID },
-    { id:2, title:t.lang==='EN'?'Prompt Engineering Basics':'Podstawy Inżynierii Promptów', duration:'18:21', thumb:`https://img.youtube.com/vi/${YOUTUBE_VIDEO_ID}/maxresdefault.jpg`, ytId:YOUTUBE_VIDEO_ID },
-    { id:3, title:t.lang==='EN'?'Workflow Automation':'Automatyzacja Workflow', duration:'24:05', thumb:`https://img.youtube.com/vi/${YOUTUBE_VIDEO_ID}/maxresdefault.jpg`, ytId:YOUTUBE_VIDEO_ID },
-    { id:4, title:t.lang==='EN'?'Advanced AI Techniques':'Zaawansowane Techniki AI', duration:'31:12', thumb:`https://img.youtube.com/vi/${YOUTUBE_VIDEO_ID}/maxresdefault.jpg`, ytId:YOUTUBE_VIDEO_ID },
+  const [isPro, setIsPro] = useState(false);
+  const [loadingPro, setLoadingPro] = useState(true);
+
+  useEffect(() => {
+    if (isLoggedIn && user?.uid) {
+      getTokenData(db, user.uid).then(({ isPro }) => { setIsPro(isPro); setLoadingPro(false); });
+    } else { setLoadingPro(false); }
+  }, [isLoggedIn, user]);
+
+  const YT = "1_1oHwOZMe4";
+  const tutorials = [
+    { id:1, title:t.lang==='EN'?'Introduction to AI Avatars':'Wprowadzenie do Awatarów AI', duration:'12:34', ytId:YT, naffyUrl:'https://naffy.io', price:'49' },
+    { id:2, title:t.lang==='EN'?'Prompt Engineering Basics':'Podstawy Inżynierii Promptów', duration:'18:21', ytId:YT, naffyUrl:'https://naffy.io', price:'49' },
+    { id:3, title:t.lang==='EN'?'Workflow Automation':'Automatyzacja Workflow', duration:'24:05', ytId:YT, naffyUrl:'https://naffy.io', price:'49' },
+    { id:4, title:t.lang==='EN'?'Advanced AI Techniques':'Zaawansowane Techniki AI', duration:'31:12', ytId:YT, naffyUrl:'https://naffy.io', price:'49' },
   ];
-  const [activeVideo, setActiveVideo] = useState(videos[0]);
 
   return (
     <div className="min-h-screen bg-white dark:bg-black transition-colors duration-700 font-sans px-4 py-12">
+      <style>{`
+        .tut-card { transform: perspective(600px) rotateX(5deg); transition: all 0.35s cubic-bezier(0.23,1,0.32,1); box-shadow: 0 12px 40px rgba(0,0,0,0.4); }
+        .tut-card:hover { transform: perspective(600px) rotateX(0deg) translateY(-8px); box-shadow: 0 0 40px rgba(245,158,11,0.15), 0 20px 60px rgba(0,0,0,0.5); }
+        .play-btn { transition: transform 0.2s, box-shadow 0.2s; }
+        .tut-card:hover .play-btn { transform: scale(1.15); box-shadow: 0 0 24px rgba(245,158,11,0.6); }
+      `}</style>
       <div className="max-w-6xl mx-auto">
-        <div className="mb-10">
-          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-4">
-            <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"/>{t.lang === 'EN' ? 'Video Library' : 'Biblioteka Wideo'}
-          </div>
-          <h1 className="text-3xl md:text-4xl font-black text-black dark:text-white uppercase tracking-tighter">{t.nav_tutorials}</h1>
-        </div>
-        <div className="grid lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <div className="relative rounded-2xl overflow-hidden aspect-video border border-black/5 dark:border-white/5 bg-black">
-              {isLoggedIn ? (
-                <iframe width="100%" height="100%" src={`https://www.youtube.com/embed/${activeVideo.ytId}?autoplay=1&controls=1&rel=0`} title={activeVideo.title} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen className="w-full h-full absolute inset-0"/>
-              ) : (
-                <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center">
-                  <img src={activeVideo.thumb} alt="" className="absolute inset-0 w-full h-full object-cover opacity-20"/>
-                  <div className="absolute inset-0 bg-black/80"/>
-                  <div className="relative z-10">
-                    <Lock className="w-12 h-12 text-amber-500 mx-auto mb-4"/>
-                    <h3 className="text-white font-black text-xl uppercase tracking-tighter mb-2">{t.lang === 'EN' ? 'Members Only' : 'Tylko dla Członków'}</h3>
-                    <p className="text-white/40 text-sm mb-6">{t.lang === 'EN' ? 'Log in to watch all videos' : 'Zaloguj się aby oglądać wszystkie filmy'}</p>
-                    <button onClick={onLoginRequest} className="bg-amber-500 hover:bg-amber-400 text-black font-black text-[11px] uppercase tracking-widest px-6 py-3 rounded-xl transition-all hover:scale-105">{t.lang === 'EN' ? 'Log In / Register' : 'Zaloguj / Zarejestruj'}</button>
-                  </div>
-                </div>
-              )}
+
+        {/* Header */}
+        <div className="mb-12 flex items-start justify-between flex-wrap gap-4">
+          <div>
+            <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-4">
+              <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"/>
+              {t.lang === 'EN' ? 'Video Library' : 'Biblioteka Wideo'}
             </div>
-            <h2 className="text-black dark:text-white font-black text-lg mt-4 uppercase tracking-tight">{activeVideo.title}</h2>
+            <h1 className="text-3xl md:text-4xl font-black text-black dark:text-white uppercase tracking-tighter">{t.nav_tutorials}</h1>
+            <p className="text-slate-500 text-sm mt-2 max-w-lg">
+              {t.lang === 'EN'
+                ? 'Click a thumbnail to watch on YouTube. Buy individually or get everything with a subscription.'
+                : 'Kliknij miniaturkę aby obejrzeć na YouTube. Kup pojedynczo lub włącz abonament i miej dostęp do wszystkiego.'}
+            </p>
           </div>
-          <div className="flex flex-col gap-3">
-            <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-slate-500 mb-2">{t.lang === 'EN' ? 'All Videos' : 'Wszystkie Filmy'}</h3>
-            {videos.map(video => (
-              <button key={video.id} onClick={() => setActiveVideo(video)} className={`flex items-center gap-3 p-3 rounded-xl text-left transition-all border ${activeVideo.id === video.id ? 'border-amber-500/50 bg-amber-500/10' : 'border-black/5 dark:border-white/5 hover:border-amber-500/30 bg-white dark:bg-black'}`}>
-                <div className="relative w-20 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-slate-900">
-                  <img src={video.thumb} alt="" className="w-full h-full object-cover opacity-70"/>
-                  <div className="absolute inset-0 flex items-center justify-center">{isLoggedIn ? <Play className="w-4 h-4 text-white"/> : <Lock className="w-3 h-3 text-amber-500"/>}</div>
-                </div>
-                <div className="flex-grow min-w-0">
-                  <p className="text-black dark:text-white font-bold text-xs truncate">{video.title}</p>
-                  <p className="text-slate-500 text-[10px] mt-0.5">{video.duration}</p>
-                </div>
-              </button>
-            ))}
-          </div>
+          {isLoggedIn && !loadingPro && isPro && (
+            <div className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black bg-amber-500/10 border border-amber-500/30 text-amber-500">
+              👑 {t.lang === 'EN' ? 'All-in-one — full access' : 'All-in-one — pełny dostęp'}
+            </div>
+          )}
         </div>
+
+        {/* Cards grid — 2 cols mobile, 4 desktop */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-16">
+          {tutorials.map(tut => {
+            const ytUrl = `https://www.youtube.com/watch?v=${tut.ytId}`;
+            const thumb = `https://img.youtube.com/vi/${tut.ytId}/maxresdefault.jpg`;
+            return (
+              <div key={tut.id} className="tut-card rounded-2xl overflow-hidden border border-white/10 bg-[#0a0a0a] flex flex-col">
+
+                {/* Thumbnail — klik otwiera YouTube */}
+                <a href={ytUrl} target="_blank" rel="noopener noreferrer"
+                  className="relative block bg-slate-900 overflow-hidden"
+                  style={{aspectRatio:'16/9'}}>
+                  <img src={thumb} alt={tut.title} className="w-full h-full object-cover opacity-70 hover:opacity-90 transition-opacity"/>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="play-btn w-12 h-12 rounded-full flex items-center justify-center"
+                      style={{background:'rgba(245,158,11,0.25)',border:'2px solid rgba(245,158,11,0.7)',backdropFilter:'blur(4px)'}}>
+                      <Play className="w-5 h-5 text-amber-400 ml-0.5"/>
+                    </div>
+                  </div>
+                  <div className="absolute bottom-2 right-2 bg-black/80 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">{tut.duration}</div>
+                  <div className="absolute top-2 left-2 bg-red-600 text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">YouTube</div>
+                </a>
+
+                {/* Info + buttons */}
+                <div className="p-4 flex flex-col flex-grow">
+                  <p className="text-white font-black text-xs leading-tight mb-4">{tut.title}</p>
+                  {isPro ? (
+                    <div className="mt-auto flex items-center justify-center px-3 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30">
+                      <span className="text-amber-400 font-black text-[9px] uppercase tracking-widest">✓ {t.lang === 'EN' ? 'In your plan' : 'W Twoim planie'}</span>
+                    </div>
+                  ) : (
+                    <div className="mt-auto flex flex-col gap-2">
+                      <a href={tut.naffyUrl} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center justify-between px-3 py-2.5 rounded-xl font-black text-[9px] uppercase tracking-widest bg-amber-500 hover:bg-amber-400 text-black transition-all">
+                        <span>{t.lang === 'EN' ? 'Buy now' : 'Kup teraz'}</span>
+                        <span>{tut.price} PLN</span>
+                      </a>
+                      <a href={STRIPE_PRO_LINK} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center justify-center px-3 py-2 rounded-xl font-black text-[9px] uppercase tracking-widest border border-amber-500/30 text-amber-400 hover:border-amber-500 hover:text-amber-300 transition-all">
+                        👑 {t.lang === 'EN' ? 'Subscribe' : 'Abonament'}
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Bottom CTA banner — hidden for Pro users */}
+        {!isPro && (
+          <div className="rounded-2xl p-6 border border-amber-500/20 bg-gradient-to-r from-amber-500/5 to-transparent flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              <p className="text-white font-black text-sm uppercase tracking-tight mb-1">
+                👑 {t.lang === 'EN' ? 'All tutorials + apps — 200 PLN/mo' : 'Wszystkie tutoriale + aplikacje — 200 zł/mies.'}
+              </p>
+              <p className="text-slate-500 text-xs">
+                {t.lang === 'EN' ? 'One subscription. Everything included. Cancel anytime.' : 'Jeden abonament. Dostęp do wszystkiego. Anuluj kiedy chcesz.'}
+              </p>
+            </div>
+            <a href={STRIPE_PRO_LINK} target="_blank" rel="noopener noreferrer"
+              className="flex-shrink-0 px-6 py-3 rounded-xl font-black text-[11px] uppercase tracking-widest bg-amber-500 hover:bg-amber-400 text-black transition-all hover:scale-105 whitespace-nowrap"
+              style={{boxShadow:'0 0 30px rgba(245,158,11,0.3)'}}>
+              {t.lang === 'EN' ? 'Get All-in-one →' : 'Włącz Abonament →'}
+            </a>
+          </div>
+        )}
       </div>
     </div>
   );
 };
+
 
 // =========================================================================
 // TOKEN EXHAUSTED OVERLAY
@@ -824,21 +935,24 @@ const DodatkiView = ({ t, onNavigate }) => {
           </p>
         </div>
 
-        {/* Group filter tabs */}
-        <div className="flex flex-wrap gap-2 justify-center mb-10">
-          <button
-            onClick={() => setActiveGroup('all')}
-            className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${activeGroup === 'all' ? 'bg-amber-500 text-black border-amber-500' : 'border-black/10 dark:border-white/10 text-black dark:text-white hover:border-amber-500/50'}`}
-          >
-            {t.lang === 'EN' ? '⚡ All Tools' : '⚡ Wszystkie'}
-          </button>
-          {Object.entries(toolGroups).map(([key, group]) => (
+        {/* 3D Filter tabs */}
+        <style>{`
+          .ftab3d { transform: perspective(400px) rotateX(6deg); transition: all 0.3s cubic-bezier(0.23,1,0.32,1); box-shadow: 0 8px 20px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08); }
+          .ftab3d:hover { transform: perspective(400px) rotateX(0deg) translateY(-4px); }
+          .ftab3d.act { transform: perspective(400px) rotateX(0deg) translateY(-4px); box-shadow: 0 0 30px rgba(245,158,11,0.4), 0 12px 30px rgba(0,0,0,0.4); }
+        `}</style>
+        <div className="flex flex-wrap gap-3 justify-center mb-12">
+          {[{ key: 'all', label: t.lang === 'EN' ? '\u26a1 All' : '\u26a1 Wszystkie' },
+            ...Object.entries(toolGroups).map(([key, g]) => ({ key, label: g.label }))
+          ].map(({ key, label }) => (
             <button
               key={key}
               onClick={() => setActiveGroup(key)}
-              className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${activeGroup === key ? 'bg-amber-500 text-black border-amber-500' : 'border-black/10 dark:border-white/10 text-black dark:text-white hover:border-amber-500/50'}`}
+              className={`ftab3d px-6 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest border ${activeGroup === key
+                ? 'act bg-amber-500 text-black border-amber-500'
+                : 'bg-white/5 border-white/10 text-white/70 hover:text-white hover:border-amber-500/40'}`}
             >
-              {group.label}
+              {label}
             </button>
           ))}
         </div>
@@ -880,22 +994,7 @@ const DodatkiView = ({ t, onNavigate }) => {
           ))}
         </div>
 
-        {/* Built-in tools promo */}
-        <div className="mt-12 rounded-2xl p-8 border border-amber-500/30 bg-amber-500/5 text-center">
-          <Icon3D emoji="👑" size="md" />
-          <h3 className="text-xl font-black text-black dark:text-white uppercase tracking-tighter mt-4 mb-2">
-            {t.lang === 'EN' ? 'Built-in Prompt Creators' : 'Wbudowane Kreatory Promptów'}
-          </h3>
-          <p className="text-slate-500 text-sm mb-6">
-            {t.lang === 'EN' ? 'Use our built-in Avatar Builder and Ad Builder — 100% free inside AI Flow Academy.' : 'Użyj naszych wbudowanych Kreatora Awatarów i Kreatora Reklam — 100% darmowych w AI Flow Academy.'}
-          </p>
-          <button
-            onClick={() => onNavigate('aplikacje')}
-            className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-black font-black text-[11px] uppercase tracking-widest px-6 py-3 rounded-xl transition-all hover:scale-105"
-          >
-            {t.lang === 'EN' ? 'Open Aplikacje →' : 'Otwórz Aplikacje →'}
-          </button>
-        </div>
+
       </div>
     </div>
   );
@@ -1366,11 +1465,17 @@ export default function App() {
     { id: 'tutorials', label: t.nav_tutorials },
   ];
 
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (u) => {
       setUser(u);
       if (!u) {
-        signInAnonymously(auth).catch(err => console.error("Auth error:", err));
+        // Small delay gives Firebase time to resolve Google session before falling back to anonymous
+        setTimeout(() => {
+          if (!auth.currentUser) {
+            signInAnonymously(auth).catch(err => console.error('Auth error:', err));
+          }
+        }, 1500);
       }
     });
     return () => unsubscribe();
@@ -1461,6 +1566,30 @@ export default function App() {
 
         {/* ===== MAIN CONTENT ===== */}
         <main className="pt-16">
+          {/* Global page nav arrows */}
+          {['home','aplikacje','dodatki','tutorials'].includes(currentView) && (() => {
+            const pages = ['home','aplikacje','dodatki','tutorials'];
+            const pidx = pages.indexOf(currentView);
+            const prevP = pidx > 0 ? pages[pidx - 1] : null;
+            const nextP = pidx < pages.length - 1 ? pages[pidx + 1] : null;
+            return (<>
+              {prevP && (
+                <button onClick={() => setCurrentView(prevP)} className="fixed left-2 md:left-4 top-1/2 -translate-y-1/2 z-40 group" style={{filter:'drop-shadow(0 0 16px rgba(245,158,11,0.5))'}}>
+                  <div className="w-10 h-10 md:w-14 md:h-14 rounded-full flex items-center justify-center transition-all group-hover:scale-110" style={{background:'rgba(245,158,11,0.12)',border:'2px solid rgba(245,158,11,0.4)',boxShadow:'0 0 24px rgba(245,158,11,0.2)'}}>
+                    <ChevronLeft className="w-5 h-5 md:w-7 md:h-7 text-amber-400" />
+                  </div>
+                </button>
+              )}
+              {nextP && (
+                <button onClick={() => setCurrentView(nextP)} className="fixed right-2 md:right-4 top-1/2 -translate-y-1/2 z-40 group" style={{filter:'drop-shadow(0 0 16px rgba(245,158,11,0.5))'}}>
+                  <div className="w-10 h-10 md:w-14 md:h-14 rounded-full flex items-center justify-center transition-all group-hover:scale-110" style={{background:'rgba(245,158,11,0.12)',border:'2px solid rgba(245,158,11,0.4)',boxShadow:'0 0 24px rgba(245,158,11,0.2)'}}>
+                    <ChevronRight className="w-5 h-5 md:w-7 md:h-7 text-amber-400" />
+                  </div>
+                </button>
+              )}
+            </>);
+          })()}
+
           {currentView === 'home' && <HomeView t={t} onLoginRequest={() => setShowLogin(true)} />}
           {currentView === 'aplikacje' && <AplikacjeView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
           {currentView === 'dodatki' && <DodatkiView t={t} onNavigate={setCurrentView} />}
