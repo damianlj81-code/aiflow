@@ -1003,9 +1003,9 @@ const DodatkiView = ({ t, onNavigate }) => {
               target="_blank"
               rel="noopener noreferrer"
               className={`tool-card relative rounded-2xl p-6 border bg-gradient-to-br ${tool.color} ${tool.border} flex flex-col group`}
-              style={{ boxShadow: `0 16px 50px rgba(0,0,0,0.4), 0 0 0 0 ${tool.groupAccent}` }}
-              onMouseEnter={e => { e.currentTarget.style.boxShadow = `0 30px 70px rgba(0,0,0,0.5), 0 0 40px ${tool.groupAccent}50`; }}
-              onMouseLeave={e => { e.currentTarget.style.boxShadow = `0 16px 50px rgba(0,0,0,0.4), 0 0 0 0 ${tool.groupAccent}`; }}
+              style={{ boxShadow: `0 16px 50px rgba(0,0,0,0.4)` }}
+              onMouseEnter={e => { e.currentTarget.style.boxShadow = `0 30px 70px rgba(0,0,0,0.5), 0 8px 60px ${tool.groupAccent}60`; }}
+              onMouseLeave={e => { e.currentTarget.style.boxShadow = `0 16px 50px rgba(0,0,0,0.4)`; }}
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="text-4xl" style={{ filter: `drop-shadow(0 4px 8px ${tool.groupAccent}60)` }}>{tool.icon}</div>
@@ -1026,9 +1026,7 @@ const DodatkiView = ({ t, onNavigate }) => {
                   <ChevronRight className="w-3 h-3" />
                 </span>
               </div>
-              {/* Glow overlay on hover — identyczny jak w Aplikacjach */}
-              <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-400 pointer-events-none"
-                style={{ background: `radial-gradient(circle at 50% 0%, ${tool.groupAccent}40 0%, transparent 70%)` }} />
+
             </a>
           ))}
         </div>
