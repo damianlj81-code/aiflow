@@ -167,10 +167,15 @@ const LoginModal = ({ onClose, lang }) => {
   const handleGoogle = async () => {
     setLoading(true); setError('');
     try {
-      await signInWithPopup(auth, googleProvider);
-      onClose();
+      googleProvider.setCustomParameters({ prompt: 'select_account' });
+      const result = await signInWithPopup(auth, googleProvider);
+      if (result.user) onClose();
     } catch (e) {
-      if (e.code !== 'auth/popup-closed-by-user') setError(errorMsg(e.code));
+      if (e.code === 'auth/popup-blocked') {
+        setError(lang === 'EN' ? 'Popup blocked. Allow popups for this site.' : 'Popup zablokowany. Zezwól na popup dla tej strony.');
+      } else if (e.code !== 'auth/popup-closed-by-user') {
+        setError(errorMsg(e.code));
+      }
     }
     setLoading(false);
   };
@@ -1171,8 +1176,8 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
                   <div className="bg-slate-100 dark:bg-[#121212] p-4 min-h-[200px] text-black dark:text-white font-mono text-[10px] leading-relaxed break-words border border-black/10 dark:border-[#222] mb-4 rounded-xl">
                     <span className="text-amber-500 font-bold">{"> "}</span>{generatePrompt()}
                   </div>
-                  {/* Lock overlay — only appears AFTER clicking copy when not logged in */}
-                  {!isLoggedIn && clicked && (
+                  {/* Lock overlay — niezalogowany, zawsze widoczny */}
+                  {!isLoggedIn && (
                     <div className="absolute inset-0 mb-4 rounded-xl backdrop-blur-sm bg-black/70 flex flex-col items-center justify-center p-4 text-center cursor-pointer" onClick={onLoginRequest}>
                       <div className="text-3xl mb-3">🔒</div>
                       <p className="text-white font-black text-xs uppercase tracking-widest mb-1">{t.lang === 'EN' ? 'Log in to copy' : 'Zaloguj się aby skopiować'}</p>
@@ -1180,8 +1185,8 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
                       <span className="bg-amber-500 text-black font-black text-[10px] uppercase tracking-widest px-4 py-2 rounded-xl">{t.lang === 'EN' ? 'Log In / Register' : 'Zaloguj / Zarejestruj'}</span>
                     </div>
                   )}
-                  {/* Lock overlay — only when logged in but tokens exhausted */}
-                  {isLoggedIn && !isPro && tokens !== null && tokens <= 0 && clicked && (
+                  {/* Lock overlay — zawsze gdy tokeny = 0 */}
+                  {isLoggedIn && !isPro && tokens !== null && tokens <= 0 && (
                     <div className="absolute inset-0 mb-4 rounded-xl backdrop-blur-sm bg-black/70 flex flex-col items-center justify-center p-4 text-center">
                       <div className="text-3xl mb-3">💳</div>
                       <p className="text-white font-black text-xs uppercase tracking-widest mb-1">{t.lang === 'EN' ? 'No prompts left' : 'Brak promptów'}</p>
@@ -1403,7 +1408,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
                     <span className="text-amber-500 font-bold">{"> "}</span>{generatePrompt()}
                   </div>
                   {/* Lock — only after clicking copy when not logged in */}
-                  {!isLoggedIn && clicked && (
+                  {!isLoggedIn && (
                     <div className="absolute inset-0 mb-4 rounded-xl backdrop-blur-sm bg-black/70 flex flex-col items-center justify-center p-4 text-center cursor-pointer" onClick={onLoginRequest}>
                       <div className="text-3xl mb-3">🔒</div>
                       <p className="text-white font-black text-xs uppercase tracking-widest mb-1">{t.lang === 'EN' ? 'Log in to copy' : 'Zaloguj się aby skopiować'}</p>
@@ -1412,7 +1417,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
                     </div>
                   )}
                   {/* Lock — when logged in but tokens exhausted and tried to copy */}
-                  {isLoggedIn && !isPro && tokens !== null && tokens <= 0 && clicked && (
+                  {isLoggedIn && !isPro && tokens !== null && tokens <= 0 && (
                     <div className="absolute inset-0 mb-4 rounded-xl backdrop-blur-sm bg-black/70 flex flex-col items-center justify-center p-4 text-center">
                       <div className="text-3xl mb-3">💳</div>
                       <p className="text-white font-black text-xs uppercase tracking-widest mb-1">{t.lang === 'EN' ? 'No prompts left' : 'Brak promptów'}</p>
