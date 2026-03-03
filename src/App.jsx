@@ -615,30 +615,61 @@ const AplikacjeView = ({ t, user, onLoginRequest }) => {
     if (currentIdx > 0) setActiveApp(apps[currentIdx - 1].id);
   };
 
-  // If an app is open, render it fullscreen
+  // If an app is open, render it fullscreen with side arrows + bottom back button
   if (activeApp) {
     return (
       <div className="min-h-screen bg-white dark:bg-black transition-colors duration-700 relative">
-        {/* Top bar with back button and side arrows */}
-        <div className="sticky top-16 z-40 flex items-center gap-3 px-4 py-3"
-          style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(245,158,11,0.15)' }}>
+
+        {/* LEFT arrow — fixed to left side, vertically centered */}
+        {currentIdx > 0 && (
           <button
-            onClick={() => setActiveApp(null)}
-            className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-amber-400 hover:text-amber-300 transition-colors"
+            onClick={goPrev}
+            className="fixed left-2 md:left-4 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-2 group"
+            style={{ filter: 'drop-shadow(0 0 16px rgba(245,158,11,0.6))' }}
           >
-            <ArrowLeft className="w-4 h-4" />
-            {t.lang === 'EN' ? 'Back to Apps' : 'Powrót do Aplikacji'}
+            <div className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center transition-all duration-300 group-hover:scale-110"
+              style={{ background: 'rgba(245,158,11,0.15)', border: '2px solid rgba(245,158,11,0.5)', boxShadow: '0 0 30px rgba(245,158,11,0.3)' }}>
+              <ChevronLeft className="w-6 h-6 md:w-8 md:h-8 text-amber-400" />
+            </div>
+            <span className="text-[8px] font-black uppercase tracking-widest text-amber-400/70 hidden md:block">{apps[currentIdx - 1]?.icon}</span>
           </button>
-          <div className="flex-1" />
-          <div className="flex items-center gap-2">
-            <GlowArrow direction="left" onClick={goPrev} className={currentIdx === 0 ? 'opacity-30 pointer-events-none' : ''} />
-            <span className="text-[10px] text-amber-400/60 font-bold uppercase tracking-widest min-w-[60px] text-center">{currentIdx + 1} / {apps.length}</span>
-            <GlowArrow direction="right" onClick={goNext} className={currentIdx === apps.length - 1 ? 'opacity-30 pointer-events-none' : ''} />
-          </div>
-        </div>
-        {/* Render the actual creator */}
+        )}
+
+        {/* RIGHT arrow — fixed to right side, vertically centered */}
+        {currentIdx < apps.length - 1 && (
+          <button
+            onClick={goNext}
+            className="fixed right-2 md:right-4 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-2 group"
+            style={{ filter: 'drop-shadow(0 0 16px rgba(245,158,11,0.6))' }}
+          >
+            <div className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center transition-all duration-300 group-hover:scale-110"
+              style={{ background: 'rgba(245,158,11,0.15)', border: '2px solid rgba(245,158,11,0.5)', boxShadow: '0 0 30px rgba(245,158,11,0.3)' }}>
+              <ChevronRight className="w-6 h-6 md:w-8 md:h-8 text-amber-400" />
+            </div>
+            <span className="text-[8px] font-black uppercase tracking-widest text-amber-400/70 hidden md:block">{apps[currentIdx + 1]?.icon}</span>
+          </button>
+        )}
+
+        {/* Creator content */}
         {activeApp === 'avatar-builder' && <AvatarBuilderView t={t} user={user} onLoginRequest={onLoginRequest} />}
         {activeApp === 'ad-builder' && <ProductAdBuilderView t={t} user={user} onLoginRequest={onLoginRequest} />}
+
+        {/* BIG BACK BUTTON — below creator */}
+        <div className="flex justify-center py-16 px-4">
+          <button
+            onClick={() => setActiveApp(null)}
+            className="group flex items-center gap-4 px-10 py-5 rounded-2xl font-black text-sm uppercase tracking-widest transition-all duration-300 hover:scale-105"
+            style={{
+              background: 'rgba(245,158,11,0.1)',
+              border: '2px solid rgba(245,158,11,0.4)',
+              color: '#f59e0b',
+              boxShadow: '0 0 40px rgba(245,158,11,0.15)',
+            }}
+          >
+            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+            {t.lang === 'EN' ? '← Back to All Apps' : '← Powrót do Aplikacji'}
+          </button>
+        </div>
       </div>
     );
   }
@@ -955,7 +986,6 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
 
   return (
     <div className="relative pb-20 p-4 md:p-8 bg-slate-50 dark:bg-black transition-colors duration-700 min-h-screen">
-      {isLoggedIn && !isPro && tokens !== null && tokens <= 0 && <TokensExhaustedOverlay t={t} stripeUrl={stripeLink(STRIPE_PRO_LINK, user && user.uid)} />}
       <div className="max-w-6xl mx-auto">
         <div className="mb-8 flex items-start justify-between flex-wrap gap-4">
           <div>
@@ -1000,29 +1030,38 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
           <div className="lg:col-span-1">
             <div className="sticky top-24">
               <div className="relative bg-white dark:bg-[#0A0A0A] border border-black/10 dark:border-[#333] p-6 rounded-2xl">
-                {isLoggedIn && !isPro && tokens !== null && tokens <= 0 && <TokensExhaustedOverlay t={t} stripeUrl={stripeLink(STRIPE_PRO_LINK, user && user.uid)} />}
                 <h2 className="text-[10px] font-bold tracking-widest mb-4 border-b border-black/10 dark:border-[#333] pb-2 text-black dark:text-amber-500 uppercase">Prompt</h2>
                 <div className="relative">
-                  <div className={`bg-slate-100 dark:bg-[#121212] p-4 min-h-[200px] text-black dark:text-white font-mono text-[10px] leading-relaxed break-words border border-black/10 dark:border-[#222] mb-4 rounded-xl ${!isLoggedIn ? 'select-none' : ''}`}>
+                  <div className="bg-slate-100 dark:bg-[#121212] p-4 min-h-[200px] text-black dark:text-white font-mono text-[10px] leading-relaxed break-words border border-black/10 dark:border-[#222] mb-4 rounded-xl">
                     <span className="text-amber-500 font-bold">{"> "}</span>{generatePrompt()}
                   </div>
-                  {!isLoggedIn && (
-                    <div className="absolute inset-0 mb-4 rounded-xl backdrop-blur-sm bg-black/50 flex flex-col items-center justify-center p-4 text-center cursor-pointer" onClick={onLoginRequest}>
-                      <div className="text-2xl mb-2">🔒</div>
-                      <p className="text-white font-black text-xs uppercase tracking-widest mb-1">Zaloguj się aby zobaczyć prompt</p>
-                      <p className="text-white/60 text-[10px]">Bezpłatnie • 5 promptów gratis</p>
+                  {/* Lock overlay — only appears AFTER clicking copy when not logged in */}
+                  {!isLoggedIn && clicked && (
+                    <div className="absolute inset-0 mb-4 rounded-xl backdrop-blur-sm bg-black/70 flex flex-col items-center justify-center p-4 text-center cursor-pointer" onClick={onLoginRequest}>
+                      <div className="text-3xl mb-3">🔒</div>
+                      <p className="text-white font-black text-xs uppercase tracking-widest mb-1">{t.lang === 'EN' ? 'Log in to copy' : 'Zaloguj się aby skopiować'}</p>
+                      <p className="text-white/60 text-[10px] mb-3">{t.lang === 'EN' ? 'Free · 3 prompts included' : 'Bezpłatnie · 3 prompty gratis'}</p>
+                      <span className="bg-amber-500 text-black font-black text-[10px] uppercase tracking-widest px-4 py-2 rounded-xl">{t.lang === 'EN' ? 'Log In / Register' : 'Zaloguj / Zarejestruj'}</span>
+                    </div>
+                  )}
+                  {/* Lock overlay — only when logged in but tokens exhausted */}
+                  {isLoggedIn && !isPro && tokens !== null && tokens <= 0 && clicked && (
+                    <div className="absolute inset-0 mb-4 rounded-xl backdrop-blur-sm bg-black/70 flex flex-col items-center justify-center p-4 text-center">
+                      <div className="text-3xl mb-3">💳</div>
+                      <p className="text-white font-black text-xs uppercase tracking-widest mb-1">{t.lang === 'EN' ? 'No prompts left' : 'Brak promptów'}</p>
+                      <p className="text-white/60 text-[10px] mb-3">{t.lang === 'EN' ? 'Upgrade to Pro — 29 PLN/mo' : 'Kup Pro — 29 zł/mies.'}</p>
+                      <a href={stripeLink(STRIPE_PRO_LINK, user?.uid, user?.email)} target="_blank" rel="noopener noreferrer" className="bg-amber-500 hover:bg-amber-400 text-black font-black text-[10px] uppercase tracking-widest px-4 py-2 rounded-xl transition-all">
+                        {t.lang === 'EN' ? 'Go Pro →' : 'Kup Pro →'}
+                      </a>
                     </div>
                   )}
                 </div>
-                                {isLoggedIn ? (
-                  <button onClick={handleCopy} disabled={!isPro && tokens <= 0} className={`w-full py-3 font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all ${copied ? 'bg-emerald-500 text-black' : (!isPro && tokens <= 0) ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed' : 'bg-black dark:bg-amber-500 text-white dark:text-black hover:bg-amber-500 hover:text-black'}`}>
-                    {copied ? '✔ Skopiowano!' : isPro ? `${t.lang === 'EN' ? 'Copy Prompt' : 'Kopiuj Prompt'} (∞ Pro)` : tokens > 0 ? `${t.lang === 'EN' ? 'Copy Prompt' : 'Kopiuj Prompt'} (${tokens}/3 🎟)` : t.lang === 'EN' ? 'No prompts left — upgrade' : 'Brak promptów — kup Pro'}
-                  </button>
-                ) : (
-                  <button onClick={onLoginRequest} className="w-full py-3 font-bold text-[10px] uppercase tracking-widest rounded-xl bg-amber-500 hover:bg-amber-400 text-black transition-all">
-                    {t.lang === 'EN' ? 'Log in to copy →' : 'Zaloguj się aby skopiować →'}
-                  </button>
-                )}
+                <button
+                  onClick={handleCopy}
+                  className={`w-full py-3 font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all ${copied ? 'bg-emerald-500 text-black' : 'bg-black dark:bg-amber-500 text-white dark:text-black hover:bg-amber-500 hover:text-black'}`}
+                >
+                  {copied ? '✔ Skopiowano!' : isPro ? `${t.lang === 'EN' ? 'Copy Prompt' : 'Kopiuj Prompt'} (∞ Pro)` : isLoggedIn && tokens > 0 ? `${t.lang === 'EN' ? 'Copy Prompt' : 'Kopiuj Prompt'} (${tokens}/3 🎟)` : t.lang === 'EN' ? 'Copy Prompt →' : 'Kopiuj Prompt →'}
+                </button>
               </div>
             </div>
           </div>
@@ -1135,24 +1174,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
   const headerClass = "text-xs font-bold tracking-widest text-black dark:text-amber-500 mb-5 flex items-center gap-2 border-b border-black/10 dark:border-[#222] pb-3 uppercase";
 
   return (
-    <div className="relative pb-20 p-4 md:p-8 bg-slate-50 dark:bg-black transition-colors duration-700 min-h-screen" onClick={() => !isLoggedIn && setClicked(true)}>
-      {isLoggedIn && !isPro && tokens !== null && tokens <= 0 && <TokensExhaustedOverlay t={t} stripeUrl={stripeLink(STRIPE_PRO_LINK, user && user.uid)} />}
-      {!isLoggedIn && clicked && (
-        <div className="absolute inset-0 z-50 backdrop-blur-md bg-black/60 flex items-center justify-center px-4" onClick={e => e.stopPropagation()}>
-          <div className="text-center max-w-sm">
-            <div className="text-6xl mb-6">🔒</div>
-            <h2 className="text-2xl font-black text-white uppercase tracking-tighter mb-3">
-              {t.lang === 'EN' ? 'Login Required' : 'Kreator tylko dla zalogowanych użytkowników!'}
-            </h2>
-            <p className="text-white/60 text-sm mb-8">
-              {t.lang === 'EN' ? 'Log in for free — get 5 free prompts!' : 'Zaloguj się bezpłatnie i dostań 5 darmowych promptów!'}
-            </p>
-            <button onClick={onLoginRequest} className="bg-amber-500 hover:bg-amber-400 text-black font-black text-[11px] uppercase tracking-widest px-8 py-4 rounded-xl transition-all hover:scale-105">
-              {t.lang === 'EN' ? 'Log In / Register →' : 'Zaloguj się / Zarejestruj →'}
-            </button>
-          </div>
-        </div>
-      )}
+    <div className="relative pb-20 p-4 md:p-8 bg-slate-50 dark:bg-black transition-colors duration-700 min-h-screen">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8 flex items-start justify-between flex-wrap gap-4">
           <div>
@@ -1238,45 +1260,39 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
           <div className="lg:col-span-1">
             <div className="sticky top-24">
               <div className="relative bg-white dark:bg-[#0A0A0A] border border-black/10 dark:border-[#333] p-6 rounded-2xl">
-                {isLoggedIn && !isPro && tokens !== null && tokens <= 0 && <TokensExhaustedOverlay t={t} stripeUrl={stripeLink(STRIPE_PRO_LINK, user && user.uid)} />}
                 <h2 className="text-[10px] font-bold uppercase tracking-widest mb-4 border-b border-black/10 dark:border-[#333] pb-2 text-black dark:text-amber-500">Prompt</h2>
                 <div className="relative">
-                  <div className={`bg-slate-100 dark:bg-[#121212] p-4 min-h-[200px] text-black dark:text-white font-mono text-[10px] leading-relaxed break-words border border-black/10 dark:border-[#222] mb-4 rounded-xl ${!isLoggedIn ? 'select-none' : ''}`}>
+                  {/* Prompt always visible */}
+                  <div className="bg-slate-100 dark:bg-[#121212] p-4 min-h-[200px] text-black dark:text-white font-mono text-[10px] leading-relaxed break-words border border-black/10 dark:border-[#222] mb-4 rounded-xl">
                     <span className="text-amber-500 font-bold">{"> "}</span>{generatePrompt()}
                   </div>
-                  {!isLoggedIn && (
-                    <div className="absolute inset-0 mb-4 rounded-xl backdrop-blur-sm bg-black/50 flex flex-col items-center justify-center p-4 text-center cursor-pointer" onClick={onLoginRequest}>
-                      <div className="text-2xl mb-2">🔒</div>
-                      <p className="text-white font-black text-xs uppercase tracking-widest mb-1">Zaloguj się aby zobaczyć prompt</p>
-                      <p className="text-white/60 text-[10px]">Bezpłatnie • 5 promptów gratis</p>
+                  {/* Lock — only after clicking copy when not logged in */}
+                  {!isLoggedIn && clicked && (
+                    <div className="absolute inset-0 mb-4 rounded-xl backdrop-blur-sm bg-black/70 flex flex-col items-center justify-center p-4 text-center cursor-pointer" onClick={onLoginRequest}>
+                      <div className="text-3xl mb-3">🔒</div>
+                      <p className="text-white font-black text-xs uppercase tracking-widest mb-1">{t.lang === 'EN' ? 'Log in to copy' : 'Zaloguj się aby skopiować'}</p>
+                      <p className="text-white/60 text-[10px] mb-3">{t.lang === 'EN' ? 'Free · 3 prompts included' : 'Bezpłatnie · 3 prompty gratis'}</p>
+                      <span className="bg-amber-500 text-black font-black text-[10px] uppercase tracking-widest px-4 py-2 rounded-xl">{t.lang === 'EN' ? 'Log In / Register' : 'Zaloguj / Zarejestruj'}</span>
                     </div>
                   )}
-                  {isLoggedIn && tokens <= 0 && (
+                  {/* Lock — when logged in but tokens exhausted and tried to copy */}
+                  {isLoggedIn && !isPro && tokens !== null && tokens <= 0 && clicked && (
                     <div className="absolute inset-0 mb-4 rounded-xl backdrop-blur-sm bg-black/70 flex flex-col items-center justify-center p-4 text-center">
-                      <div className="text-2xl mb-2">💳</div>
-                      <p className="text-white font-black text-xs uppercase tracking-widest mb-1">Brak promptów</p>
-                      <p className="text-white/60 text-[10px] mb-3">Przejdź na Pro — 29 zł/mies</p>
+                      <div className="text-3xl mb-3">💳</div>
+                      <p className="text-white font-black text-xs uppercase tracking-widest mb-1">{t.lang === 'EN' ? 'No prompts left' : 'Brak promptów'}</p>
+                      <p className="text-white/60 text-[10px] mb-3">{t.lang === 'EN' ? 'Upgrade to Pro — 29 PLN/mo' : 'Kup Pro — 29 zł/mies.'}</p>
                       <a href={stripeLink(STRIPE_PRO_LINK, user?.uid, user?.email)} target="_blank" rel="noopener noreferrer" className="bg-amber-500 hover:bg-amber-400 text-black font-black text-[10px] uppercase tracking-widest px-4 py-2 rounded-xl transition-all">
-                        Kup Pro →
+                        {t.lang === 'EN' ? 'Go Pro →' : 'Kup Pro →'}
                       </a>
                     </div>
                   )}
                 </div>
-                {isLoggedIn ? (
-                  (isPro || tokens > 0) ? (
-                    <button onClick={handleCopy} className={`w-full py-3 font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all ${copied ? 'bg-emerald-500 text-black' : 'bg-black dark:bg-amber-500 text-white dark:text-black hover:bg-amber-500 hover:text-black'}`}>
-                      {copied ? '✔ Skopiowano!' : isPro ? `Kopiuj Prompt (∞ Pro)` : `Kopiuj Prompt (${tokens}/3 🎟)`}
-                    </button>
-                  ) : (
-                    <a href={stripeLink(STRIPE_PRO_LINK, user?.uid, user?.email)} target="_blank" rel="noopener noreferrer" className="block w-full py-3 font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all bg-amber-500 hover:bg-amber-400 text-black text-center">
-                      {t.lang === 'EN' ? '+ Buy prompts to continue →' : '+ Kup prompty aby kontynuować →'}
-                    </a>
-                  )
-                ) : (
-                  <button onClick={onLoginRequest} className="w-full py-3 font-bold text-[10px] uppercase tracking-widest rounded-xl bg-amber-500 hover:bg-amber-400 text-black transition-all">
-                    {t.lang === 'EN' ? 'Log in to copy →' : 'Zaloguj się aby skopiować →'}
-                  </button>
-                )}
+                <button
+                  onClick={handleCopy}
+                  className={`w-full py-3 font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all ${copied ? 'bg-emerald-500 text-black' : 'bg-black dark:bg-amber-500 text-white dark:text-black hover:bg-amber-500 hover:text-black'}`}
+                >
+                  {copied ? '✔ Skopiowano!' : isPro ? `Kopiuj Prompt (∞ Pro)` : isLoggedIn && tokens > 0 ? `Kopiuj Prompt (${tokens}/3 🎟)` : t.lang === 'EN' ? 'Copy Prompt →' : 'Kopiuj Prompt →'}
+                </button>
               </div>
             </div>
           </div>
