@@ -963,7 +963,7 @@ const DodatkiView = ({ t, onNavigate }) => {
               className={`ftab3d ${activeGroup === key ? 'act' : ''} relative px-6 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest border bg-gradient-to-br ${
                 activeGroup === key
                   ? 'bg-amber-500 text-black border-amber-500 from-amber-400 to-amber-600'
-                  : \`\${color} \${border} text-white/80 hover:text-white\`
+                  : `${color} ${border} text-white/80 hover:text-white`
               }`}
             >
               <span className="mr-1.5">{icon}</span>{label}
