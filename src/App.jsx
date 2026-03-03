@@ -944,37 +944,40 @@ const DodatkiView = ({ t, onNavigate }) => {
           </p>
         </div>
 
-        {/* 3D Filter tabs — identyczny styl jak kafelki Aplikacje */}
-        <style>{`
-          .ftab3d {
-            transform: perspective(500px) rotateX(8deg) rotateY(-1deg);
-            transition: all 0.35s cubic-bezier(0.23,1,0.32,1);
-            box-shadow: 0 12px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
-          }
-          .ftab3d:hover {
-            transform: perspective(500px) rotateX(2deg) rotateY(0deg) translateY(-6px) scale(1.04);
-          }
-          .ftab3d.act {
-            transform: perspective(500px) rotateX(2deg) rotateY(0deg) translateY(-6px) scale(1.04);
-            box-shadow: 0 0 40px rgba(245,158,11,0.3), 0 20px 40px rgba(0,0,0,0.5);
-          }
-        `}</style>
+        {/* 3D Filter tabs */}
         <div className="flex flex-wrap gap-4 justify-center mb-14">
           {[
-            { key: 'all', label: t.lang === 'EN' ? 'All Tools' : 'Wszystkie', icon: '⚡', color: 'from-amber-500/20 to-yellow-500/10', border: 'border-amber-500/30' },
-            { key: 'video', label: 'Video', icon: '🎬', color: 'from-purple-500/20 to-pink-500/10', border: 'border-purple-500/30' },
-            { key: 'graphics', label: t.lang === 'EN' ? 'Graphics' : 'Grafika', icon: '🎨', color: 'from-amber-500/20 to-orange-500/10', border: 'border-amber-500/30' },
-            { key: 'audio', label: 'Audio', icon: '🎙️', color: 'from-green-500/20 to-emerald-500/10', border: 'border-green-500/30' },
-            { key: 'avatars', label: t.lang === 'EN' ? 'Avatars' : 'Awatary', icon: '🧑‍💻', color: 'from-blue-500/20 to-cyan-500/10', border: 'border-blue-500/30' },
-          ].map(({ key, label, icon, color, border }) => (
-            <button
-              key={key}
-              onClick={() => setActiveGroup(key)}
-              className={['ftab3d', activeGroup === key ? 'act' : '', 'relative px-6 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest border bg-gradient-to-br', activeGroup === key ? 'bg-amber-500 text-black border-amber-500 from-amber-400 to-amber-600' : color + ' ' + border + ' text-white/80 hover:text-white'].join(' ')}
-            >
-              <span className="mr-1.5">{icon}</span>{label}
-            </button>
-          ))}
+            { key: 'all', label: t.lang === 'EN' ? 'All Tools' : 'Wszystkie', icon: '⚡', grad: 'linear-gradient(135deg,rgba(245,158,11,0.25),rgba(234,88,12,0.15))', border: 'rgba(245,158,11,0.4)', glow: 'rgba(245,158,11,0.3)' },
+            { key: 'video', label: 'Video', icon: '🎬', grad: 'linear-gradient(135deg,rgba(168,85,247,0.25),rgba(236,72,153,0.15))', border: 'rgba(168,85,247,0.4)', glow: 'rgba(168,85,247,0.3)' },
+            { key: 'graphics', label: t.lang === 'EN' ? 'Graphics' : 'Grafika', icon: '🎨', grad: 'linear-gradient(135deg,rgba(245,158,11,0.25),rgba(234,88,12,0.15))', border: 'rgba(245,158,11,0.4)', glow: 'rgba(245,158,11,0.3)' },
+            { key: 'audio', label: 'Audio', icon: '🎙️', grad: 'linear-gradient(135deg,rgba(34,197,94,0.25),rgba(16,185,129,0.15))', border: 'rgba(34,197,94,0.4)', glow: 'rgba(34,197,94,0.3)' },
+            { key: 'avatars', label: t.lang === 'EN' ? 'Avatars' : 'Awatary', icon: '🧑‍💻', grad: 'linear-gradient(135deg,rgba(59,130,246,0.25),rgba(6,182,212,0.15))', border: 'rgba(59,130,246,0.4)', glow: 'rgba(59,130,246,0.3)' },
+          ].map(({ key, label, icon, grad, border, glow }) => {
+            const isActive = activeGroup === key;
+            return (
+              <button
+                key={key}
+                onClick={() => setActiveGroup(key)}
+                style={{
+                  background: isActive ? 'rgba(245,158,11,1)' : grad,
+                  border: `2px solid ${isActive ? 'rgba(245,158,11,1)' : border}`,
+                  boxShadow: isActive
+                    ? `0 0 30px ${glow}, 0 15px 35px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.2)`
+                    : '0 12px 30px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07)',
+                  transform: isActive
+                    ? 'perspective(500px) rotateX(0deg) translateY(-6px) scale(1.05)'
+                    : 'perspective(500px) rotateX(8deg)',
+                  transition: 'all 0.35s cubic-bezier(0.23,1,0.32,1)',
+                  color: isActive ? '#000' : 'rgba(255,255,255,0.8)',
+                }}
+                className="px-6 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest"
+                onMouseEnter={e => { if (!isActive) { e.currentTarget.style.transform = 'perspective(500px) rotateX(2deg) translateY(-4px) scale(1.02)'; e.currentTarget.style.color = '#fff'; }}}
+                onMouseLeave={e => { if (!isActive) { e.currentTarget.style.transform = 'perspective(500px) rotateX(8deg)'; e.currentTarget.style.color = 'rgba(255,255,255,0.8)'; }}}
+              >
+                <span style={{marginRight:'6px'}}>{icon}</span>{label}
+              </button>
+            );
+          })}
         </div>
 
         {/* Tools grid */}
