@@ -456,7 +456,7 @@ const HomeView = ({ t, onLoginRequest }) => {
               <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"/>{t.lang === 'EN' ? 'Pricing' : 'Cennik'}
             </div>
             <h2 className="text-3xl md:text-4xl font-black text-black dark:text-white uppercase tracking-tighter">{t.lang === 'EN' ? 'Choose your plan' : 'Wybierz swój plan'}<span className="text-amber-500">.</span></h2>
-            <p className="text-slate-500 text-sm mt-4 max-w-lg mx-auto">{t.lang === 'EN' ? 'Start free. Upgrade when you're ready.' : 'Zacznij za darmo. Rozbuduj kiedy chcesz.'}</p>
+            <p className="text-slate-500 text-sm mt-4 max-w-lg mx-auto">{t.lang === 'EN' ? "Start free. Upgrade when you're ready." : 'Zacznij za darmo. Rozbuduj kiedy chcesz.'}</p>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
             {/* PLAN 1 — Aplikacje */}
