@@ -930,8 +930,19 @@ const DodatkiView = ({ t, onNavigate }) => {
   return (
     <div className="min-h-screen bg-white dark:bg-black transition-colors duration-700 font-sans px-4 py-12">
       <style>{`
-        .tool-card { transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1); }
-        .tool-card:hover { transform: translateY(-6px) scale(1.01); }
+        @keyframes float3d-tool {
+          0%, 100% { transform: perspective(600px) rotateX(8deg) rotateY(-1deg) translateY(0px); }
+          50% { transform: perspective(600px) rotateX(4deg) rotateY(1deg) translateY(-6px); }
+        }
+        .tool-card {
+          transform: perspective(600px) rotateX(8deg) rotateY(-1deg);
+          transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+          box-shadow: 0 16px 50px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06);
+        }
+        .tool-card:hover {
+          transform: perspective(600px) rotateX(2deg) rotateY(0deg) translateY(-10px) scale(1.02);
+          box-shadow: 0 30px 70px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+        }
       `}</style>
       <div className="max-w-6xl mx-auto">
         <div className="mb-12 text-center">
