@@ -3,7 +3,8 @@ import {
   Check, Zap, X, Play, Lock, ChevronDown, Youtube,
   CreditCard, Building2, Sun, Moon, User, Mountain,
   Eye, Scissors, Shirt, Footprints, PersonStanding,
-  Crown, Sparkles, Key, Save, Trash2, PlusCircle
+  Crown, Sparkles, Key, Save, Trash2, PlusCircle,
+  ChevronLeft, ChevronRight, ArrowLeft
 } from 'lucide-react';
 
 import { initializeApp } from 'firebase/app';
@@ -33,7 +34,6 @@ const getYTId = (url) => {
   return (match && match[2].length === 11) ? match[2] : null;
 };
 
-
 // =========================================================================
 // TOKEN SYSTEM
 // =========================================================================
@@ -55,7 +55,6 @@ async function getTokenData(db, uid) {
   return { tokens: data.tokens, isPro: data.pro === true };
 }
 
-// Keep for backward compat
 async function getTokens(db, uid) {
   const { tokens } = await getTokenData(db, uid);
   return tokens;
@@ -69,7 +68,6 @@ async function useToken(db, uid) {
     return true;
   }
   const data = snap.data();
-  // Pro users never run out
   if (data.pro === true) return true;
   if (data.tokens <= 0) return false;
   await updateDoc(ref, { tokens: increment(-1), used: increment(1) });
@@ -95,6 +93,46 @@ const translations = {
     footer_copy: '© 2026 Damian L. J. - Professional AI Suite',
     lang: 'EN',
   }
+};
+
+// =========================================================================
+// GLOWING ARROW COMPONENT
+// =========================================================================
+const GlowArrow = ({ direction = 'right', onClick, className = '' }) => (
+  <button
+    onClick={onClick}
+    className={`relative group flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 hover:scale-110 ${className}`}
+    style={{
+      background: 'rgba(245,158,11,0.1)',
+      border: '1px solid rgba(245,158,11,0.3)',
+      boxShadow: '0 0 20px rgba(245,158,11,0.15)',
+    }}
+  >
+    <div className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+      style={{ boxShadow: '0 0 30px rgba(245,158,11,0.5)', background: 'rgba(245,158,11,0.15)' }} />
+    {direction === 'left' ? (
+      <ChevronLeft className="w-5 h-5 text-amber-400 relative z-10" />
+    ) : (
+      <ChevronRight className="w-5 h-5 text-amber-400 relative z-10" />
+    )}
+  </button>
+);
+
+// =========================================================================
+// 3D ICON COMPONENT
+// =========================================================================
+const Icon3D = ({ emoji, size = 'md' }) => {
+  const sizes = { sm: 'text-3xl', md: 'text-5xl', lg: 'text-7xl' };
+  return (
+    <div className={`${sizes[size]} select-none`}
+      style={{
+        filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.4)) drop-shadow(0 2px 4px rgba(245,158,11,0.3))',
+        transform: 'perspective(200px) rotateX(10deg)',
+        display: 'inline-block',
+      }}>
+      {emoji}
+    </div>
+  );
 };
 
 const LangSwitcher = ({ lang, setLang }) => (
@@ -129,15 +167,10 @@ const LoginModal = ({ onClose, lang }) => {
 
   const handleGoogle = async () => {
     setLoading(true); setError('');
-    try { 
-      const result = await signInWithPopup(auth, googleProvider); 
-      console.log('Google result:', result);
-      if (result?.user) {
-        console.log('User:', result.user.email);
-        onClose();
-      }
-    } catch (e) { 
-      console.log('Google error:', e.code, e.message);
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      if (result?.user) onClose();
+    } catch (e) {
       if (e.code !== 'auth/popup-closed-by-user') setError(errorMsg(e.code));
     }
     setLoading(false);
@@ -193,7 +226,7 @@ const LoginModal = ({ onClose, lang }) => {
 };
 
 // =========================================================================
-// PRICING BUTTON — Stripe Payment Links (bezpośrednie linki)
+// PRICING BUTTON
 // =========================================================================
 const PricingButton = ({ plan, t, highlight }) => {
   const LINKS = {
@@ -201,17 +234,14 @@ const PricingButton = ({ plan, t, highlight }) => {
     monthly: 'https://buy.stripe.com/cNiaEWbCF6aj7V63jI8bS01',
     annual: 'https://buy.stripe.com/9B6cN4eOR8ir1wIcUi8bS02',
   };
-
   return (
-    <a
-      href={LINKS[plan]}
-      target="_blank"
-      rel="noopener noreferrer"
+    <a href={LINKS[plan]} target="_blank" rel="noopener noreferrer"
       className={`block w-full py-3.5 font-black text-[11px] uppercase tracking-widest rounded-xl transition-all text-center ${highlight ? 'bg-amber-500 hover:bg-amber-400 text-black shadow-lg shadow-amber-500/20' : 'bg-black dark:bg-white text-white dark:text-black hover:bg-amber-500 hover:text-black dark:hover:bg-amber-500 dark:hover:text-black'}`}>
       {t.lang === 'EN' ? 'Get Access →' : 'Uzyskaj dostęp →'}
     </a>
   );
 };
+
 
 // =========================================================================
 // FAQ SECTION
@@ -305,6 +335,10 @@ const FAQSection = ({ t }) => {
   );
 };
 
+
+// =========================================================================
+// HOME VIEW
+// =========================================================================
 const HomeView = ({ t, onLoginRequest }) => {
   const [activeFeature, setActiveFeature] = useState(0);
   const features = t.lang === 'EN' ? ['AI Avatar Creation', 'Prompt Engineering', 'Workflow Automation', 'Live Coaching'] : ['Tworzenie Awatarów AI', 'Inżynieria Promptów', 'Automatyzacja Workflow', 'Live Coaching'];
@@ -449,6 +483,10 @@ const HomeView = ({ t, onLoginRequest }) => {
   );
 };
 
+
+// =========================================================================
+// TUTORIALS VIEW
+// =========================================================================
 const TutorialsView = ({ t, user, onLoginRequest }) => {
   const isLoggedIn = user && !user.isAnonymous;
   const YOUTUBE_VIDEO_ID = "1_1oHwOZMe4";
@@ -510,55 +548,9 @@ const TutorialsView = ({ t, user, onLoginRequest }) => {
   );
 };
 
-const StudioProView = ({ t, user, onLoginRequest, onNavigate }) => {
-  const isLoggedIn = user && !user.isAnonymous;
-  const tools = [
-    { name:'Pika Labs', category:t.lang==='EN'?'Video Generation':'Generowanie Wideo', desc:t.lang==='EN'?'Generate stunning AI videos from text or images. Free tier available.':'Generuj niesamowite filmy AI z tekstu lub zdjęć. Darmowy tier dostępny.', free:t.lang==='EN'?'150 credits/month free':'150 kredytów/mies. za darmo', link:'https://pika.art', icon:'🎬', color:'from-purple-500/20 to-pink-500/20', border:'border-purple-500/20' },
-    { name:'Leonardo AI', category:t.lang==='EN'?'Image Generation':'Generowanie Obrazów', desc:t.lang==='EN'?'Professional AI image generation. Midjourney alternative.':'Profesjonalne generowanie obrazów AI. Alternatywa dla Midjourney.', free:t.lang==='EN'?'150 tokens/day free':'150 tokenów/dzień za darmo', link:'https://leonardo.ai', icon:'🎨', color:'from-amber-500/20 to-orange-500/20', border:'border-amber-500/20' },
-    { name:'D-ID', category:t.lang==='EN'?'AI Avatars':'Awatary AI', desc:t.lang==='EN'?'Create talking AI avatars from photos.':'Twórz mówiące awatary AI ze zdjęć.', free:t.lang==='EN'?'5 free videos/month':'5 darmowych filmów/mies.', link:'https://www.d-id.com', icon:'🧑‍💻', color:'from-blue-500/20 to-cyan-500/20', border:'border-blue-500/20' },
-    { name:'Murf AI', category:t.lang==='EN'?'Voice Generation':'Generowanie Głosu', desc:t.lang==='EN'?'Convert text to natural-sounding speech. 120+ voices.':'Zamień tekst na naturalny głos. 120+ głosów.', free:t.lang==='EN'?'10 min audio free':'10 min audio za darmo', link:'https://murf.ai', icon:'🎙️', color:'from-green-500/20 to-emerald-500/20', border:'border-green-500/20' },
-    { name:'CapCut AI', category:t.lang==='EN'?'Video Editing':'Edycja Wideo', desc:t.lang==='EN'?'AI-powered video editor with auto-captions and effects.':'Edytor wideo z AI — auto-napisy i efekty.', free:t.lang==='EN'?'Mostly free':'Przeważnie darmowy', link:'https://www.capcut.com', icon:'✂️', color:'from-red-500/20 to-pink-500/20', border:'border-red-500/20' },
-    { name:'ElevenLabs', category:t.lang==='EN'?'Voice Generation':'Generowanie Głosu', desc:t.lang==='EN'?'The most realistic AI voices. Perfect for ads and courses.':'Najbardziej realistyczne głosy AI. Idealne do reklam i kursów.', free:t.lang==='EN'?'$5/mo — huge amount of audio':'$5/mies. — ogromna ilość nagrań', link:'https://elevenlabs.io', icon:'🎧', color:'from-violet-500/20 to-purple-500/20', border:'border-violet-500/20' },
-    { name:'Grok Imagine', category:t.lang==='EN'?'Image & Video AI':'Obrazy i Wideo AI', desc:t.lang==='EN'?'xAI image and video generator. Unlimited images with SuperGrok.':'Generator obrazów i filmów AI od xAI. Nieograniczone obrazy z SuperGrok.', free:t.lang==='EN'?'Free: ~10 videos/day':'Free: ~10 filmów/dzień', link:'https://grok.com', icon:'🤖', color:'from-sky-500/20 to-blue-500/20', border:'border-sky-500/20' },
-    { name:t.lang==='EN'?'Avatar Builder':'Kreator Awatarów', category:t.lang==='EN'?'Prompt Generator':'Generator Promptów', desc:t.lang==='EN'?'Our built-in avatar prompt creator.':'Nasz wbudowany kreator promptów do awatarów.', free:t.lang==='EN'?'100% free — built into AI Flow Academy':'100% darmowy — wbudowany w AI Flow Academy', link:'internal:avatar-builder', icon:'👑', color:'from-amber-500/20 to-yellow-500/20', border:'border-amber-500/30' },
-  ];
-
-  return (
-    <div className="min-h-screen bg-white dark:bg-black transition-colors duration-700 font-sans px-4 py-12">
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-12 text-center">
-          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-4">
-            <Sparkles className="w-3 h-3"/>{t.lang === 'EN' ? 'AI Toolkit' : 'Zestaw Narzędzi AI'}
-          </div>
-          <h1 className="text-3xl md:text-5xl font-black text-black dark:text-white uppercase tracking-tighter mb-4">Studio Pro</h1>
-          <p className="text-slate-500 max-w-xl mx-auto text-sm">{t.lang === 'EN' ? 'Curated collection of the best AI tools — with tutorials showing exactly how to use them.' : 'Wyselekcjonowana kolekcja najlepszych narzędzi AI — z tutorialami jak używać ich profesjonalnie.'}</p>
-        </div>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {tools.map(tool => (
-            <div key={tool.name} className={`relative rounded-2xl p-6 border bg-gradient-to-br ${tool.color} ${tool.border} flex flex-col group hover:scale-[1.02] transition-all duration-300`}>
-              <div className="flex items-start justify-between mb-4">
-                <div className="text-4xl">{tool.icon}</div>
-                <span className="text-[9px] font-bold uppercase tracking-widest text-slate-500 bg-black/5 dark:bg-white/5 px-2 py-1 rounded-full">{tool.category}</span>
-              </div>
-              <h3 className="text-black dark:text-white font-black text-xl mb-2">{tool.name}</h3>
-              <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed mb-4 flex-grow">{tool.desc}</p>
-              <div className="flex items-center gap-1 mb-4"><Check className="w-3 h-3 text-emerald-500 flex-shrink-0"/><span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">{tool.free}</span></div>
-              <div className="flex gap-2">
-                {tool.link.startsWith('internal:') ? (
-                  <button onClick={() => onNavigate(tool.link.replace('internal:',''))} className="flex-grow py-2.5 bg-amber-500 text-black font-black text-[10px] uppercase tracking-widest rounded-xl text-center hover:bg-amber-400 transition-all">{t.lang === 'EN' ? 'Open Tool →' : 'Otwórz →'}</button>
-                ) : (
-                  <a href={tool.link} target="_blank" rel="noopener noreferrer" className="flex-grow py-2.5 bg-black dark:bg-white text-white dark:text-black font-black text-[10px] uppercase tracking-widest rounded-xl text-center hover:bg-amber-500 dark:hover:bg-amber-500 dark:hover:text-black transition-all">{t.lang === 'EN' ? 'Open Tool →' : 'Otwórz →'}</a>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-
+// =========================================================================
+// TOKEN EXHAUSTED OVERLAY
+// =========================================================================
 const TokensExhaustedOverlay = ({ t, stripeUrl }) => (
   <div className="fixed inset-x-0 bottom-0 z-[49] backdrop-blur-xl bg-black/80 flex items-center justify-center px-6" style={{top: "64px"}}>
     <div className="text-center max-w-sm w-full bg-[#0d0d0d] border border-amber-500/30 rounded-3xl p-10">
@@ -567,9 +559,7 @@ const TokensExhaustedOverlay = ({ t, stripeUrl }) => (
         {t.lang === 'EN' ? 'Demo Limit Reached' : 'Wykorzystano limit demo'}
       </h2>
       <p className="text-white/60 text-xs mb-2 leading-relaxed">
-        {t.lang === 'EN' 
-          ? 'You used all 3 free prompts (shared between both creators).' 
-          : 'Wykorzystałeś 3 darmowe prompty (wspólne dla obu kreatorów).'}
+        {t.lang === 'EN' ? 'You used all 3 free prompts (shared between both creators).' : 'Wykorzystałeś 3 darmowe prompty (wspólne dla obu kreatorów).'}
       </p>
       <p className="text-amber-400 text-xs font-bold mb-6 uppercase tracking-wider">
         {t.lang === 'EN' ? '⚠ Prompts do not renew — upgrade to Pro' : '⚠ Prompty się nie odnawiają — kup wersję Pro'}
@@ -583,6 +573,302 @@ const TokensExhaustedOverlay = ({ t, stripeUrl }) => (
     </div>
   </div>
 );
+
+
+// =========================================================================
+// NEW: APLIKACJE VIEW - 3D tiles with fullscreen creator
+// =========================================================================
+const AplikacjeView = ({ t, user, onLoginRequest }) => {
+  const [activeApp, setActiveApp] = useState(null); // null = grid, 'avatar-builder' | 'ad-builder'
+
+  const apps = [
+    {
+      id: 'avatar-builder',
+      icon: '👑',
+      title: t.lang === 'EN' ? 'Avatar Builder' : 'Kreator Awatarów',
+      subtitle: t.lang === 'EN' ? 'AI Avatar Prompt Generator' : 'Generator Promptów Awatarów AI',
+      desc: t.lang === 'EN' ? 'Create professional AI avatar prompts for Pika Labs & Leonardo AI.' : 'Twórz profesjonalne prompty do awatarów AI dla Pika Labs i Leonardo AI.',
+      color: 'from-amber-500/20 via-yellow-500/10 to-orange-500/20',
+      border: 'border-amber-500/30',
+      glow: 'rgba(245,158,11,0.3)',
+      badge: t.lang === 'EN' ? 'PROMPT STUDIO' : 'STUDIO PROMPTÓW',
+    },
+    {
+      id: 'ad-builder',
+      icon: '🎬',
+      title: t.lang === 'EN' ? 'Product Ad Builder' : 'Kreator Reklam',
+      subtitle: t.lang === 'EN' ? 'Cinematic Ad Prompt Generator' : 'Generator Promptów Reklam Filmowych',
+      desc: t.lang === 'EN' ? 'Generate cinematic product ad prompts for stunning AI videos.' : 'Generuj kinowe prompty do reklam produktowych na potrzeby filmów AI.',
+      color: 'from-purple-500/20 via-pink-500/10 to-blue-500/20',
+      border: 'border-purple-500/30',
+      glow: 'rgba(168,85,247,0.3)',
+      badge: t.lang === 'EN' ? 'AD STUDIO' : 'STUDIO REKLAM',
+    },
+  ];
+
+  const currentIdx = activeApp ? apps.findIndex(a => a.id === activeApp) : -1;
+
+  const goNext = () => {
+    if (currentIdx < apps.length - 1) setActiveApp(apps[currentIdx + 1].id);
+  };
+  const goPrev = () => {
+    if (currentIdx > 0) setActiveApp(apps[currentIdx - 1].id);
+  };
+
+  // If an app is open, render it fullscreen
+  if (activeApp) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-black transition-colors duration-700 relative">
+        {/* Top bar with back button and side arrows */}
+        <div className="sticky top-16 z-40 flex items-center gap-3 px-4 py-3"
+          style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(245,158,11,0.15)' }}>
+          <button
+            onClick={() => setActiveApp(null)}
+            className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-amber-400 hover:text-amber-300 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            {t.lang === 'EN' ? 'Back to Apps' : 'Powrót do Aplikacji'}
+          </button>
+          <div className="flex-1" />
+          <div className="flex items-center gap-2">
+            <GlowArrow direction="left" onClick={goPrev} className={currentIdx === 0 ? 'opacity-30 pointer-events-none' : ''} />
+            <span className="text-[10px] text-amber-400/60 font-bold uppercase tracking-widest min-w-[60px] text-center">{currentIdx + 1} / {apps.length}</span>
+            <GlowArrow direction="right" onClick={goNext} className={currentIdx === apps.length - 1 ? 'opacity-30 pointer-events-none' : ''} />
+          </div>
+        </div>
+        {/* Render the actual creator */}
+        {activeApp === 'avatar-builder' && <AvatarBuilderView t={t} user={user} onLoginRequest={onLoginRequest} />}
+        {activeApp === 'ad-builder' && <ProductAdBuilderView t={t} user={user} onLoginRequest={onLoginRequest} />}
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-white dark:bg-black transition-colors duration-700 font-sans px-4 py-12">
+      <style>{`
+        @keyframes float3d {
+          0%, 100% { transform: perspective(600px) rotateX(8deg) rotateY(-2deg) translateY(0px); }
+          50% { transform: perspective(600px) rotateX(4deg) rotateY(2deg) translateY(-8px); }
+        }
+        .card3d {
+          transform: perspective(600px) rotateX(8deg) rotateY(-2deg);
+          transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .card3d:hover {
+          transform: perspective(600px) rotateX(2deg) rotateY(0deg) translateY(-12px) scale(1.02);
+        }
+      `}</style>
+      <div className="max-w-5xl mx-auto">
+        <div className="mb-12 text-center">
+          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-4">
+            <Sparkles className="w-3 h-3" />
+            {t.lang === 'EN' ? 'AI Applications' : 'Aplikacje AI'}
+          </div>
+          <h1 className="text-4xl md:text-6xl font-black text-black dark:text-white uppercase tracking-tighter mb-4">
+            {t.lang === 'EN' ? 'Aplikacje' : 'Aplikacje'}
+          </h1>
+          <p className="text-slate-500 max-w-lg mx-auto text-sm">
+            {t.lang === 'EN' ? 'Professional AI prompt generators — click to open fullscreen creator.' : 'Profesjonalne generatory promptów AI — kliknij aby otworzyć kreator na pełnym ekranie.'}
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
+          {apps.map((app) => (
+            <button
+              key={app.id}
+              onClick={() => setActiveApp(app.id)}
+              className={`card3d relative rounded-3xl p-8 border bg-gradient-to-br ${app.color} ${app.border} text-left group cursor-pointer`}
+              style={{ boxShadow: `0 20px 60px ${app.glow}, 0 4px 20px rgba(0,0,0,0.3)` }}
+            >
+              {/* Badge */}
+              <div className="absolute top-4 right-4 text-[8px] font-black uppercase tracking-[0.2em] px-2 py-1 rounded-full"
+                style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)', color: '#f59e0b' }}>
+                {app.badge}
+              </div>
+              {/* 3D Icon */}
+              <div className="mb-6">
+                <Icon3D emoji={app.icon} size="lg" />
+              </div>
+              {/* Content */}
+              <h2 className="text-2xl font-black text-black dark:text-white uppercase tracking-tighter mb-1">{app.title}</h2>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-500 mb-3">{app.subtitle}</p>
+              <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed mb-6">{app.desc}</p>
+              {/* Open button */}
+              <div className="flex items-center gap-2 text-amber-500 font-black text-[11px] uppercase tracking-widest group-hover:gap-3 transition-all">
+                {t.lang === 'EN' ? 'Open Creator' : 'Otwórz Kreator'}
+                <ChevronRight className="w-4 h-4" />
+              </div>
+              {/* Glow overlay on hover */}
+              <div className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-400 pointer-events-none"
+                style={{ background: `radial-gradient(circle at 50% 0%, ${app.glow} 0%, transparent 70%)` }} />
+            </button>
+          ))}
+        </div>
+
+        {/* Navigation arrows between apps */}
+        <div className="flex items-center justify-center gap-6 mt-12">
+          <div className="flex items-center gap-2 text-slate-500 dark:text-slate-600 text-[10px] font-bold uppercase tracking-widest">
+            <div className="w-8 h-px bg-amber-500/30" />
+            <span>{apps.length} {t.lang === 'EN' ? 'creators available' : 'kreatorów dostępnych'}</span>
+            <div className="w-8 h-px bg-amber-500/30" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+// =========================================================================
+// NEW: DODATKI VIEW - External tools grouped by category
+// =========================================================================
+const DodatkiView = ({ t, onNavigate }) => {
+  const [activeGroup, setActiveGroup] = useState('all');
+
+  const toolGroups = {
+    video: {
+      label: t.lang === 'EN' ? '🎬 Video' : '🎬 Video',
+      color: 'from-purple-500/20 to-pink-500/20',
+      border: 'border-purple-500/20',
+      accent: '#a855f7',
+      tools: [
+        { name:'Pika Labs', desc:t.lang==='EN'?'Generate stunning AI videos from text or images.':'Generuj filmy AI z tekstu lub zdjęć.', free:t.lang==='EN'?'150 credits/month':'150 kredytów/mies.', link:'https://pika.art', icon:'🎬' },
+        { name:'CapCut AI', desc:t.lang==='EN'?'AI-powered video editor with auto-captions.':'Edytor wideo z AI i auto-napisami.', free:t.lang==='EN'?'Mostly free':'Przeważnie darmowy', link:'https://www.capcut.com', icon:'✂️' },
+        { name:'Grok Imagine', desc:t.lang==='EN'?'xAI image and video generator.':'Generator obrazów i wideo od xAI.', free:t.lang==='EN'?'~10 videos/day':'~10 filmów/dzień', link:'https://grok.com', icon:'🤖' },
+      ]
+    },
+    graphics: {
+      label: t.lang === 'EN' ? '🎨 Graphics' : '🎨 Grafika',
+      color: 'from-amber-500/20 to-orange-500/20',
+      border: 'border-amber-500/20',
+      accent: '#f59e0b',
+      tools: [
+        { name:'Leonardo AI', desc:t.lang==='EN'?'Professional AI image generation.':'Profesjonalne generowanie obrazów AI.', free:t.lang==='EN'?'150 tokens/day':'150 tokenów/dzień', link:'https://leonardo.ai', icon:'🎨' },
+      ]
+    },
+    audio: {
+      label: t.lang === 'EN' ? '🎙️ Audio' : '🎙️ Audio',
+      color: 'from-green-500/20 to-emerald-500/20',
+      border: 'border-green-500/20',
+      accent: '#22c55e',
+      tools: [
+        { name:'Murf AI', desc:t.lang==='EN'?'Convert text to natural-sounding speech. 120+ voices.':'Zamień tekst na naturalny głos. 120+ głosów.', free:t.lang==='EN'?'10 min audio free':'10 min audio za darmo', link:'https://murf.ai', icon:'🎙️' },
+        { name:'ElevenLabs', desc:t.lang==='EN'?'The most realistic AI voices.':'Najbardziej realistyczne głosy AI.', free:t.lang==='EN'?'$5/mo — huge amount':'$5/mies. — ogromna ilość', link:'https://elevenlabs.io', icon:'🎧' },
+      ]
+    },
+    avatars: {
+      label: t.lang === 'EN' ? '🧑‍💻 Avatars' : '🧑‍💻 Awatary',
+      color: 'from-blue-500/20 to-cyan-500/20',
+      border: 'border-blue-500/20',
+      accent: '#3b82f6',
+      tools: [
+        { name:'D-ID', desc:t.lang==='EN'?'Create talking AI avatars from photos.':'Twórz mówiące awatary AI ze zdjęć.', free:t.lang==='EN'?'5 free videos/month':'5 darmowych filmów/mies.', link:'https://www.d-id.com', icon:'🧑‍💻' },
+      ]
+    },
+  };
+
+  const allTools = Object.entries(toolGroups).flatMap(([groupId, group]) =>
+    group.tools.map(tool => ({ ...tool, groupId, groupLabel: group.label, groupAccent: group.accent, color: group.color, border: group.border }))
+  );
+
+  const displayTools = activeGroup === 'all' ? allTools : (toolGroups[activeGroup]?.tools.map(t => ({ ...t, groupId: activeGroup, groupAccent: toolGroups[activeGroup].accent, color: toolGroups[activeGroup].color, border: toolGroups[activeGroup].border })) || []);
+
+  return (
+    <div className="min-h-screen bg-white dark:bg-black transition-colors duration-700 font-sans px-4 py-12">
+      <style>{`
+        .tool-card { transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1); }
+        .tool-card:hover { transform: translateY(-6px) scale(1.01); }
+      `}</style>
+      <div className="max-w-6xl mx-auto">
+        <div className="mb-12 text-center">
+          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-4">
+            <Zap className="w-3 h-3" />
+            {t.lang === 'EN' ? 'External Tools' : 'Narzędzia Zewnętrzne'}
+          </div>
+          <h1 className="text-4xl md:text-6xl font-black text-black dark:text-white uppercase tracking-tighter mb-4">
+            Dodatki
+          </h1>
+          <p className="text-slate-500 max-w-lg mx-auto text-sm">
+            {t.lang === 'EN' ? 'Curated AI tools grouped by category — with free tier info.' : 'Wyselekcjonowane narzędzia AI pogrupowane według kategorii — z informacją o darmowych tierach.'}
+          </p>
+        </div>
+
+        {/* Group filter tabs */}
+        <div className="flex flex-wrap gap-2 justify-center mb-10">
+          <button
+            onClick={() => setActiveGroup('all')}
+            className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${activeGroup === 'all' ? 'bg-amber-500 text-black border-amber-500' : 'border-black/10 dark:border-white/10 text-black dark:text-white hover:border-amber-500/50'}`}
+          >
+            {t.lang === 'EN' ? '⚡ All Tools' : '⚡ Wszystkie'}
+          </button>
+          {Object.entries(toolGroups).map(([key, group]) => (
+            <button
+              key={key}
+              onClick={() => setActiveGroup(key)}
+              className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${activeGroup === key ? 'bg-amber-500 text-black border-amber-500' : 'border-black/10 dark:border-white/10 text-black dark:text-white hover:border-amber-500/50'}`}
+            >
+              {group.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Tools grid */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {displayTools.map((tool, i) => (
+            <a
+              key={`${tool.name}-${i}`}
+              href={tool.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`tool-card relative rounded-2xl p-6 border bg-gradient-to-br ${tool.color} ${tool.border} flex flex-col group`}
+              style={{ boxShadow: `0 8px 30px rgba(0,0,0,0.15)` }}
+            >
+              <div className="flex items-start justify-between mb-4">
+                <div className="text-4xl" style={{ filter: `drop-shadow(0 4px 8px ${tool.groupAccent}60)` }}>{tool.icon}</div>
+                <span className="text-[8px] font-black uppercase tracking-[0.2em] px-2 py-1 rounded-full"
+                  style={{ background: `${tool.groupAccent}20`, border: `1px solid ${tool.groupAccent}40`, color: tool.groupAccent }}>
+                  {tool.groupLabel}
+                </span>
+              </div>
+              <h3 className="text-black dark:text-white font-black text-xl mb-2">{tool.name}</h3>
+              <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed mb-4 flex-grow">{tool.desc}</p>
+              <div className="flex items-center gap-1 mb-4">
+                <Check className="w-3 h-3 text-emerald-500 flex-shrink-0"/>
+                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">{tool.free}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase tracking-widest text-amber-500 group-hover:gap-2 transition-all flex items-center gap-1">
+                  {t.lang === 'EN' ? 'Open Tool' : 'Otwórz'}
+                  <ChevronRight className="w-3 h-3" />
+                </span>
+              </div>
+              {/* Subtle glow on hover */}
+              <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                style={{ boxShadow: `inset 0 0 30px ${tool.groupAccent}15` }} />
+            </a>
+          ))}
+        </div>
+
+        {/* Built-in tools promo */}
+        <div className="mt-12 rounded-2xl p-8 border border-amber-500/30 bg-amber-500/5 text-center">
+          <Icon3D emoji="👑" size="md" />
+          <h3 className="text-xl font-black text-black dark:text-white uppercase tracking-tighter mt-4 mb-2">
+            {t.lang === 'EN' ? 'Built-in Prompt Creators' : 'Wbudowane Kreatory Promptów'}
+          </h3>
+          <p className="text-slate-500 text-sm mb-6">
+            {t.lang === 'EN' ? 'Use our built-in Avatar Builder and Ad Builder — 100% free inside AI Flow Academy.' : 'Użyj naszych wbudowanych Kreatora Awatarów i Kreatora Reklam — 100% darmowych w AI Flow Academy.'}
+          </p>
+          <button
+            onClick={() => onNavigate('aplikacje')}
+            className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-black font-black text-[11px] uppercase tracking-widest px-6 py-3 rounded-xl transition-all hover:scale-105"
+          >
+            {t.lang === 'EN' ? 'Open Aplikacje →' : 'Otwórz Aplikacje →'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
   const isLoggedIn = user && !user.isAnonymous;
@@ -1039,6 +1325,10 @@ const RegulaminView = ({ setCurrentView, lang }) => (
   </div>
 );
 
+
+// =========================================================================
+// MAIN APP - Redesigned Navigation: Academy → Aplikacje → Dodatki → Tutoriale
+// =========================================================================
 export default function App() {
   const [currentView, setCurrentView] = useState('home');
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -1048,8 +1338,17 @@ export default function App() {
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterSent, setNewsletterSent] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
+
   const t = { ...translations[lang], lang };
   const isLoggedIn = user && !user.isAnonymous;
+
+  // New nav items: Academy → Aplikacje → Dodatki → Tutoriale
+  const navItems = [
+    { id: 'home', label: t.lang === 'EN' ? 'Academy' : 'Academy' },
+    { id: 'aplikacje', label: 'Aplikacje' },
+    { id: 'dodatki', label: 'Dodatki' },
+    { id: 'tutorials', label: t.nav_tutorials },
+  ];
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (u) => {
@@ -1079,20 +1378,54 @@ export default function App() {
   return (
     <div className={isDarkMode ? 'dark' : ''}>
       <div className="min-h-screen bg-white dark:bg-black transition-colors duration-700 font-sans selection:bg-amber-500 selection:text-black">
-        <nav className="fixed top-0 left-0 right-0 z-50 h-16 flex items-center px-4 font-sans transition-colors duration-300" style={{background: isDarkMode ? 'rgba(0,0,0,0.85)' : 'rgba(255,255,255,0.90)', backdropFilter:'blur(20px)', borderBottom: isDarkMode ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.08)'}}>
+
+        {/* ===== NAV ===== */}
+        <nav className="fixed top-0 left-0 right-0 z-50 h-16 flex items-center px-4 font-sans transition-colors duration-300"
+          style={{
+            background: isDarkMode ? 'rgba(0,0,0,0.85)' : 'rgba(255,255,255,0.90)',
+            backdropFilter: 'blur(20px)',
+            borderBottom: isDarkMode ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.08)'
+          }}>
           <div className="max-w-[1400px] mx-auto w-full flex items-center justify-between">
+            {/* Logo */}
             <div className="flex items-center gap-3 cursor-pointer" onClick={() => setCurrentView('home')}>
               <img src="/logo.png" alt="AI Flow" className="h-8 w-auto" />
             </div>
+
+            {/* Main nav - NEW STRUCTURE */}
             <div className="flex items-center gap-2">
-              <div className="hidden sm:flex items-center gap-1 p-1 rounded-xl transition-colors" style={{background: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)', border: isDarkMode ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.08)'}}>
-                {[['home', t.nav_academy], ['tutorials', t.nav_tutorials], ['prompt-builder', t.nav_studio], ['avatar-builder', t.lang === 'EN' ? 'Avatars' : 'Awatary'], ['ad-builder', t.lang === 'EN' ? 'Ad Builder' : 'Reklamy']].map(([view, label]) => (
-                  <button key={view} onClick={() => setCurrentView(view)} className={`px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all ${currentView === view ? 'bg-amber-500 text-black' : isDarkMode ? 'text-white/40 hover:text-white/80' : 'text-black/40 hover:text-black/80'}`}>{label}</button>
+              <div className="hidden sm:flex items-center gap-1 p-1 rounded-xl transition-colors"
+                style={{
+                  background: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
+                  border: isDarkMode ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.08)'
+                }}>
+                {navItems.map(({ id, label }) => (
+                  <button
+                    key={id}
+                    onClick={() => setCurrentView(id)}
+                    className={`relative px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all duration-200 ${
+                      currentView === id
+                        ? 'bg-amber-500 text-black'
+                        : isDarkMode
+                        ? 'text-white/40 hover:text-white/80'
+                        : 'text-black/40 hover:text-black/80'
+                    }`}
+                  >
+                    {label}
+                    {/* Glowing arrow indicator between tabs */}
+                    {currentView === id && id !== 'tutorials' && (
+                      <span className="absolute -right-1.5 top-1/2 -translate-y-1/2 w-1 h-1 bg-amber-400 rounded-full"
+                        style={{ boxShadow: '0 0 6px rgba(245,158,11,0.8)' }} />
+                    )}
+                  </button>
                 ))}
               </div>
+
               <LangSwitcher lang={lang} setLang={setLang} />
+
               {isLoggedIn ? (
-                <button onClick={() => signOut(auth)} className="flex items-center gap-2 px-3 py-2 rounded-xl text-emerald-600 dark:text-emerald-400 text-[10px] font-bold uppercase tracking-widest transition-all hover:bg-emerald-500/10" style={{border:'1px solid rgba(52,211,153,0.3)'}}>
+                <button onClick={() => signOut(auth)} className="flex items-center gap-2 px-3 py-2 rounded-xl text-emerald-600 dark:text-emerald-400 text-[10px] font-bold uppercase tracking-widest transition-all hover:bg-emerald-500/10"
+                  style={{border:'1px solid rgba(52,211,153,0.3)'}}>
                   <User className="w-4 h-4" /><span className="hidden sm:block">{user.email?.split('@')[0] || 'Konto'}</span>
                 </button>
               ) : (
@@ -1100,23 +1433,34 @@ export default function App() {
                   <User className="w-4 h-4" /><span className="hidden sm:block">{lang === 'EN' ? 'Log In' : 'Zaloguj'}</span>
                 </button>
               )}
-              <button onClick={() => setIsDarkMode(!isDarkMode)} className={`w-9 h-9 flex items-center justify-center rounded-xl transition-colors ${isDarkMode ? 'text-white/40 hover:text-amber-400' : 'text-black/40 hover:text-amber-500'}`} style={{border: isDarkMode ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.08)'}}>
+
+              <button onClick={() => setIsDarkMode(!isDarkMode)}
+                className={`w-9 h-9 flex items-center justify-center rounded-xl transition-colors ${isDarkMode ? 'text-white/40 hover:text-amber-400' : 'text-black/40 hover:text-amber-500'}`}
+                style={{border: isDarkMode ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.08)'}}>
                 {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               </button>
             </div>
           </div>
         </nav>
+
+        {/* ===== MAIN CONTENT ===== */}
         <main className="pt-16">
           {currentView === 'home' && <HomeView t={t} onLoginRequest={() => setShowLogin(true)} />}
+          {currentView === 'aplikacje' && <AplikacjeView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
+          {currentView === 'dodatki' && <DodatkiView t={t} onNavigate={setCurrentView} />}
           {currentView === 'tutorials' && <TutorialsView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
-          {currentView === 'prompt-builder' && <StudioProView t={t} user={user} onLoginRequest={() => setShowLogin(true)} onNavigate={setCurrentView} />}
+          {/* Legacy routes still supported */}
+          {currentView === 'prompt-builder' && <AplikacjeView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
           {currentView === 'avatar-builder' && <AvatarBuilderView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
           {currentView === 'ad-builder' && <ProductAdBuilderView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
           {currentView === 'impressum' && <ImpressumView setCurrentView={setCurrentView} lang={lang} />}
           {currentView === 'datenschutz' && <DatenschutzView setCurrentView={setCurrentView} lang={lang} />}
           {currentView === 'regulamin' && <RegulaminView setCurrentView={setCurrentView} lang={lang} />}
         </main>
+
         {showLogin && <LoginModal onClose={() => setShowLogin(false)} lang={lang} />}
+
+        {/* ===== FOOTER ===== */}
         <footer className="bg-black border-t font-sans" style={{borderColor:'rgba(255,255,255,0.06)'}}>
           <div className="max-w-[1400px] mx-auto px-6 py-16 flex flex-col gap-12">
             <div className="flex flex-col md:flex-row justify-between gap-12">
@@ -1153,6 +1497,8 @@ export default function App() {
             </div>
           </div>
         </footer>
+
+        {/* ===== COOKIES ===== */}
         {!cookiesAccepted && (
           <div className="fixed bottom-0 left-0 right-0 z-50 p-4 font-sans" style={{background:'rgba(0,0,0,0.95)',backdropFilter:'blur(20px)',borderTop:'1px solid rgba(245,158,11,0.2)'}}>
             <div className="max-w-[1400px] mx-auto flex flex-col md:flex-row items-center gap-4 justify-between">
