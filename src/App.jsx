@@ -38,7 +38,6 @@ const getYTId = (url) => {
 // TOKEN SYSTEM
 // =========================================================================
 const TOKENS_FREE = 3;
-const TOKENS_PER_PACK = 20;
 const STRIPE_PRO_LINK = 'https://buy.stripe.com/bJe6oGeORfKTdfq4nM8bS03';
 const STRIPE_PRO_LINK_TEST = 'https://buy.stripe.com/test_28E00jehn5wt2RN6uS4ow00';
 const ADMIN_EMAIL = 'damianlj@gmail.com';
@@ -935,24 +934,39 @@ const DodatkiView = ({ t, onNavigate }) => {
           </p>
         </div>
 
-        {/* 3D Filter tabs */}
+        {/* 3D Filter tabs — identyczny styl jak kafelki Aplikacje */}
         <style>{`
-          .ftab3d { transform: perspective(400px) rotateX(6deg); transition: all 0.3s cubic-bezier(0.23,1,0.32,1); box-shadow: 0 8px 20px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08); }
-          .ftab3d:hover { transform: perspective(400px) rotateX(0deg) translateY(-4px); }
-          .ftab3d.act { transform: perspective(400px) rotateX(0deg) translateY(-4px); box-shadow: 0 0 30px rgba(245,158,11,0.4), 0 12px 30px rgba(0,0,0,0.4); }
+          .ftab3d {
+            transform: perspective(500px) rotateX(8deg) rotateY(-1deg);
+            transition: all 0.35s cubic-bezier(0.23,1,0.32,1);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08);
+          }
+          .ftab3d:hover {
+            transform: perspective(500px) rotateX(2deg) rotateY(0deg) translateY(-6px) scale(1.04);
+          }
+          .ftab3d.act {
+            transform: perspective(500px) rotateX(2deg) rotateY(0deg) translateY(-6px) scale(1.04);
+            box-shadow: 0 0 40px rgba(245,158,11,0.3), 0 20px 40px rgba(0,0,0,0.5);
+          }
         `}</style>
-        <div className="flex flex-wrap gap-3 justify-center mb-12">
-          {[{ key: 'all', label: t.lang === 'EN' ? '\u26a1 All' : '\u26a1 Wszystkie' },
-            ...Object.entries(toolGroups).map(([key, g]) => ({ key, label: g.label }))
-          ].map(({ key, label }) => (
+        <div className="flex flex-wrap gap-4 justify-center mb-14">
+          {[
+            { key: 'all', label: t.lang === 'EN' ? 'All Tools' : 'Wszystkie', icon: '⚡', color: 'from-amber-500/20 to-yellow-500/10', border: 'border-amber-500/30' },
+            { key: 'video', label: 'Video', icon: '🎬', color: 'from-purple-500/20 to-pink-500/10', border: 'border-purple-500/30' },
+            { key: 'graphics', label: t.lang === 'EN' ? 'Graphics' : 'Grafika', icon: '🎨', color: 'from-amber-500/20 to-orange-500/10', border: 'border-amber-500/30' },
+            { key: 'audio', label: 'Audio', icon: '🎙️', color: 'from-green-500/20 to-emerald-500/10', border: 'border-green-500/30' },
+            { key: 'avatars', label: t.lang === 'EN' ? 'Avatars' : 'Awatary', icon: '🧑‍💻', color: 'from-blue-500/20 to-cyan-500/10', border: 'border-blue-500/30' },
+          ].map(({ key, label, icon, color, border }) => (
             <button
               key={key}
               onClick={() => setActiveGroup(key)}
-              className={`ftab3d px-6 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest border ${activeGroup === key
-                ? 'act bg-amber-500 text-black border-amber-500'
-                : 'bg-white/5 border-white/10 text-white/70 hover:text-white hover:border-amber-500/40'}`}
+              className={`ftab3d ${activeGroup === key ? 'act' : ''} relative px-6 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest border bg-gradient-to-br ${
+                activeGroup === key
+                  ? 'bg-amber-500 text-black border-amber-500 from-amber-400 to-amber-600'
+                  : \`\${color} \${border} text-white/80 hover:text-white\`
+              }`}
             >
-              {label}
+              <span className="mr-1.5">{icon}</span>{label}
             </button>
           ))}
         </div>
@@ -1566,8 +1580,8 @@ export default function App() {
 
         {/* ===== MAIN CONTENT ===== */}
         <main className="pt-16">
-          {/* Global page nav arrows */}
-          {['home','aplikacje','dodatki','tutorials'].includes(currentView) && (() => {
+          {/* Global page nav arrows — ukryte na aplikacje bo kreator ma własne */}
+          {['home','dodatki','tutorials'].includes(currentView) && (() => {
             const pages = ['home','aplikacje','dodatki','tutorials'];
             const pidx = pages.indexOf(currentView);
             const prevP = pidx > 0 ? pages[pidx - 1] : null;
