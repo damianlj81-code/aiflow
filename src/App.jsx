@@ -40,7 +40,7 @@ const getYTId = (url) => {
 const TOKENS_FREE = 3;
 const STRIPE_PRO_LINK = 'https://buy.stripe.com/bJe6oGeORfKTdfq4nM8bS03';
 const STRIPE_PRO_LINK_TEST = 'https://buy.stripe.com/test_28E00jehn5wt2RN6uS4ow00';
-const ADMIN_EMAIL = 'damianlj@gmail.com';
+const ADMIN_EMAIL = 'damianlj@live.com';
 const stripeLink = (baseUrl, uid, email) => { const base = email === ADMIN_EMAIL ? STRIPE_PRO_LINK_TEST : baseUrl; return uid ? `${base}?client_reference_id=${uid}` : base; };
 
 async function getTokenData(db, uid) {
