@@ -698,8 +698,10 @@ const TokensExhaustedOverlay = ({ t, stripeUrl }) => (
 // =========================================================================
 // NEW: APLIKACJE VIEW - 3D tiles with fullscreen creator
 // =========================================================================
-const AplikacjeView = ({ t, user, onLoginRequest }) => {
-  const [activeApp, setActiveApp] = useState(null); // null = grid, 'avatar-builder' | 'ad-builder'
+const AplikacjeView = ({ t, user, onLoginRequest, onCreatorChange }) => {
+  const [activeApp, setActiveApp] = useState(null);
+  const openApp = (id) => { setActiveApp(id); if (onCreatorChange) onCreatorChange(id); };
+  const closeApp = () => { setActiveApp(null); if (onCreatorChange) onCreatorChange(null); };
 
   const apps = [
     {
@@ -775,9 +777,9 @@ const AplikacjeView = ({ t, user, onLoginRequest }) => {
         {activeApp === 'ad-builder' && <ProductAdBuilderView t={t} user={user} onLoginRequest={onLoginRequest} />}
 
         {/* BIG BACK BUTTON — below creator */}
-        <div className="flex justify-center py-16 px-4">
+        <div className="flex justify-center pt-6 pb-8 px-4">
           <button
-            onClick={() => setActiveApp(null)}
+            onClick={closeApp}
             className="group flex items-center gap-4 px-10 py-5 rounded-2xl font-black text-sm uppercase tracking-widest transition-all duration-300 hover:scale-105"
             style={{
               background: 'rgba(245,158,11,0.1)',
@@ -827,7 +829,7 @@ const AplikacjeView = ({ t, user, onLoginRequest }) => {
           {apps.map((app) => (
             <button
               key={app.id}
-              onClick={() => setActiveApp(app.id)}
+              onClick={() => openApp(app.id)}
               className={`card3d relative rounded-3xl p-8 border bg-gradient-to-br ${app.color} ${app.border} text-left group cursor-pointer`}
               style={{ boxShadow: `0 20px 60px ${app.glow}, 0 4px 20px rgba(0,0,0,0.3)` }}
             >
@@ -1470,6 +1472,7 @@ const RegulaminView = ({ setCurrentView, lang }) => (
 export default function App() {
   const [currentView, setCurrentView] = useState('home');
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [activeCreator, setActiveCreator] = useState(null);
   const [user, setUser] = useState(null);
   const [lang, setLang] = useState('PL');
   const [cookiesAccepted, setCookiesAccepted] = useState(() => localStorage.getItem('cookies') === '1');
@@ -1598,8 +1601,8 @@ export default function App() {
 
         {/* ===== MAIN CONTENT ===== */}
         <main className="pt-16">
-          {/* Global page nav arrows — ukryte na aplikacje bo kreator ma własne */}
-          {['home','dodatki','tutorials'].includes(currentView) && (() => {
+          {/* Global page nav arrows — widoczne wszędzie poza wnętrzem kreatora */}
+          {['home','aplikacje','dodatki','tutorials'].includes(currentView) && !activeCreator && (() => {
             const pages = ['home','aplikacje','dodatki','tutorials'];
             const pidx = pages.indexOf(currentView);
             const prevP = pidx > 0 ? pages[pidx - 1] : null;
@@ -1623,7 +1626,7 @@ export default function App() {
           })()}
 
           {currentView === 'home' && <HomeView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
-          {currentView === 'aplikacje' && <AplikacjeView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
+          {currentView === 'aplikacje' && <AplikacjeView t={t} user={user} onLoginRequest={() => setShowLogin(true)} onCreatorChange={setActiveCreator} />}
           {currentView === 'dodatki' && <DodatkiView t={t} onNavigate={setCurrentView} />}
           {currentView === 'tutorials' && <TutorialsView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
           {/* Legacy routes still supported */}
