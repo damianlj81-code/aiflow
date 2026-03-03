@@ -338,7 +338,7 @@ const FAQSection = ({ t }) => {
 // =========================================================================
 // HOME VIEW
 // =========================================================================
-const HomeView = ({ t, onLoginRequest }) => {
+const HomeView = ({ t, user, onLoginRequest }) => {
   const [activeFeature, setActiveFeature] = useState(0);
   const features = t.lang === 'EN' ? ['AI Avatar Creation', 'Prompt Engineering', 'Workflow Automation', 'Live Coaching'] : ['Tworzenie Awatarów AI', 'Inżynieria Promptów', 'Automatyzacja Workflow', 'Live Coaching'];
   useEffect(() => { const fi = setInterval(() => setActiveFeature(p => (p + 1) % features.length), 4000); return () => clearInterval(fi); }, []);
@@ -473,7 +473,7 @@ const HomeView = ({ t, onLoginRequest }) => {
                   <p key={i} className={`text-xs ${f.startsWith('✔') ? 'text-white' : 'text-slate-600'}`}>{f}</p>
                 ))}
               </div>
-              <a href={STRIPE_PRO_LINK} target="_blank" rel="noopener noreferrer"
+              <a href={stripeLink(STRIPE_PRO_LINK, user?.uid, user?.email)} target="_blank" rel="noopener noreferrer"
                 className="block w-full py-3.5 font-black text-[11px] uppercase tracking-widest rounded-xl text-center bg-amber-500/20 border border-amber-500/40 text-amber-400 hover:bg-amber-500 hover:text-black transition-all">
                 {t.lang==='EN'?'Get Starter →':'Wybierz Starter →'}
               </a>
@@ -518,7 +518,7 @@ const HomeView = ({ t, onLoginRequest }) => {
                   <p key={i} className="text-xs text-white">{f}</p>
                 ))}
               </div>
-              <a href={STRIPE_PRO_LINK} target="_blank" rel="noopener noreferrer"
+              <a href={stripeLink(STRIPE_PRO_LINK, user?.uid, user?.email)} target="_blank" rel="noopener noreferrer"
                 className="block w-full py-3.5 font-black text-[11px] uppercase tracking-widest rounded-xl text-center bg-amber-500 hover:bg-amber-400 text-black transition-all shadow-lg shadow-amber-500/30">
                 {t.lang==='EN'?'Get All-in-one →':'Wybierz All-in-one →'}
               </a>
@@ -546,13 +546,23 @@ const TutorialsView = ({ t, user, onLoginRequest }) => {
     } else { setLoadingPro(false); }
   }, [isLoggedIn, user]);
 
-  const YT = "1_1oHwOZMe4";
-  const tutorials = [
-    { id:1, title:t.lang==='EN'?'Introduction to AI Avatars':'Wprowadzenie do Awatarów AI', duration:'12:34', ytId:YT, naffyUrl:'https://naffy.io', price:'49' },
-    { id:2, title:t.lang==='EN'?'Prompt Engineering Basics':'Podstawy Inżynierii Promptów', duration:'18:21', ytId:YT, naffyUrl:'https://naffy.io', price:'49' },
-    { id:3, title:t.lang==='EN'?'Workflow Automation':'Automatyzacja Workflow', duration:'24:05', ytId:YT, naffyUrl:'https://naffy.io', price:'49' },
-    { id:4, title:t.lang==='EN'?'Advanced AI Techniques':'Zaawansowane Techniki AI', duration:'31:12', ytId:YT, naffyUrl:'https://naffy.io', price:'49' },
-  ];
+  const [tutorials, setTutorials] = useState([]);
+  const [loadingTuts, setLoadingTuts] = useState(true);
+
+  useEffect(() => {
+    getDoc(doc(db, 'artifacts', 'aiflow_academy', 'public', 'data', 'config', 'tutorials')).then(snap => {
+      if (snap.exists() && snap.data().list) {
+        setTutorials(snap.data().list.map((t, i) => ({ ...t, id: i + 1 })));
+      } else {
+        // fallback jesli brak w Firestore
+        setTutorials([
+          { id:1, title_pl:'Wprowadzenie do Awatarów AI', title_en:'Introduction to AI Avatars', duration:'12:34', ytId:'1_1oHwOZMe4', naffyUrl:'https://naffy.io', price:'49' },
+          { id:2, title_pl:'Podstawy Inżynierii Promptów', title_en:'Prompt Engineering Basics', duration:'18:21', ytId:'1_1oHwOZMe4', naffyUrl:'https://naffy.io', price:'49' },
+        ]);
+      }
+      setLoadingTuts(false);
+    });
+  }, []);
 
   return (
     <div className="min-h-screen bg-white dark:bg-black transition-colors duration-700 font-sans px-4 py-12">
@@ -610,7 +620,7 @@ const TutorialsView = ({ t, user, onLoginRequest }) => {
 
                 {/* Info + buttons */}
                 <div className="p-4 flex flex-col flex-grow">
-                  <p className="text-white font-black text-xs leading-tight mb-4">{tut.title}</p>
+                  <p className="text-white font-black text-xs leading-tight mb-4">{t.lang === 'EN' ? tut.title_en : tut.title_pl}</p>
                   {isPro ? (
                     <div className="mt-auto flex items-center justify-center px-3 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30">
                       <span className="text-amber-400 font-black text-[9px] uppercase tracking-widest">✓ {t.lang === 'EN' ? 'In your plan' : 'W Twoim planie'}</span>
@@ -622,7 +632,7 @@ const TutorialsView = ({ t, user, onLoginRequest }) => {
                         <span>{t.lang === 'EN' ? 'Buy now' : 'Kup teraz'}</span>
                         <span>{tut.price} PLN</span>
                       </a>
-                      <a href={STRIPE_PRO_LINK} target="_blank" rel="noopener noreferrer"
+                      <a href={stripeLink(STRIPE_PRO_LINK, user?.uid, user?.email)} target="_blank" rel="noopener noreferrer"
                         className="flex items-center justify-center px-3 py-2 rounded-xl font-black text-[9px] uppercase tracking-widest border border-amber-500/30 text-amber-400 hover:border-amber-500 hover:text-amber-300 transition-all">
                         👑 {t.lang === 'EN' ? 'Subscribe' : 'Abonament'}
                       </a>
@@ -645,7 +655,7 @@ const TutorialsView = ({ t, user, onLoginRequest }) => {
                 {t.lang === 'EN' ? 'One subscription. Everything included. Cancel anytime.' : 'Jeden abonament. Dostęp do wszystkiego. Anuluj kiedy chcesz.'}
               </p>
             </div>
-            <a href={STRIPE_PRO_LINK} target="_blank" rel="noopener noreferrer"
+            <a href={stripeLink(STRIPE_PRO_LINK, user?.uid, user?.email)} target="_blank" rel="noopener noreferrer"
               className="flex-shrink-0 px-6 py-3 rounded-xl font-black text-[11px] uppercase tracking-widest bg-amber-500 hover:bg-amber-400 text-black transition-all hover:scale-105 whitespace-nowrap"
               style={{boxShadow:'0 0 30px rgba(245,158,11,0.3)'}}>
               {t.lang === 'EN' ? 'Get All-in-one →' : 'Włącz Abonament →'}
@@ -1559,10 +1569,19 @@ export default function App() {
               <LangSwitcher lang={lang} setLang={setLang} />
 
               {isLoggedIn ? (
-                <button onClick={() => signOut(auth)} className="flex items-center gap-2 px-3 py-2 rounded-xl text-emerald-600 dark:text-emerald-400 text-[10px] font-bold uppercase tracking-widest transition-all hover:bg-emerald-500/10"
-                  style={{border:'1px solid rgba(52,211,153,0.3)'}}>
-                  <User className="w-4 h-4" /><span className="hidden sm:block">{user.email?.split('@')[0] || 'Konto'}</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  {user?.email === ADMIN_EMAIL && (
+                    <button onClick={() => setCurrentView('admin')}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-amber-400 text-[10px] font-bold uppercase tracking-widest transition-all hover:bg-amber-500/10"
+                      style={{border:'1px solid rgba(245,158,11,0.3)'}}>
+                      ⚙
+                    </button>
+                  )}
+                  <button onClick={() => signOut(auth)} className="flex items-center gap-2 px-3 py-2 rounded-xl text-emerald-600 dark:text-emerald-400 text-[10px] font-bold uppercase tracking-widest transition-all hover:bg-emerald-500/10"
+                    style={{border:'1px solid rgba(52,211,153,0.3)'}}>
+                    <User className="w-4 h-4" /><span className="hidden sm:block">{user.email?.split('@')[0] || 'Konto'}</span>
+                  </button>
+                </div>
               ) : (
                 <button onClick={() => setShowLogin(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 text-black text-[10px] font-black uppercase tracking-widest hover:bg-amber-400 transition-all">
                   <User className="w-4 h-4" /><span className="hidden sm:block">{lang === 'EN' ? 'Log In' : 'Zaloguj'}</span>
@@ -1604,7 +1623,7 @@ export default function App() {
             </>);
           })()}
 
-          {currentView === 'home' && <HomeView t={t} onLoginRequest={() => setShowLogin(true)} />}
+          {currentView === 'home' && <HomeView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
           {currentView === 'aplikacje' && <AplikacjeView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
           {currentView === 'dodatki' && <DodatkiView t={t} onNavigate={setCurrentView} />}
           {currentView === 'tutorials' && <TutorialsView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
@@ -1612,6 +1631,7 @@ export default function App() {
           {currentView === 'prompt-builder' && <AplikacjeView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
           {currentView === 'avatar-builder' && <AvatarBuilderView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
           {currentView === 'ad-builder' && <ProductAdBuilderView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
+          {currentView === 'admin' && user?.email === ADMIN_EMAIL && <AdminView setCurrentView={setCurrentView} lang={lang} user={user} />}
           {currentView === 'impressum' && <ImpressumView setCurrentView={setCurrentView} lang={lang} />}
           {currentView === 'datenschutz' && <DatenschutzView setCurrentView={setCurrentView} lang={lang} />}
           {currentView === 'regulamin' && <RegulaminView setCurrentView={setCurrentView} lang={lang} />}
@@ -1676,3 +1696,137 @@ export default function App() {
     </div>
   );
 }
+// =========================================================================
+// ADMIN VIEW
+// =========================================================================
+const AdminView = ({ setCurrentView, lang, user }) => {
+  const appId2 = "aiflow_academy";
+  const tutorialsRef = (db2) => doc(db2, 'artifacts', appId2, 'public', 'data', 'config', 'tutorials');
+
+  const emptyTut = { title_pl: '', title_en: '', duration: '', ytId: '', naffyUrl: '', price: '49' };
+  const [tutorials, setTutorials] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    getDoc(tutorialsRef(db)).then(snap => {
+      if (snap.exists() && snap.data().list) {
+        setTutorials(snap.data().list);
+      } else {
+        setTutorials([
+          { title_pl: 'Wprowadzenie do Awatarów AI', title_en: 'Introduction to AI Avatars', duration: '12:34', ytId: '1_1oHwOZMe4', naffyUrl: 'https://naffy.io', price: '49' },
+          { title_pl: 'Podstawy Inżynierii Promptów', title_en: 'Prompt Engineering Basics', duration: '18:21', ytId: '1_1oHwOZMe4', naffyUrl: 'https://naffy.io', price: '49' },
+        ]);
+      }
+      setLoading(false);
+    });
+  }, []);
+
+  const update = (i, field, val) => {
+    setTutorials(prev => prev.map((t, idx) => idx === i ? { ...t, [field]: val } : t));
+  };
+
+  const addTut = () => setTutorials(prev => [...prev, { ...emptyTut }]);
+  const removeTut = (i) => setTutorials(prev => prev.filter((_, idx) => idx !== i));
+
+  const save = async () => {
+    setSaving(true);
+    await setDoc(tutorialsRef(db), { list: tutorials });
+    setSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  const inputCls = "w-full bg-[#111] border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:border-amber-500 focus:outline-none transition-colors";
+  const labelCls = "block text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1";
+
+  return (
+    <div className="min-h-screen bg-black font-sans px-4 py-12">
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center justify-between mb-10">
+          <div>
+            <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-4">
+              ⚙ Panel Admina
+            </div>
+            <h1 className="text-3xl font-black text-white uppercase tracking-tighter">Zarządzanie Tutorialami</h1>
+            <p className="text-slate-500 text-xs mt-1">Zmiany zapisują się w Firestore i od razu pojawiają na stronie.</p>
+          </div>
+          <button onClick={() => setCurrentView('home')}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/10 text-white/50 hover:text-white text-[10px] font-bold uppercase tracking-widest transition-all">
+            <ArrowLeft className="w-4 h-4" /> Wróć
+          </button>
+        </div>
+
+        {loading ? (
+          <div className="text-slate-500 text-sm">Ładowanie...</div>
+        ) : (
+          <div className="space-y-6">
+            {tutorials.map((tut, i) => (
+              <div key={i} className="bg-[#0a0a0a] border border-white/8 rounded-2xl p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-amber-500 font-black text-xs uppercase tracking-widest">Tutorial #{i + 1}</span>
+                  <button onClick={() => removeTut(i)}
+                    className="text-red-500/60 hover:text-red-400 text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center gap-1">
+                    <Trash2 className="w-3 h-3" /> Usuń
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className={labelCls}>Tytuł PL</label>
+                    <input value={tut.title_pl} onChange={e => update(i, 'title_pl', e.target.value)} className={inputCls} placeholder="Tytuł po polsku"/>
+                  </div>
+                  <div>
+                    <label className={labelCls}>Title EN</label>
+                    <input value={tut.title_en} onChange={e => update(i, 'title_en', e.target.value)} className={inputCls} placeholder="Title in English"/>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-4 mb-4">
+                  <div>
+                    <label className={labelCls}>YouTube ID</label>
+                    <input value={tut.ytId} onChange={e => update(i, 'ytId', e.target.value)} className={inputCls} placeholder="np. dQw4w9WgXcQ"/>
+                  </div>
+                  <div>
+                    <label className={labelCls}>Czas trwania</label>
+                    <input value={tut.duration} onChange={e => update(i, 'duration', e.target.value)} className={inputCls} placeholder="np. 12:34"/>
+                  </div>
+                  <div>
+                    <label className={labelCls}>Cena (PLN)</label>
+                    <input value={tut.price} onChange={e => update(i, 'price', e.target.value)} className={inputCls} placeholder="49"/>
+                  </div>
+                </div>
+                <div>
+                  <label className={labelCls}>Link Naffy</label>
+                  <input value={tut.naffyUrl} onChange={e => update(i, 'naffyUrl', e.target.value)} className={inputCls} placeholder="https://naffy.io/..."/>
+                </div>
+                {/* Preview miniaturki */}
+                {tut.ytId && (
+                  <div className="mt-4 flex items-center gap-3">
+                    <img src={`https://img.youtube.com/vi/${tut.ytId}/mqdefault.jpg`} className="w-24 h-14 rounded-lg object-cover border border-white/10" alt="thumb"/>
+                    <a href={`https://www.youtube.com/watch?v=${tut.ytId}`} target="_blank" rel="noopener noreferrer"
+                      className="text-amber-400 text-[10px] font-bold uppercase tracking-widest hover:underline">
+                      ▶ Podgląd na YouTube
+                    </a>
+                  </div>
+                )}
+              </div>
+            ))}
+
+            <button onClick={addTut}
+              className="w-full py-4 rounded-2xl border-2 border-dashed border-white/10 text-white/30 hover:border-amber-500/40 hover:text-amber-500/60 font-black text-[11px] uppercase tracking-widest transition-all flex items-center justify-center gap-2">
+              <PlusCircle className="w-4 h-4" /> Dodaj tutorial
+            </button>
+
+            <button onClick={save} disabled={saving}
+              className={`w-full py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all ${saved ? 'bg-emerald-500 text-black' : 'bg-amber-500 hover:bg-amber-400 text-black'}`}
+              style={{boxShadow: '0 0 30px rgba(245,158,11,0.3)'}}>
+              {saving ? 'Zapisywanie...' : saved ? '✓ Zapisano!' : 'Zapisz zmiany →'}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+
