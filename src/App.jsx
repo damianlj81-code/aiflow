@@ -776,20 +776,21 @@ const AplikacjeView = ({ t, user, onLoginRequest, onCreatorChange }) => {
         {activeApp === 'avatar-builder' && <AvatarBuilderView t={t} user={user} onLoginRequest={onLoginRequest} />}
         {activeApp === 'ad-builder' && <ProductAdBuilderView t={t} user={user} onLoginRequest={onLoginRequest} />}
 
-        {/* BIG BACK BUTTON — below creator */}
-        <div className="flex justify-center pt-6 pb-8 px-4">
+        {/* BACK BUTTON — fixed top left, always visible */}
+        <div className="fixed top-20 left-4 z-50">
           <button
             onClick={closeApp}
-            className="group flex items-center gap-4 px-10 py-5 rounded-2xl font-black text-sm uppercase tracking-widest transition-all duration-300 hover:scale-105"
+            className="group flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all duration-300 hover:scale-105"
             style={{
-              background: 'rgba(245,158,11,0.1)',
-              border: '2px solid rgba(245,158,11,0.4)',
+              background: 'rgba(10,10,10,0.95)',
+              border: '2px solid rgba(245,158,11,0.5)',
               color: '#f59e0b',
-              boxShadow: '0 0 40px rgba(245,158,11,0.15)',
+              boxShadow: '0 0 20px rgba(245,158,11,0.2)',
+              backdropFilter: 'blur(10px)',
             }}
           >
-            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-            {t.lang === 'EN' ? '← Back to All Apps' : '← Powrót do Aplikacji'}
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            {t.lang === 'EN' ? 'Back' : 'Powrót'}
           </button>
         </div>
       </div>
