@@ -1343,6 +1343,142 @@ const RegulaminView = ({ setCurrentView, lang }) => (
 // =========================================================================
 // MAIN APP - Redesigned Navigation: Academy → Aplikacje → Dodatki → Tutoriale
 // =========================================================================
+// =========================================================================
+// ADMIN VIEW
+// =========================================================================
+const AdminView = ({ setCurrentView, lang, user }) => {
+  const appId2 = "aiflow_academy";
+  const tutorialsRef = (db2) => doc(db2, 'artifacts', appId2, 'public', 'data', 'config', 'tutorials');
+
+  const emptyTut = { title_pl: '', title_en: '', duration: '', ytId: '', naffyUrl: '', vimeoUrl: '', price: '49' };
+  const [tutorials, setTutorials] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    getDoc(tutorialsRef(db)).then(snap => {
+      if (snap.exists() && snap.data().list) {
+        setTutorials(snap.data().list);
+      } else {
+        setTutorials([
+          { title_pl: 'Wprowadzenie do Awatarów AI', title_en: 'Introduction to AI Avatars', duration: '12:34', ytId: '1_1oHwOZMe4', naffyUrl: 'https://naffy.io', vimeoUrl: '', price: '49' },
+          { title_pl: 'Podstawy Inżynierii Promptów', title_en: 'Prompt Engineering Basics', duration: '18:21', ytId: '1_1oHwOZMe4', naffyUrl: 'https://naffy.io', vimeoUrl: '', price: '49' },
+        ]);
+      }
+      setLoading(false);
+    });
+  }, []);
+
+  const update = (i, field, val) => {
+    setTutorials(prev => prev.map((t, idx) => idx === i ? { ...t, [field]: val } : t));
+  };
+
+  const addTut = () => setTutorials(prev => [...prev, { ...emptyTut }]);
+  const removeTut = (i) => setTutorials(prev => prev.filter((_, idx) => idx !== i));
+
+  const save = async () => {
+    setSaving(true);
+    await setDoc(tutorialsRef(db), { list: tutorials });
+    setSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  const inputCls = "w-full bg-[#111] border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:border-amber-500 focus:outline-none transition-colors";
+  const labelCls = "block text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1";
+
+  return (
+    <div className="min-h-screen bg-black font-sans px-4 py-12">
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center justify-between mb-10">
+          <div>
+            <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-4">
+              ⚙ Panel Admina
+            </div>
+            <h1 className="text-3xl font-black text-white uppercase tracking-tighter">Zarządzanie Tutorialami</h1>
+            <p className="text-slate-500 text-xs mt-1">Zmiany zapisują się w Firestore i od razu pojawiają na stronie.</p>
+          </div>
+          <button onClick={() => setCurrentView('home')}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/10 text-white/50 hover:text-white text-[10px] font-bold uppercase tracking-widest transition-all">
+            <ArrowLeft className="w-4 h-4" /> Wróć
+          </button>
+        </div>
+
+        {loading ? (
+          <div className="text-slate-500 text-sm">Ładowanie...</div>
+        ) : (
+          <div className="space-y-6">
+            {tutorials.map((tut, i) => (
+              <div key={i} className="bg-[#0a0a0a] border border-white/8 rounded-2xl p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-amber-500 font-black text-xs uppercase tracking-widest">Tutorial #{i + 1}</span>
+                  <button onClick={() => removeTut(i)}
+                    className="text-red-500/60 hover:text-red-400 text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center gap-1">
+                    <Trash2 className="w-3 h-3" /> Usuń
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className={labelCls}>Tytuł PL</label>
+                    <input value={tut.title_pl} onChange={e => update(i, 'title_pl', e.target.value)} className={inputCls} placeholder="Tytuł po polsku"/>
+                  </div>
+                  <div>
+                    <label className={labelCls}>Title EN</label>
+                    <input value={tut.title_en} onChange={e => update(i, 'title_en', e.target.value)} className={inputCls} placeholder="Title in English"/>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-4 mb-4">
+                  <div>
+                    <label className={labelCls}>YouTube ID</label>
+                    <input value={tut.ytId} onChange={e => update(i, 'ytId', e.target.value)} className={inputCls} placeholder="np. dQw4w9WgXcQ"/>
+                  </div>
+                  <div>
+                    <label className={labelCls}>Czas trwania</label>
+                    <input value={tut.duration} onChange={e => update(i, 'duration', e.target.value)} className={inputCls} placeholder="np. 12:34"/>
+                  </div>
+                  <div>
+                    <label className={labelCls}>Cena (PLN)</label>
+                    <input value={tut.price} onChange={e => update(i, 'price', e.target.value)} className={inputCls} placeholder="49"/>
+                  </div>
+                </div>
+                <div>
+                  <label className={labelCls}>Link Naffy</label>
+                  <input value={tut.naffyUrl} onChange={e => update(i, 'naffyUrl', e.target.value)} className={inputCls} placeholder="https://naffy.io/..."/>
+                  <label className={labelCls}>Vimeo URL (dla Pro)</label>
+                  <input value={tut.vimeoUrl || ''} onChange={e => update(i, 'vimeoUrl', e.target.value)} className={inputCls} placeholder="https://vimeo.com/..."/>
+                </div>
+                {/* Preview miniaturki */}
+                {tut.ytId && (
+                  <div className="mt-4 flex items-center gap-3">
+                    <img src={`https://img.youtube.com/vi/${tut.ytId}/mqdefault.jpg`} className="w-24 h-14 rounded-lg object-cover border border-white/10" alt="thumb"/>
+                    <a href={`https://www.youtube.com/watch?v=${tut.ytId}`} target="_blank" rel="noopener noreferrer"
+                      className="text-amber-400 text-[10px] font-bold uppercase tracking-widest hover:underline">
+                      ▶ Podgląd na YouTube
+                    </a>
+                  </div>
+                )}
+              </div>
+            ))}
+
+            <button onClick={addTut}
+              className="w-full py-4 rounded-2xl border-2 border-dashed border-white/10 text-white/30 hover:border-amber-500/40 hover:text-amber-500/60 font-black text-[11px] uppercase tracking-widest transition-all flex items-center justify-center gap-2">
+              <PlusCircle className="w-4 h-4" /> Dodaj tutorial
+            </button>
+
+            <button onClick={save} disabled={saving}
+              className={`w-full py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all ${saved ? 'bg-emerald-500 text-black' : 'bg-amber-500 hover:bg-amber-400 text-black'}`}
+              style={{boxShadow: '0 0 30px rgba(245,158,11,0.3)'}}>
+              {saving ? 'Zapisywanie...' : saved ? '✓ Zapisano!' : 'Zapisz zmiany →'}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+
 export default function App() {
   const [currentView, setCurrentView] = useState('home');
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -1574,140 +1710,5 @@ export default function App() {
     </div>
   );
 }
-// =========================================================================
-// ADMIN VIEW
-// =========================================================================
-const AdminView = ({ setCurrentView, lang, user }) => {
-  const appId2 = "aiflow_academy";
-  const tutorialsRef = (db2) => doc(db2, 'artifacts', appId2, 'public', 'data', 'config', 'tutorials');
-
-  const emptyTut = { title_pl: '', title_en: '', duration: '', ytId: '', naffyUrl: '', vimeoUrl: '', price: '49' };
-  const [tutorials, setTutorials] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
-
-  useEffect(() => {
-    getDoc(tutorialsRef(db)).then(snap => {
-      if (snap.exists() && snap.data().list) {
-        setTutorials(snap.data().list);
-      } else {
-        setTutorials([
-          { title_pl: 'Wprowadzenie do Awatarów AI', title_en: 'Introduction to AI Avatars', duration: '12:34', ytId: '1_1oHwOZMe4', naffyUrl: 'https://naffy.io', vimeoUrl: '', price: '49' },
-          { title_pl: 'Podstawy Inżynierii Promptów', title_en: 'Prompt Engineering Basics', duration: '18:21', ytId: '1_1oHwOZMe4', naffyUrl: 'https://naffy.io', vimeoUrl: '', price: '49' },
-        ]);
-      }
-      setLoading(false);
-    });
-  }, []);
-
-  const update = (i, field, val) => {
-    setTutorials(prev => prev.map((t, idx) => idx === i ? { ...t, [field]: val } : t));
-  };
-
-  const addTut = () => setTutorials(prev => [...prev, { ...emptyTut }]);
-  const removeTut = (i) => setTutorials(prev => prev.filter((_, idx) => idx !== i));
-
-  const save = async () => {
-    setSaving(true);
-    await setDoc(tutorialsRef(db), { list: tutorials });
-    setSaving(false);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  };
-
-  const inputCls = "w-full bg-[#111] border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:border-amber-500 focus:outline-none transition-colors";
-  const labelCls = "block text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1";
-
-  return (
-    <div className="min-h-screen bg-black font-sans px-4 py-12">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-10">
-          <div>
-            <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-4">
-              ⚙ Panel Admina
-            </div>
-            <h1 className="text-3xl font-black text-white uppercase tracking-tighter">Zarządzanie Tutorialami</h1>
-            <p className="text-slate-500 text-xs mt-1">Zmiany zapisują się w Firestore i od razu pojawiają na stronie.</p>
-          </div>
-          <button onClick={() => setCurrentView('home')}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/10 text-white/50 hover:text-white text-[10px] font-bold uppercase tracking-widest transition-all">
-            <ArrowLeft className="w-4 h-4" /> Wróć
-          </button>
-        </div>
-
-        {loading ? (
-          <div className="text-slate-500 text-sm">Ładowanie...</div>
-        ) : (
-          <div className="space-y-6">
-            {tutorials.map((tut, i) => (
-              <div key={i} className="bg-[#0a0a0a] border border-white/8 rounded-2xl p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-amber-500 font-black text-xs uppercase tracking-widest">Tutorial #{i + 1}</span>
-                  <button onClick={() => removeTut(i)}
-                    className="text-red-500/60 hover:text-red-400 text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center gap-1">
-                    <Trash2 className="w-3 h-3" /> Usuń
-                  </button>
-                </div>
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className={labelCls}>Tytuł PL</label>
-                    <input value={tut.title_pl} onChange={e => update(i, 'title_pl', e.target.value)} className={inputCls} placeholder="Tytuł po polsku"/>
-                  </div>
-                  <div>
-                    <label className={labelCls}>Title EN</label>
-                    <input value={tut.title_en} onChange={e => update(i, 'title_en', e.target.value)} className={inputCls} placeholder="Title in English"/>
-                  </div>
-                </div>
-                <div className="grid grid-cols-3 gap-4 mb-4">
-                  <div>
-                    <label className={labelCls}>YouTube ID</label>
-                    <input value={tut.ytId} onChange={e => update(i, 'ytId', e.target.value)} className={inputCls} placeholder="np. dQw4w9WgXcQ"/>
-                  </div>
-                  <div>
-                    <label className={labelCls}>Czas trwania</label>
-                    <input value={tut.duration} onChange={e => update(i, 'duration', e.target.value)} className={inputCls} placeholder="np. 12:34"/>
-                  </div>
-                  <div>
-                    <label className={labelCls}>Cena (PLN)</label>
-                    <input value={tut.price} onChange={e => update(i, 'price', e.target.value)} className={inputCls} placeholder="49"/>
-                  </div>
-                </div>
-                <div>
-                  <label className={labelCls}>Link Naffy</label>
-                  <input value={tut.naffyUrl} onChange={e => update(i, 'naffyUrl', e.target.value)} className={inputCls} placeholder="https://naffy.io/..."/>
-                  <label className={labelCls}>Vimeo URL (dla Pro)</label>
-                  <input value={tut.vimeoUrl || ''} onChange={e => update(i, 'vimeoUrl', e.target.value)} className={inputCls} placeholder="https://vimeo.com/..."/>
-                </div>
-                {/* Preview miniaturki */}
-                {tut.ytId && (
-                  <div className="mt-4 flex items-center gap-3">
-                    <img src={`https://img.youtube.com/vi/${tut.ytId}/mqdefault.jpg`} className="w-24 h-14 rounded-lg object-cover border border-white/10" alt="thumb"/>
-                    <a href={`https://www.youtube.com/watch?v=${tut.ytId}`} target="_blank" rel="noopener noreferrer"
-                      className="text-amber-400 text-[10px] font-bold uppercase tracking-widest hover:underline">
-                      ▶ Podgląd na YouTube
-                    </a>
-                  </div>
-                )}
-              </div>
-            ))}
-
-            <button onClick={addTut}
-              className="w-full py-4 rounded-2xl border-2 border-dashed border-white/10 text-white/30 hover:border-amber-500/40 hover:text-amber-500/60 font-black text-[11px] uppercase tracking-widest transition-all flex items-center justify-center gap-2">
-              <PlusCircle className="w-4 h-4" /> Dodaj tutorial
-            </button>
-
-            <button onClick={save} disabled={saving}
-              className={`w-full py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all ${saved ? 'bg-emerald-500 text-black' : 'bg-amber-500 hover:bg-amber-400 text-black'}`}
-              style={{boxShadow: '0 0 30px rgba(245,158,11,0.3)'}}>
-              {saving ? 'Zapisywanie...' : saved ? '✓ Zapisano!' : 'Zapisz zmiany →'}
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
 
 // updated Tue Mar  3 23:31:30 UTC 2026
