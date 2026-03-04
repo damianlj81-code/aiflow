@@ -611,6 +611,184 @@ const TutorialsView = ({ t, user, onLoginRequest }) => {
 // =========================================================================
 // NEW: DODATKI VIEW - External tools grouped by category
 // =========================================================================
+const AplikacjeView = ({ t, user, onLoginRequest, onCreatorChange }) => {
+  const [activeApp, setActiveApp] = useState(null);
+  const openApp = (id) => { setActiveApp(id); if (onCreatorChange) onCreatorChange(id); };
+  const closeApp = () => { setActiveApp(null); if (onCreatorChange) onCreatorChange(null); };
+
+  const apps = [
+    {
+      id: 'avatar-builder',
+      icon: '👑',
+      title: t.lang === 'EN' ? 'Avatar Builder' : 'Kreator Awatarów',
+      subtitle: t.lang === 'EN' ? 'AI Avatar Prompt Generator' : 'Generator Promptów Awatarów AI',
+      desc: t.lang === 'EN' ? 'Create professional AI avatar prompts for Pika Labs & Leonardo AI.' : 'Twórz profesjonalne prompty do awatarów AI dla Pika Labs i Leonardo AI.',
+      color: 'from-amber-500/20 via-yellow-500/10 to-orange-500/20',
+      border: 'border-amber-500/30',
+      glow: 'rgba(245,158,11,0.3)',
+      badge: t.lang === 'EN' ? 'PROMPT STUDIO' : 'STUDIO PROMPTÓW',
+    },
+    {
+      id: 'ad-builder',
+      icon: '🎬',
+      title: t.lang === 'EN' ? 'Product Ad Builder' : 'Kreator Reklam',
+      subtitle: t.lang === 'EN' ? 'Cinematic Ad Prompt Generator' : 'Generator Promptów Reklam Filmowych',
+      desc: t.lang === 'EN' ? 'Generate cinematic product ad prompts for stunning AI videos.' : 'Generuj kinowe prompty do reklam produktowych na potrzeby filmów AI.',
+      color: 'from-purple-500/20 via-pink-500/10 to-blue-500/20',
+      border: 'border-purple-500/30',
+      glow: 'rgba(168,85,247,0.3)',
+      badge: t.lang === 'EN' ? 'AD STUDIO' : 'STUDIO REKLAM',
+    },
+  ];
+
+  const currentIdx = activeApp ? apps.findIndex(a => a.id === activeApp) : -1;
+
+  const goNext = () => {
+    if (currentIdx < apps.length - 1) setActiveApp(apps[currentIdx + 1].id);
+  };
+  const goPrev = () => {
+    if (currentIdx > 0) setActiveApp(apps[currentIdx - 1].id);
+  };
+
+  // If an app is open, render it fullscreen with side arrows + bottom back button
+  if (activeApp) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-black transition-colors duration-700 relative">
+
+        {/* LEFT arrow — fixed to left side, vertically centered */}
+        {currentIdx > 0 && (
+          <button
+            onClick={goPrev}
+            className="fixed left-2 md:left-4 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-2 group"
+            style={{ filter: 'drop-shadow(0 0 16px rgba(245,158,11,0.6))' }}
+          >
+            <div className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center transition-all duration-300 group-hover:scale-110"
+              style={{ background: 'rgba(245,158,11,0.15)', border: '2px solid rgba(245,158,11,0.5)', boxShadow: '0 0 30px rgba(245,158,11,0.3)' }}>
+              <ChevronLeft className="w-6 h-6 md:w-8 md:h-8 text-amber-400" />
+            </div>
+            <span className="text-[8px] font-black uppercase tracking-widest text-amber-400/70 hidden md:block">{apps[currentIdx - 1]?.icon}</span>
+          </button>
+        )}
+
+        {/* RIGHT arrow — fixed to right side, vertically centered */}
+        {currentIdx < apps.length - 1 && (
+          <button
+            onClick={goNext}
+            className="fixed right-2 md:right-4 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-2 group"
+            style={{ filter: 'drop-shadow(0 0 16px rgba(245,158,11,0.6))' }}
+          >
+            <div className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center transition-all duration-300 group-hover:scale-110"
+              style={{ background: 'rgba(245,158,11,0.15)', border: '2px solid rgba(245,158,11,0.5)', boxShadow: '0 0 30px rgba(245,158,11,0.3)' }}>
+              <ChevronRight className="w-6 h-6 md:w-8 md:h-8 text-amber-400" />
+            </div>
+            <span className="text-[8px] font-black uppercase tracking-widest text-amber-400/70 hidden md:block">{apps[currentIdx + 1]?.icon}</span>
+          </button>
+        )}
+
+        {/* Creator content */}
+        {activeApp === 'avatar-builder' && <AvatarBuilderView t={t} user={user} onLoginRequest={onLoginRequest} />}
+        {activeApp === 'ad-builder' && <ProductAdBuilderView t={t} user={user} onLoginRequest={onLoginRequest} />}
+
+        {/* BACK BUTTON — fixed top left, always visible */}
+        <div className="fixed top-20 left-4 z-50">
+          <button
+            onClick={closeApp}
+            className="group flex items-center gap-2 px-4 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all duration-300 hover:scale-105"
+            style={{
+              background: 'rgba(10,10,10,0.95)',
+              border: '2px solid rgba(245,158,11,0.5)',
+              color: '#f59e0b',
+              boxShadow: '0 0 20px rgba(245,158,11,0.2)',
+              backdropFilter: 'blur(10px)',
+            }}
+          >
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            {t.lang === 'EN' ? 'Back' : 'Powrót'}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-white dark:bg-black transition-colors duration-700 font-sans px-4 py-12">
+      <style>{`
+        @keyframes float3d {
+          0%, 100% { transform: perspective(600px) rotateX(8deg) rotateY(-2deg) translateY(0px); }
+          50% { transform: perspective(600px) rotateX(4deg) rotateY(2deg) translateY(-8px); }
+        }
+        .card3d {
+          transform: perspective(600px) rotateX(8deg) rotateY(-2deg);
+          transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .card3d:hover {
+          transform: perspective(600px) rotateX(2deg) rotateY(0deg) translateY(-12px) scale(1.02);
+        }
+      `}</style>
+      <div className="max-w-5xl mx-auto">
+        <div className="mb-12 text-center">
+          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-4">
+            <Sparkles className="w-3 h-3" />
+            {t.lang === 'EN' ? 'AI Applications' : 'Aplikacje AI'}
+          </div>
+          <h1 className="text-4xl md:text-6xl font-black text-black dark:text-white uppercase tracking-tighter mb-4">
+            {t.lang === 'EN' ? 'Aplikacje' : 'Aplikacje'}
+          </h1>
+          <p className="text-slate-500 max-w-lg mx-auto text-sm">
+            {t.lang === 'EN' ? 'Professional AI prompt generators — click to open fullscreen creator.' : 'Profesjonalne generatory promptów AI — kliknij aby otworzyć kreator na pełnym ekranie.'}
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
+          {apps.map((app) => (
+            <button
+              key={app.id}
+              onClick={() => openApp(app.id)}
+              className={`card3d relative rounded-3xl p-8 border bg-gradient-to-br ${app.color} ${app.border} text-left group cursor-pointer`}
+              style={{ boxShadow: `0 20px 60px ${app.glow}, 0 4px 20px rgba(0,0,0,0.3)` }}
+            >
+              {/* Badge */}
+              <div className="absolute top-4 right-4 text-[8px] font-black uppercase tracking-[0.2em] px-2 py-1 rounded-full"
+                style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)', color: '#f59e0b' }}>
+                {app.badge}
+              </div>
+              {/* 3D Icon */}
+              <div className="mb-6">
+                <Icon3D emoji={app.icon} size="lg" />
+              </div>
+              {/* Content */}
+              <h2 className="text-2xl font-black text-black dark:text-white uppercase tracking-tighter mb-1">{app.title}</h2>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-500 mb-3">{app.subtitle}</p>
+              <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed mb-6">{app.desc}</p>
+              {/* Open button */}
+              <div className="flex items-center gap-2 text-amber-500 font-black text-[11px] uppercase tracking-widest group-hover:gap-3 transition-all">
+                {t.lang === 'EN' ? 'Open Creator' : 'Otwórz Kreator'}
+                <ChevronRight className="w-4 h-4" />
+              </div>
+              {/* Glow overlay on hover */}
+              <div className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-400 pointer-events-none"
+                style={{ background: `radial-gradient(circle at 50% 0%, ${app.glow} 0%, transparent 70%)` }} />
+            </button>
+          ))}
+        </div>
+
+        {/* Navigation arrows between apps */}
+        <div className="flex items-center justify-center gap-6 mt-12">
+          <div className="flex items-center gap-2 text-slate-500 dark:text-slate-600 text-[10px] font-bold uppercase tracking-widest">
+            <div className="w-8 h-px bg-amber-500/30" />
+            <span>{apps.length} {t.lang === 'EN' ? 'creators available' : 'kreatorów dostępnych'}</span>
+            <div className="w-8 h-px bg-amber-500/30" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
+// =========================================================================
+// NEW: DODATKI VIEW - External tools grouped by category
+// =========================================================================
 const DodatkiView = ({ t, onNavigate }) => {
   const [activeGroup, setActiveGroup] = useState('all');
 
@@ -1184,7 +1362,7 @@ const CennikView = ({ t, user, onLoginRequest }) => {
   return (
     <div className="min-h-screen bg-white dark:bg-black transition-colors duration-700 font-sans px-4 py-12">
       <style>{`
-        .price-card { transform: perspective(800px) rotateX(4deg); transition: all 0.4s cubic-bezier(0.23,1,0.32,1); }
+        .price-card { transform: perspective(800px) rotateX(4deg); transition: all 0.4s cubic-bezier(0.23,1,0.32,1); height: 100%; }
         .price-card:hover { transform: perspective(800px) rotateX(0deg) translateY(-12px) scale(1.02); }
       `}</style>
       <div className="max-w-5xl mx-auto">
@@ -1201,11 +1379,13 @@ const CennikView = ({ t, user, onLoginRequest }) => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 items-start">
+        <div className="grid md:grid-cols-3 gap-6 items-stretch">
 
           {/* PLAN 1 — Starter */}
           <div className="price-card relative rounded-3xl p-8 border border-amber-500/20 bg-gradient-to-br from-amber-500/10 to-orange-500/5 flex flex-col"
-            style={{boxShadow:'0 20px 60px rgba(245,158,11,0.15)'}}>
+            style={{boxShadow:'0 20px 60px rgba(245,158,11,0.2), 0 0 40px rgba(245,158,11,0.08)'}}
+            onMouseEnter={e=>e.currentTarget.style.boxShadow='0 30px 80px rgba(245,158,11,0.35), 0 0 60px rgba(245,158,11,0.15)'}
+            onMouseLeave={e=>e.currentTarget.style.boxShadow='0 20px 60px rgba(245,158,11,0.2), 0 0 40px rgba(245,158,11,0.08)'}>
             <div className="text-5xl mb-4" style={{filter:'drop-shadow(0 8px 16px rgba(245,158,11,0.4))',transform:'perspective(200px) rotateX(10deg)'}}>⚡</div>
             <div className="text-[9px] font-black uppercase tracking-[0.3em] text-amber-500 mb-2">Starter</div>
             <div className="flex items-end gap-1 mb-1">
@@ -1262,7 +1442,9 @@ const CennikView = ({ t, user, onLoginRequest }) => {
 
           {/* PLAN 3 — All-in-one Roczny */}
           <div className="price-card relative rounded-3xl p-8 border border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 flex flex-col"
-            style={{boxShadow:'0 20px 60px rgba(34,197,94,0.1)'}}>
+            style={{boxShadow:'0 20px 60px rgba(34,197,94,0.2), 0 0 40px rgba(34,197,94,0.08)'}}
+            onMouseEnter={e=>e.currentTarget.style.boxShadow='0 30px 80px rgba(34,197,94,0.35), 0 0 60px rgba(34,197,94,0.15)'}
+            onMouseLeave={e=>e.currentTarget.style.boxShadow='0 20px 60px rgba(34,197,94,0.2), 0 0 40px rgba(34,197,94,0.08)'}>
             <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-emerald-500 text-black text-[10px] font-black uppercase tracking-widest px-5 py-1.5 rounded-full whitespace-nowrap">
               🎁 {t.lang==='EN'?'2 months FREE':'2 miesiące GRATIS'}
             </div>
