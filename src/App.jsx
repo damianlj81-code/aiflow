@@ -457,7 +457,7 @@ const HomeView = ({ t, user, onLoginRequest }) => {
 // =========================================================================
 // TUTORIALS VIEW
 // =========================================================================
-const TutorialsView = ({ t, user, onLoginRequest }) => {
+const TutorialsView = ({ t, user, onLoginRequest, onNavigate }) => {
   const isLoggedIn = user && !user.isAnonymous;
   const [isPro, setIsPro] = useState(false);
   const [loadingPro, setLoadingPro] = useState(true);
@@ -595,10 +595,10 @@ const TutorialsView = ({ t, user, onLoginRequest }) => {
                 {t.lang === 'EN' ? 'One subscription. Everything included. Cancel anytime.' : 'Jeden abonament. Dostęp do wszystkiego. Anuluj kiedy chcesz.'}
               </p>
             </div>
-            <a href={stripeLink(STRIPE_PRO_LINK, user?.uid, user?.email)} target="_blank" rel="noopener noreferrer"
+            <button onClick={() => { if (typeof onNavigate === 'function') onNavigate('cennik'); }}
               className="whitespace-nowrap px-6 py-3 rounded-xl font-black text-[11px] uppercase tracking-widest bg-amber-500 hover:bg-amber-400 text-black transition-all shadow-lg shadow-amber-500/20">
-              {t.lang === 'EN' ? 'See plans →' : 'Włącz abonament →'}
-            </a>
+              {t.lang === 'EN' ? 'See plans →' : 'Zobacz plany →'}
+            </button>
           </div>
         )}
 
@@ -1355,7 +1355,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
 // CENNIK VIEW
 // =========================================================================
 const CennikView = ({ t, user, onLoginRequest }) => {
-  const STRIPE_STARTER = 'https://buy.stripe.com/cNiaEWbCF6aj7V63jI8bS01';
+  const STRIPE_STARTER = 'https://buy.stripe.com/14A28qcGJ56fdfq5rQ8bS05'; // 30 PLN starter
   const STRIPE_ALLINONE_MONTHLY = 'https://buy.stripe.com/cNiaEWbCF6aj7V63jI8bS01';
   const STRIPE_ALLINONE_ANNUAL = 'https://buy.stripe.com/9B6cN4eOR8ir1wIcUi8bS02';
 
@@ -1821,7 +1821,7 @@ export default function App() {
           {currentView === 'home' && <HomeView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
           {currentView === 'aplikacje' && <AplikacjeView t={t} user={user} onLoginRequest={() => setShowLogin(true)} onCreatorChange={setActiveCreator} />}
           {currentView === 'dodatki' && <DodatkiView t={t} onNavigate={setCurrentView} />}
-          {currentView === 'tutorials' && <TutorialsView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
+          {currentView === 'tutorials' && <TutorialsView t={t} user={user} onLoginRequest={() => setShowLogin(true)} onNavigate={setCurrentView} />}
           {currentView === 'cennik' && <CennikView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
           {/* Legacy routes still supported */}
           {currentView === 'prompt-builder' && <AplikacjeView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
