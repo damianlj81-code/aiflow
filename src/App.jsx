@@ -38,9 +38,9 @@ const getYTId = (url) => {
 // TOKEN SYSTEM
 // =========================================================================
 const TOKENS_FREE = 3;
-const STRIPE_PRO_LINK = 'https://buy.stripe.com/cNiaEWbCF6aj7V63jI8bS01'; // 199 PLN miesiecznie (Pro/All-in-one)
-const STRIPE_STARTER_LINK = 'https://buy.stripe.com/14A28qcGJ56fdfq5rQ8bS05'; // 30 PLN miesiecznie (Starter)
-const STRIPE_ANNUAL_LINK = 'https://buy.stripe.com/7sYfZg7mpgOX2AM5rQ8bS06'; // 1899 PLN rocznie (Annual)
+const STRIPE_PRO_LINK = 'https://buy.stripe.com/4gM00ieORdCLfny2fE8bS09'; // TEST 0.50 EUR // 199 PLN miesiecznie (Pro/All-in-one)
+const STRIPE_STARTER_LINK = 'https://buy.stripe.com/dRm6oG9ux6ajeju3jI8bS08'; // TEST 0.50 EUR // 30 PLN miesiecznie (Starter)
+const STRIPE_ANNUAL_LINK = 'https://buy.stripe.com/fZudR89ux0PZ8ZaaMa8bS07'; // TEST 0.50 EUR // 1899 PLN rocznie (Annual)
 const STRIPE_PRO_LINK_TEST = 'https://buy.stripe.com/dRm6oGeOR6aj3EQcUi8bS04'; // 2 PLN test admin
 const ADMIN_EMAIL = 'damianlj@live.com';
 const stripeLink = (baseUrl, uid, email) => { const base = email === ADMIN_EMAIL ? STRIPE_PRO_LINK_TEST : baseUrl; return uid ? `${base}?client_reference_id=${uid}` : base; };
@@ -1064,12 +1064,12 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
 
   const handleCopy = async () => {
     if (!isLoggedIn) { setClicked(true); return; }
-    if (!isPro && tokens <= 0) return;
+    if (!isPro && tokens !== null && tokens <= 0) return;
     const ok = await useToken(db, user.uid);
     if (ok) {
       navigator.clipboard.writeText(generatePrompt());
       setCopied(true);
-      if (!isPro) setTokens(prev => prev - 1);
+      if (!isPro) setTokens(prev => Math.max(0, (prev || 0) - 1));
       setTimeout(() => setCopied(false), 2000);
     }
   };
@@ -1252,12 +1252,12 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
 
   const handleCopy = async () => {
     if (!isLoggedIn) { setClicked(true); return; }
-    if (!isPro && tokens <= 0) return;
+    if (!isPro && tokens !== null && tokens <= 0) return;
     const ok = await useToken(db, user.uid);
     if (ok) {
       navigator.clipboard.writeText(generatePrompt());
       setCopied(true);
-      if (!isPro) setTokens(prev => prev - 1);
+      if (!isPro) setTokens(prev => Math.max(0, (prev || 0) - 1));
       setTimeout(() => setCopied(false), 2000);
     }
   };
@@ -1719,23 +1719,24 @@ export default function App() {
   const [globalPaymentFailed, setGlobalPaymentFailed] = useState(false);
   const [globalDaysLeft, setGlobalDaysLeft] = useState(null);
   const [globalSubscriptionData, setGlobalSubscriptionData] = useState(null);
+  const [userData, setUserData] = useState(null);
 
   const t = { ...translations[lang], lang };
   const isLoggedIn = user && !user.isAnonymous;
 
   // Prosta funkcja strażnik — sprawdza pro + datę wygaśnięcia
   const hasActivePro = () => {
-    const data = globalSubscriptionData;
-    if (!data?.isPro) return false;
-    if (!data?.daysLeft && data?.daysLeft !== 0) return true; // brak daty = stary user
-    return !data.isExpired;
+    if (!userData?.pro) return false;
+    if (userData?.expiresAt?.seconds) return new Date() < new Date(userData.expiresAt.seconds * 1000);
+    if (typeof userData?.expiresAt === 'string') return new Date() < new Date(userData.expiresAt);
+    return true; // stary rekord bez daty
   };
 
   const hasActiveStarter = () => {
-    const data = globalSubscriptionData;
-    if (!data?.isStarter) return false;
-    if (!data?.daysLeft && data?.daysLeft !== 0) return true;
-    return !data.isExpired;
+    if (!userData?.starter) return false;
+    if (userData?.expiresAt?.seconds) return new Date() < new Date(userData.expiresAt.seconds * 1000);
+    if (typeof userData?.expiresAt === 'string') return new Date() < new Date(userData.expiresAt);
+    return true;
   };
 
   // Sprawdzenie statusu subskrypcji na podstawie globalnych danych
@@ -1761,13 +1762,26 @@ export default function App() {
     const unsubscribe = onAuthStateChanged(auth, (u) => {
       setUser(u);
       if (u && !u.isAnonymous) {
-        // Załaduj dane subskrypcji globalnie
-        getTokenData(db, u.uid).then(({ paymentFailed, daysLeft, isPro, isStarter, plan, isExpired }) => {
-          setGlobalPaymentFailed(paymentFailed);
-          setGlobalDaysLeft(daysLeft);
-          setGlobalSubscriptionData({ isPro, isStarter, plan, isExpired, daysLeft });
-        }).catch(() => {});
+        // onSnapshot — reaguje na zmiany w Firestore w czasie rzeczywistym
+        const tokenRef = doc(db, 'artifacts', appId, 'public', 'data', 'tokens', u.uid);
+        onSnapshot(tokenRef, (snap) => {
+          if (snap.exists()) {
+            const data = snap.data();
+            setUserData(data);
+            const expiresAt = data.expiresAt?.seconds
+              ? new Date(data.expiresAt.seconds * 1000)
+              : data.expiresAt ? new Date(data.expiresAt) : null;
+            const isExpired = expiresAt ? new Date() > expiresAt : false;
+            const daysLeft = expiresAt ? Math.max(0, Math.ceil((expiresAt - new Date()) / (1000 * 60 * 60 * 24))) : null;
+            const isPro = data.pro === true && !isExpired;
+            const isStarter = data.starter === true && !isExpired;
+            setGlobalPaymentFailed(data.paymentFailed === true);
+            setGlobalDaysLeft(daysLeft);
+            setGlobalSubscriptionData({ isPro, isStarter, plan: data.plan, isExpired, daysLeft });
+          }
+        });
       } else {
+        setUserData(null);
         setGlobalPaymentFailed(false);
         setGlobalDaysLeft(null);
         if (!u) {
