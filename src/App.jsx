@@ -45,6 +45,17 @@ const STRIPE_PRO_LINK_TEST = 'https://buy.stripe.com/dRm6oGeOR6aj3EQcUi8bS04'; /
 const ADMIN_EMAIL = 'damianlj@live.com';
 const stripeLink = (baseUrl, uid, email) => { const base = email === ADMIN_EMAIL ? STRIPE_PRO_LINK_TEST : baseUrl; return uid ? `${base}?client_reference_id=${uid}` : base; };
 
+const getSubscriptionStatus = (data) => {
+  if (!data || (!data.pro && !data.starter)) return { active: false, reason: 'no_plan' };
+  const expiryDate = data.expiresAt?.seconds
+    ? new Date(data.expiresAt.seconds * 1000)
+    : data.expiresAt ? new Date(data.expiresAt) : null;
+  const now = new Date();
+  if (!expiryDate || now > expiryDate) return { active: false, reason: 'expired', date: expiryDate };
+  if (data.paymentFailed) return { active: true, warning: 'payment_failed', date: expiryDate };
+  return { active: true, reason: 'ok', date: expiryDate };
+};
+
 async function getTokenData(db, uid) {
   const ref = doc(db, 'artifacts', appId, 'public', 'data', 'tokens', uid);
   const snap = await getDoc(ref);
@@ -54,7 +65,9 @@ async function getTokenData(db, uid) {
   }
   const data = snap.data();
   const now = new Date();
-  const expiresAt = data.expiresAt ? new Date(data.expiresAt) : null;
+  const expiresAt = data.expiresAt?.seconds
+    ? new Date(data.expiresAt.seconds * 1000)
+    : data.expiresAt ? new Date(data.expiresAt) : null;
   const isExpired = expiresAt ? now > expiresAt : false;
   const daysLeft = expiresAt ? Math.max(0, Math.ceil((expiresAt - now) / (1000 * 60 * 60 * 24))) : null;
   const isPro = data.pro === true && !isExpired;
@@ -83,7 +96,20 @@ async function useToken(db, uid) {
     return true;
   }
   const data = snap.data();
-  if (data.pro === true) return true;
+  // Sprawdź czy pro jest aktywne (nie wygasłe)
+  if (data.pro === true) {
+    const expiresAt = data.expiresAt?.seconds
+      ? new Date(data.expiresAt.seconds * 1000)
+      : data.expiresAt ? new Date(data.expiresAt) : null;
+    if (!expiresAt || new Date() < expiresAt) return true;
+    // Pro wygasło — traktuj jako free
+  }
+  if (data.starter === true) {
+    const expiresAt = data.expiresAt?.seconds
+      ? new Date(data.expiresAt.seconds * 1000)
+      : data.expiresAt ? new Date(data.expiresAt) : null;
+    if (!expiresAt || new Date() < expiresAt) return true;
+  }
   if (data.tokens <= 0) return false;
   await updateDoc(ref, { tokens: increment(-1), used: increment(1) });
   return true;
@@ -1692,9 +1718,34 @@ export default function App() {
   const [showLogin, setShowLogin] = useState(false);
   const [globalPaymentFailed, setGlobalPaymentFailed] = useState(false);
   const [globalDaysLeft, setGlobalDaysLeft] = useState(null);
+  const [globalSubscriptionData, setGlobalSubscriptionData] = useState(null);
 
   const t = { ...translations[lang], lang };
   const isLoggedIn = user && !user.isAnonymous;
+
+  // Prosta funkcja strażnik — sprawdza pro + datę wygaśnięcia
+  const hasActivePro = () => {
+    const data = globalSubscriptionData;
+    if (!data?.isPro) return false;
+    if (!data?.daysLeft && data?.daysLeft !== 0) return true; // brak daty = stary user
+    return !data.isExpired;
+  };
+
+  const hasActiveStarter = () => {
+    const data = globalSubscriptionData;
+    if (!data?.isStarter) return false;
+    if (!data?.daysLeft && data?.daysLeft !== 0) return true;
+    return !data.isExpired;
+  };
+
+  // Sprawdzenie statusu subskrypcji na podstawie globalnych danych
+  const checkSubscription = () => {
+    const data = globalSubscriptionData;
+    if (!data || (!data.isPro && !data.isStarter)) return { active: false, status: 'free' };
+    if (data.isExpired) return { active: false, status: 'expired' };
+    if (globalPaymentFailed) return { active: true, status: 'warning' };
+    return { active: true, status: 'active', plan: data.plan, daysLeft: data.daysLeft };
+  };
 
   // New nav items: Academy → Aplikacje → Dodatki → Tutoriale
   const navItems = [
@@ -1711,9 +1762,10 @@ export default function App() {
       setUser(u);
       if (u && !u.isAnonymous) {
         // Załaduj dane subskrypcji globalnie
-        getTokenData(db, u.uid).then(({ paymentFailed, daysLeft }) => {
+        getTokenData(db, u.uid).then(({ paymentFailed, daysLeft, isPro, isStarter, plan, isExpired }) => {
           setGlobalPaymentFailed(paymentFailed);
           setGlobalDaysLeft(daysLeft);
+          setGlobalSubscriptionData({ isPro, isStarter, plan, isExpired, daysLeft });
         }).catch(() => {});
       } else {
         setGlobalPaymentFailed(false);
@@ -1802,10 +1854,27 @@ export default function App() {
                       ⚙
                     </button>
                   )}
-                  <button onClick={() => signOut(auth)} className="flex items-center gap-2 px-3 py-2 rounded-xl text-emerald-600 dark:text-emerald-400 text-[10px] font-bold uppercase tracking-widest transition-all hover:bg-emerald-500/10"
-                    style={{border:'1px solid rgba(52,211,153,0.3)'}}>
-                    <User className="w-4 h-4" /><span className="hidden sm:block">{user.email?.split('@')[0] || 'Konto'}</span>
-                  </button>
+                  <div className="flex flex-col items-end gap-0.5">
+                    <button onClick={() => signOut(auth)} className="flex items-center gap-2 px-3 py-2 rounded-xl text-emerald-600 dark:text-emerald-400 text-[10px] font-bold uppercase tracking-widest transition-all hover:bg-emerald-500/10"
+                      style={{border:'1px solid rgba(52,211,153,0.3)'}}>
+                      <User className="w-4 h-4" /><span className="hidden sm:block">{user.email?.split('@')[0] || 'Konto'}</span>
+                    </button>
+                    {globalSubscriptionData?.isPro && !globalSubscriptionData?.isExpired && (
+                      <span className="text-[8px] font-black uppercase tracking-widest text-amber-500">
+                        👑 Pro {globalSubscriptionData.plan === 'annual' ? '· Roczny' : ''}
+                      </span>
+                    )}
+                    {globalSubscriptionData?.isStarter && !globalSubscriptionData?.isExpired && (
+                      <span className="text-[8px] font-black uppercase tracking-widest text-blue-400">
+                        ⚡ Starter
+                      </span>
+                    )}
+                    {globalSubscriptionData?.isExpired && (
+                      <span className="text-[8px] font-black uppercase tracking-widest text-red-400 cursor-pointer" onClick={() => setCurrentView('cennik')}>
+                        ✕ Wygasła — odnów →
+                      </span>
+                    )}
+                  </div>
                 </div>
               ) : (
                 <button onClick={() => setShowLogin(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 text-black text-[10px] font-black uppercase tracking-widest hover:bg-amber-400 transition-all">
@@ -1847,6 +1916,25 @@ export default function App() {
               )}
             </>);
           })()}
+
+          {/* Paywall — subskrypcja wygasła */}
+          {isLoggedIn && checkSubscription().status === 'expired' && currentView !== 'cennik' && currentView !== 'home' && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md" style={{top:'64px'}}>
+              <div className="max-w-md w-full mx-4 p-8 rounded-2xl border border-white/10 bg-black text-center" style={{boxShadow:'0 0 60px rgba(245,158,11,0.15)'}}>
+                <div className="text-4xl mb-4">⏰</div>
+                <h2 className="text-white font-black text-xl uppercase tracking-widest mb-2">
+                  {lang === 'EN' ? 'Subscription Expired' : 'Subskrypcja wygasła'}
+                </h2>
+                <p className="text-white/50 text-sm mb-6">
+                  {lang === 'EN' ? 'Renew your plan to continue using AI Flow Academy.' : 'Odnów plan aby dalej korzystać z AI Flow Academy.'}
+                </p>
+                <button onClick={() => setCurrentView('cennik')}
+                  className="block w-full py-3 bg-amber-500 hover:bg-amber-400 text-black font-black text-sm uppercase tracking-widest rounded-xl transition-all">
+                  {lang === 'EN' ? 'See Plans →' : 'Zobacz plany →'}
+                </button>
+              </div>
+            </div>
+          )}
 
           {currentView === 'home' && <HomeView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
           {currentView === 'aplikacje' && <AplikacjeView t={t} user={user} onLoginRequest={() => setShowLogin(true)} onCreatorChange={setActiveCreator} />}
