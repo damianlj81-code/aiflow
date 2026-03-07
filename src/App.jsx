@@ -527,7 +527,7 @@ const TutorialsView = ({ t, user, onLoginRequest, onNavigate }) => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black transition-colors duration-700 font-sans px-4 py-12">
+    <div className="min-h-screen bg-white dark:bg-black transition-colors duration-700 font-sans px-3 sm:px-4 py-6 sm:py-12">
       <style>{`
         .tut-card {
           transform: perspective(600px) rotateX(6deg) rotateY(-1deg);
@@ -769,7 +769,7 @@ const AplikacjeView = ({ t, user, onLoginRequest, onCreatorChange }) => {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black transition-colors duration-700 font-sans px-4 py-12">
+    <div className="min-h-screen bg-white dark:bg-black transition-colors duration-700 font-sans px-3 sm:px-4 py-6 sm:py-12">
       <style>{`
         @keyframes float3d {
           0%, 100% { transform: perspective(600px) rotateX(8deg) rotateY(-2deg) translateY(0px); }
@@ -899,7 +899,7 @@ const DodatkiView = ({ t, onNavigate }) => {
   const displayTools = activeGroup === 'all' ? allTools : (toolGroups[activeGroup]?.tools.map(t => ({ ...t, groupId: activeGroup, groupAccent: toolGroups[activeGroup].accent, color: toolGroups[activeGroup].color, border: toolGroups[activeGroup].border })) || []);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black transition-colors duration-700 font-sans px-4 py-12">
+    <div className="min-h-screen bg-white dark:bg-black transition-colors duration-700 font-sans px-3 sm:px-4 py-6 sm:py-12">
       <style>{`
         @keyframes float3d-tool {
           0%, 100% { transform: perspective(600px) rotateX(8deg) rotateY(-1deg) translateY(0px); }
@@ -1091,10 +1091,10 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
           )}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3 lg:order-1 order-2">
             <div className={sectionClass}>
               <h2 className={headerClass}><PersonStanding className="w-4 h-4"/> {t.lang==='EN'?'I. Physique & Anatomy':'I. Sylwetka & Anatomia'}</h2>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
                 {[{label:t.lang==='EN'?'Subject':'Podmiot',value:subject,set:setSubject,opts:[['1girl, beautiful woman', t.lang==='EN'?'1 Woman':'1 Kobieta'],['1boy, handsome man', t.lang==='EN'?'1 Man':'1 Mężczyzna'],['2girls, beautiful women', t.lang==='EN'?'2 Women':'2 Kobiety'],['1boy and 1girl, couple', t.lang==='EN'?'Couple':'Para']]},{label:t.lang==='EN'?'Build':'Sylwetka',value:bodyType,set:setBodyType,opts:[['slim and toned body', t.lang==='EN'?'Slim':'Szczupła'],['curvy, hourglass figure', t.lang==='EN'?'Curvy':'Klepsydra'],['athletic, muscular body', t.lang==='EN'?'Athletic':'Atletyczna']]},{label:t.lang==='EN'?'Bust':'Biust',value:breastSize,set:setBreastSize,opts:[['small breasts', t.lang==='EN'?'Small':'Mały'],['medium breasts', t.lang==='EN'?'Medium':'Średni'],['large heavy breasts', t.lang==='EN'?'Large':'Duży']]},{label:'Dół',value:lowerAnatomy,set:setLowerAnatomy,opts:[['none','Standard'],['noticeable crotch bulge','Bulge (M)'],['cameltoe','Cameltoe (F)']]},{label:t.lang==='EN'?'Body Hair':'Owłosienie',value:bodyHair,set:setBodyHair,opts:[['none', t.lang==='EN'?'Smooth':'Gładkie'],['light body hair', t.lang==='EN'?'Light':'Lekkie'],['hairy body', t.lang==='EN'?'Heavy':'Mocne']]}].map(f => (
                   <div key={f.label}><label className={labelClass}>{f.label}</label><div className="relative"><select value={f.value} onChange={e => f.set(e.target.value)} className={inputClass}>{f.opts.map(([v,l]) => <option key={v} value={v}>{l}</option>)}</select><ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/></div></div>
                 ))}
@@ -1102,7 +1102,7 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
             </div>
             <div className={sectionClass}>
               <h2 className={headerClass}><User className="w-4 h-4"/> {t.lang==='EN'?'II. Face & Hair':'II. Twarz & Włosy'}</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                 {[{label:t.lang==='EN'?'Hairstyle':'Fryzura',value:hairStyle,set:setHairStyle,opts:[['elegant updo hair, wedding style, revealing ears and earrings', t.lang==='EN'?'Wedding updo':'Upięcie ślubne'],['high bun hair, sleek look', t.lang==='EN'?'High bun':'Wysoki kok'],['tied in a ponytail', t.lang==='EN'?'Ponytail':'Kucyk']]},{label:t.lang==='EN'?'Color':'Kolor',value:hairColor,set:setHairColor,opts:[['blonde', t.lang==='EN'?'Blonde':'Blond'],['brunette', t.lang==='EN'?'Brunette':'Brązowe'],['black', t.lang==='EN'?'Black':'Czarne'],['red', t.lang==='EN'?'Red':'Rude']]},{label:t.lang==='EN'?'Length':'Długość',value:hairLength,set:setHairLength,opts:[['short', t.lang==='EN'?'Short':'Krótkie'],['long', t.lang==='EN'?'Long':'Długie']]},{label:t.lang==='EN'?'Face':'Twarz',value:faceSelect,set:setFaceSelect,opts:[['detailed symmetrical face, sharp features, natural skin', t.lang==='EN'?'Classic':'Klasyczna'],['cute face, freckles', t.lang==='EN'?'Freckles':'Piegi']]}].map(f => (
                   <div key={f.label}><label className={labelClass}>{f.label}</label><div className="relative"><select value={f.value} onChange={e => f.set(e.target.value)} className={inputClass}>{f.opts.map(([v,l]) => <option key={v} value={v}>{l}</option>)}</select><ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/></div></div>
                 ))}
@@ -1110,7 +1110,7 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
             </div>
             <div className={sectionClass}>
               <h2 className={headerClass}><Shirt className="w-4 h-4"/> {t.lang==='EN'?'III. Clothing & Background':'III. Ubranie & Tło'}</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                 {[{label:t.lang==='EN'?'Top':'Góra',value:topClothing,set:setTopClothing,opts:[['casual white t-shirt','T-shirt'],['suit jacket, formal','Marynarka'],['bikini top','Bikini'],['cocktail dress, elegant','Sukienka']]},{label:t.lang==='EN'?'Bottom':'Dół',value:bottomClothing,set:setBottomClothing,opts:[['blue denim jeans',t.lang==='EN'?'Jeans':'Jeansy'],['mini skirt',t.lang==='EN'?'Mini skirt':'Mini'],['elegant trousers',t.lang==='EN'?'Trousers':'Spodnie'],['bare legs, no pants',t.lang==='EN'?'Bare legs':'Gołe nogi']]},{label:t.lang==='EN'?'Shoes':'Obuwie',value:shoes,set:setShoes,opts:[['elegant high heels, stilettos','Szpilki'],['modern sneakers','Sportowe'],['barefoot','Boso']]},{label:t.lang==='EN'?'Legwear':'Nogi',value:legwear,set:setLegwear,opts:[['',t.lang==='EN'?'None':'Brak'],['pantyhose',t.lang==='EN'?'Tights':'Rajstopy'],['stockings with lace',t.lang==='EN'?'Stockings':'Pończochy']]}].map(f => (
                   <div key={f.label}><label className={labelClass}>{f.label}</label><div className="relative"><select value={f.value} onChange={e => f.set(e.target.value)} className={inputClass}>{f.opts.map(([v,l]) => <option key={v} value={v}>{l}</option>)}</select><ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/></div></div>
                 ))}
@@ -1118,7 +1118,7 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
               <div className="mt-4"><label className={labelClass}>Tło</label><div className="relative"><select value={bgSelect} onChange={e => setBgSelect(e.target.value)} className={inputClass}>{[['luxurious mansion interior, marble floors',t.lang==='EN'?'Mansion':'Rezydencja'],['modern bedroom, elegant interior, soft lighting',t.lang==='EN'?'Bedroom':'Sypialnia'],['modern bathroom, marble, luxury',t.lang==='EN'?'Bathroom':'Łazienka'],['modern living room, stylish interior',t.lang==='EN'?'Living Room':'Salon'],['modern kitchen, luxury design',t.lang==='EN'?'Kitchen':'Kuchnia'],['tropical beach, golden sand, ocean waves',t.lang==='EN'?'Beach':'Plaża'],['Venice canal at night, romantic lights',t.lang==='EN'?'Venice night':'Wenecja nocą'],['Paris street at night, Eiffel Tower, romantic',t.lang==='EN'?'Paris night':'Paryż nocą'],['Tokyo street, neon lights at night',t.lang==='EN'?'Tokyo night':'Tokio nocą'],['modern city street, neon lights at night',t.lang==='EN'?'City night':'Miasto nocą'],['professional studio, white background',t.lang==='EN'?'Studio':'Studio'],['forest, natural light, bokeh',t.lang==='EN'?'Forest':'Las']].map(([v,l]) => <option key={v} value={v}>{l}</option>)}</select><ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/></div></div>
             </div>
           </div>
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 lg:order-2 order-1">
             <div className="sticky top-24">
               <div className="relative bg-white dark:bg-[#0A0A0A] border border-black/10 dark:border-[#333] p-6 rounded-2xl">
                 <h2 className="text-[10px] font-bold tracking-widest mb-4 border-b border-black/10 dark:border-[#333] pb-2 text-black dark:text-amber-500 uppercase">Prompt</h2>
@@ -1293,10 +1293,10 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3 lg:order-1 order-2">
             <div className={sectionClass}>
               <h2 className={headerClass}><span className="text-lg">📦</span> I. Produkt</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                 {[
                   {label:'Opis produktu',value:product,set:setProduct,opts:
                     category === 'torebka' ? [['luksusowa torebka damska','Torebka klasyczna'],['kopertówka wieczorowa, mała','Kopertówka'],['shopperka, duża pojemna torba','Shopperka'],['plecak damski, elegancki','Plecak'],['saszetka, mini bag','Saszetka']] :
@@ -1321,7 +1321,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
 
             <div className={sectionClass}>
               <h2 className={headerClass}><span className="text-lg">💧</span> II. Efekty i Oświetlenie</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                 {[
                   {label:t.lang==='EN'?'Main Effect':'Efekt główny',value:effect,set:setEffect,opts:[['para i mgła unosząca się elegancko wokół',t.lang==='EN'?'Steam & Mist':'Para i mgła'],['krople wody spływające powoli po powierzchni',t.lang==='EN'?'Water Drops':'Krople wody'],['lód i kryształy lodu otaczające produkt',t.lang==='EN'?'Ice & Crystals':'Lód i kryształy'],['złote drobinki i brokat unoszące się',t.lang==='EN'?'Gold Glitter':'Złoty brokat'],['delikatne płatki kwiatów opadające',t.lang==='EN'?'Flower Petals':'Płatki kwiatów'],['refleksy i błyski światła na powierzchni',t.lang==='EN'?'Light Reflections':'Refleksy światła']]},
                   {label:t.lang==='EN'?'Extra Effect':'Efekt dodatkowy',value:splashEffect,set:setSplashEffect,opts:[['eksplozja kolorowego proszku w slow motion',t.lang==='EN'?'Powder Explosion':'Eksplozja proszku'],['brak',t.lang==='EN'?'None':'Brak'],['odpryski wody w slow motion',t.lang==='EN'?'Water Splash':'Odpryski wody'],['śnieg i płatki śniegu opadające',t.lang==='EN'?'Snow':'Śnieg'],['płomienie i ogień w tle',t.lang==='EN'?'Fire':'Ogień'],['bąbelki powietrza unoszące się',t.lang==='EN'?'Bubbles':'Bąbelki']]},
@@ -1334,7 +1334,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
 
             <div className={sectionClass}>
               <h2 className={headerClass}><span className="text-lg">🎬</span> III. Ruch, Kamera i Nastrój</h2>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                 {[
                   {label:t.lang==='EN'?'Rotation':'Obrót',value:rotation,set:setRotation,opts:[['powolny obrót 360 stopni, sweeping orbit kamery','360° sweeping orbit'],['delikatne kołysanie lewo-prawo',t.lang==='EN'?'Gentle Sway':'Kołysanie'],['kamera orbituje wokół produktu',t.lang==='EN'?'Camera Orbit':'Orbita kamery'],['statyczny, bez ruchu',t.lang==='EN'?'Static':'Statyczny'],['zoom in powoli na produkt','Zoom in']]},
                   {label:t.lang==='EN'?'Product Motion':'Ruch produktu',value:levitation,set:setLevitation,opts:[['unoszenie się w górę i dół, eleganckie i płynne','Levitation'],['brak ruchu produktu',t.lang==='EN'?'None':'Brak'],['delikatne drżenie, jak oddech',t.lang==='EN'?'Breathing':'Oddech'],['obrót produktu w miejscu',t.lang==='EN'?'Spin in place':'Obrót w miejscu']]},
@@ -1348,7 +1348,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
             </div>
           </div>
 
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 lg:order-2 order-1">
             <div className="sticky top-24">
               <div className="relative bg-white dark:bg-[#0A0A0A] border border-black/10 dark:border-[#333] p-6 rounded-2xl">
                 <h2 className="text-[10px] font-bold uppercase tracking-widest mb-4 border-b border-black/10 dark:border-[#333] pb-2 text-black dark:text-amber-500">Prompt</h2>
@@ -1402,7 +1402,7 @@ const CennikView = ({ t, user, onLoginRequest }) => {
   const STRIPE_ALLINONE_ANNUAL = 'https://buy.stripe.com/7sYfZg7mpgOX2AM5rQ8bS06'; // 1899 PLN rocznie
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black transition-colors duration-700 font-sans px-4 py-12">
+    <div className="min-h-screen bg-white dark:bg-black transition-colors duration-700 font-sans px-3 sm:px-4 py-6 sm:py-12">
       <style>{`
         .price-card { transform: perspective(800px) rotateX(4deg); transition: all 0.4s cubic-bezier(0.23,1,0.32,1); height: 100%; }
         .price-card:hover { transform: perspective(800px) rotateX(0deg) translateY(-12px) scale(1.02); }
