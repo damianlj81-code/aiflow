@@ -1038,25 +1038,6 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
       return () => { document.removeEventListener('contextmenu', noRight); document.removeEventListener('keydown', noF12); };
     }
   }, [isLoggedIn]);
-  if (!isLoggedIn) return (
-    <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center px-4 font-sans">
-      <div className="text-center max-w-sm">
-        <div className="text-6xl mb-6">🔒</div>
-        <h2 className="text-2xl font-black text-black dark:text-white uppercase tracking-tighter mb-3">
-          {t.lang === 'EN' ? 'Login Required' : 'Zaloguj się aby korzystać z kreatora'}
-        </h2>
-        <p className="text-slate-500 text-sm mb-2">
-          {t.lang === 'EN' ? 'Log in for free — 3 prompts included.' : 'Zaloguj się bezpłatnie — 3 darmowe prompty w pakiecie.'}
-        </p>
-        <p className="text-slate-400 text-xs mb-8">
-          {t.lang === 'EN' ? 'We need your account to track your free tokens.' : 'Potrzebujemy konta żeby przypisać Ci darmowe tokeny.'}
-        </p>
-        <button onClick={onLoginRequest} className="bg-amber-500 hover:bg-amber-400 text-black font-black text-[11px] uppercase tracking-widest px-8 py-4 rounded-xl transition-all hover:scale-105">
-          {t.lang === 'EN' ? 'Log In / Register →' : 'Zaloguj się / Zarejestruj →'}
-        </button>
-      </div>
-    </div>
-  );
   const [copied, setCopied] = useState(false);
   const [subject, setSubject] = useState('1girl, beautiful woman');
   const [bodyType, setBodyType] = useState('slim and toned body');
@@ -1189,26 +1170,6 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
   const [tokens, setTokens] = useState(null);
   const [isPro, setIsPro] = useState(false);
   const [loadingTokens, setLoadingTokens] = useState(false);
-
-  if (!isLoggedIn) return (
-    <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center px-4 font-sans">
-      <div className="text-center max-w-sm">
-        <div className="text-6xl mb-6">🔒</div>
-        <h2 className="text-2xl font-black text-black dark:text-white uppercase tracking-tighter mb-3">
-          {t.lang === 'EN' ? 'Login Required' : 'Zaloguj się aby korzystać z kreatora'}
-        </h2>
-        <p className="text-slate-500 text-sm mb-2">
-          {t.lang === 'EN' ? 'Log in for free — 3 prompts included.' : 'Zaloguj się bezpłatnie — 3 darmowe prompty w pakiecie.'}
-        </p>
-        <p className="text-slate-400 text-xs mb-8">
-          {t.lang === 'EN' ? 'We need your account to track your free tokens.' : 'Potrzebujemy konta żeby przypisać Ci darmowe tokeny.'}
-        </p>
-        <button onClick={onLoginRequest} className="bg-amber-500 hover:bg-amber-400 text-black font-black text-[11px] uppercase tracking-widest px-8 py-4 rounded-xl transition-all hover:scale-105">
-          {t.lang === 'EN' ? 'Log In / Register →' : 'Zaloguj się / Zarejestruj →'}
-        </button>
-      </div>
-    </div>
-  );
 
   // Load tokens when user logs in
   useEffect(() => {
