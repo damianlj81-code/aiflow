@@ -1,3 +1,6 @@
+// 🎾 Damian odbija, Claude odbija, i tak se chłopaki grają.
+// Ten plik miał być pushowany godzinę temu... tydzień później... a jeszcze to.
+// Built with zero programming experience & maximum chaos. loveaiflow.com
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Check, Zap, X, Play, Lock, ChevronDown, Youtube,
@@ -312,12 +315,23 @@ const FAQSection = ({ t }) => {
     { q: t.lang === 'EN' ? 'Is there a free trial?' : 'Czy jest darmowy okres próbny?', a: t.lang === 'EN' ? 'The tools in Studio Pro are completely free to use — no account needed. The paid plan gives you access to tutorials and live sessions.' : 'Narzędzia w Studio Pro są całkowicie darmowe — bez konta. Płatny plan daje dostęp do tutoriali i live sesji.' },
   ];
 
+  const [easterEgg, setEasterEgg] = useState(false);
+
   const handleSend = async () => {
     if (!email || (!selectedQ && !customQ)) return;
+    // 🎾 KOD DAN BROWNA — easter egg powered by Claude
+    if (email.toLowerCase() === 'damian@claude.kabum') {
+      setEasterEgg(true);
+      return;
+    }
     setSending(true);
     try {
-      await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'questions'), { email, question: customQ || selectedQ, date: new Date().toISOString() });
-      setSent(true);
+      const res = await fetch('https://formspree.io/f/xkoqgrng', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, question: customQ || selectedQ }),
+      });
+      if (res.ok) setSent(true);
     } catch(err) { console.error(err); }
     setSending(false);
   };
@@ -353,7 +367,15 @@ const FAQSection = ({ t }) => {
               <p className="text-slate-500 text-xs mt-1">{t.lang === 'EN' ? 'Choose from the list or write your own — I will reply as soon as possible.' : 'Wybierz z listy lub napisz własne — odpiszę najszybciej jak to możliwe.'}</p>
             </div>
           </div>
-          {sent ? (
+          {easterEgg ? (
+            <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.95)',zIndex:9999,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'20px'}}>
+              <div style={{fontFamily:'monospace',color:'#F5A623',fontSize:'13px',letterSpacing:'3px',textTransform:'uppercase',marginBottom:'12px',opacity:.5}}>🔐 KOD DAN BROWNA — powered by Claude</div>
+              <div style={{fontFamily:'monospace',color:'#fff',fontSize:'28px',fontWeight:'bold',letterSpacing:'2px',marginBottom:'8px',textAlign:'center'}}>GRATULACJE.</div>
+              <div style={{fontFamily:'monospace',color:'rgba(245,240,232,0.5)',fontSize:'11px',letterSpacing:'3px',textTransform:'uppercase',marginBottom:'32px',textAlign:'center'}}>Znalazłeś/aś kod.<br/>Nagroda? <span style={{color:'#F5A623'}}>damian@claude.kabum</span><br/>Nie działa. Ale byłeś/aś blisko.</div>
+              <div style={{fontFamily:'monospace',color:'rgba(245,240,232,0.3)',fontSize:'10px',letterSpacing:'2px',textTransform:'uppercase',marginBottom:'32px',textAlign:'center'}}>🎾 Damian odbija, Claude odbija,<br/>i tak se chłopaki grają.</div>
+              <button onClick={() => setEasterEgg(false)} style={{background:'#F5A623',color:'#000',border:'none',fontFamily:'monospace',fontWeight:'bold',fontSize:'11px',letterSpacing:'4px',textTransform:'uppercase',padding:'12px 28px',cursor:'pointer'}}>ZAMKNIJ ×</button>
+            </div>
+          ) : sent ? (
             <div className="flex items-center justify-center gap-3 py-8 text-emerald-500 font-bold uppercase tracking-widest text-sm"><span className="text-2xl">✔</span>{t.lang === 'EN' ? 'Sent! I will reply soon.' : 'Wysłane! Odpiszę wkrótce.'}</div>
           ) : (
             <div className="space-y-5">
@@ -412,8 +434,29 @@ const HomeView = ({ t, user, onLoginRequest }) => {
           <p className="text-slate-500 dark:text-slate-400 text-lg md:text-xl max-w-2xl mx-auto mb-4 leading-relaxed">
             {t.lang === 'EN' ? 'Tutorials, live sessions and AI tools — everything you need to create videos, avatars and automations. Step by step, without expensive extras.' : 'Tutoriale, live sesje i narzędzia AI — wszystko czego potrzebujesz żeby tworzyć filmy, awatary i automatyzacje. Krok po kroku, bez drogich dodatków.'}
           </p>
-          <p className="text-amber-600 dark:text-amber-400 text-sm font-bold uppercase tracking-widest mb-10">
-            {t.lang === 'EN' ? '✔ For complete beginners · No experience needed' : '✔ Dla kompletnych początkujących · Zero doświadczenia'}
+          <style>{`
+            @keyframes lunaMove {
+              0%   { text-shadow: -80px 16px 25px rgba(245,158,11,0), -40px 16px 45px rgba(245,158,11,0.65), 0px 16px 60px rgba(245,158,11,0.4), 40px 16px 35px rgba(245,158,11,0.1), 80px 16px 20px rgba(245,158,11,0); }
+              25%  { text-shadow: -80px 16px 15px rgba(245,158,11,0), -40px 16px 20px rgba(245,158,11,0.1), 0px 16px 65px rgba(245,158,11,0.9), 40px 16px 20px rgba(245,158,11,0.1), 80px 16px 15px rgba(245,158,11,0); }
+              50%  { text-shadow: -80px 16px 20px rgba(245,158,11,0), -40px 16px 20px rgba(245,158,11,0), 0px 16px 35px rgba(245,158,11,0.1), 40px 16px 45px rgba(245,158,11,0.65), 80px 16px 55px rgba(245,158,11,0.4), 120px 16px 25px rgba(245,158,11,0); }
+              75%  { text-shadow: -80px 16px 15px rgba(245,158,11,0), -40px 16px 20px rgba(245,158,11,0.1), 0px 16px 65px rgba(245,158,11,0.9), 40px 16px 20px rgba(245,158,11,0.1), 80px 16px 15px rgba(245,158,11,0); }
+              100% { text-shadow: -80px 16px 25px rgba(245,158,11,0), -40px 16px 45px rgba(245,158,11,0.65), 0px 16px 60px rgba(245,158,11,0.4), 40px 16px 35px rgba(245,158,11,0.1), 80px 16px 20px rgba(245,158,11,0); }
+            }
+          `}</style>
+          <div style={{
+            fontSize: 'clamp(1.6rem, 4vw, 3.2rem)',
+            fontWeight: 900,
+            textTransform: 'uppercase',
+            letterSpacing: '-0.02em',
+            color: '#f59e0b',
+            lineHeight: 1.0,
+            marginBottom: '8px',
+            animation: 'lunaMove 4s ease-in-out infinite',
+          }}>
+            {t.lang === 'EN' ? 'Create. Automate. Win.' : 'Twórz. Automatyzuj. Wygrywaj.'}
+          </div>
+          <p className="text-white/20 text-[10px] uppercase tracking-[0.25em] font-bold mb-10">
+            Powered by <span className="text-amber-500/40">Claude AI</span> — Anthropic
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
             <button onClick={() => document.getElementById('historia')?.scrollIntoView({behavior:'smooth'})} className="px-10 py-4 border border-black/10 dark:border-white/10 text-black dark:text-white font-bold text-sm uppercase tracking-widest rounded-xl hover:border-amber-500/50 transition-all">
@@ -1007,19 +1050,22 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
   const [clicked, setClicked] = useState(false);
   const [tokens, setTokens] = useState(null);
   const [isPro, setIsPro] = useState(false);
+  const [isStarter, setIsStarter] = useState(false);
   const [loadingTokens, setLoadingTokens] = useState(false);
 
   useEffect(() => {
     if (isLoggedIn && user?.uid) {
       setLoadingTokens(true);
-      getTokenData(db, user.uid).then(({ tokens, isPro }) => {
+      getTokenData(db, user.uid).then(({ tokens, isPro, isStarter }) => {
         setTokens(tokens);
         setIsPro(isPro);
+        setIsStarter(isStarter);
         setLoadingTokens(false);
       }).catch(() => setLoadingTokens(false));
     } else {
       setTokens(null);
       setIsPro(false);
+      setIsStarter(false);
     }
   }, [isLoggedIn, user?.uid]);
 
@@ -1078,9 +1124,9 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
             <h1 className="text-3xl md:text-4xl font-black text-black dark:text-white uppercase tracking-tighter">{t.lang === 'EN' ? 'Avatar Builder' : 'Kreator Awatarów'}</h1>
           </div>
           {isLoggedIn && (
-            <div className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black ${isPro ? 'bg-amber-500/10 border border-amber-500/30 text-amber-500' : tokens > 0 ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-500' : 'bg-red-500/10 border border-red-500/30 text-red-500'}`}>
-              <span>{isPro ? '👑' : '🎟'}</span>
-              {loadingTokens ? '...' : isPro ? 'Pro — nielimitowany' : `${tokens}/3 ${t.lang === 'EN' ? 'demo prompts' : 'promptów demo'}`}
+            <div className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black ${isPro ? 'bg-amber-500/10 border border-amber-500/30 text-amber-500' : isStarter ? 'bg-blue-500/10 border border-blue-500/30 text-blue-400' : tokens > 0 ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-500' : 'bg-red-500/10 border border-red-500/30 text-red-500'}`}>
+              <span>{isPro ? '👑' : isStarter ? '⚡' : '🎟'}</span>
+              {loadingTokens ? '...' : isPro ? 'All-in-one — nielimitowany' : isStarter ? 'Starter — nielimitowany' : `${tokens}/3 ${t.lang === 'EN' ? 'demo prompts' : 'promptów demo'}`}
             </div>
           )}
         </div>
@@ -1145,7 +1191,7 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
                   onClick={handleCopy}
                   className={`w-full py-3 font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all ${copied ? 'bg-emerald-500 text-black' : 'bg-black dark:bg-amber-500 text-white dark:text-black hover:bg-amber-500 hover:text-black'}`}
                 >
-                  {copied ? '✔ Skopiowano!' : isPro ? `${t.lang === 'EN' ? 'Copy Prompt' : 'Kopiuj Prompt'} (∞ Pro)` : isLoggedIn && tokens > 0 ? `${t.lang === 'EN' ? 'Copy Prompt' : 'Kopiuj Prompt'} (${tokens}/3 🎟)` : t.lang === 'EN' ? 'Copy Prompt →' : 'Kopiuj Prompt →'}
+                  {copied ? '✔ Skopiowano!' : isPro ? `${t.lang === 'EN' ? 'Copy Prompt' : 'Kopiuj Prompt'} (∞ All-in-one)` : isStarter ? `${t.lang === 'EN' ? 'Copy Prompt' : 'Kopiuj Prompt'} (∞ Starter)` : isLoggedIn && tokens > 0 ? `${t.lang === 'EN' ? 'Copy Prompt' : 'Kopiuj Prompt'} (${tokens}/3 🎟)` : t.lang === 'EN' ? 'Copy Prompt →' : 'Kopiuj Prompt →'}
                 </button>
               </div>
             </div>
@@ -1163,20 +1209,23 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
   const [copied, setCopied] = useState(false);
   const [tokens, setTokens] = useState(null);
   const [isPro, setIsPro] = useState(false);
+  const [isStarter, setIsStarter] = useState(false);
   const [loadingTokens, setLoadingTokens] = useState(false);
 
   // Load tokens when user logs in
   useEffect(() => {
     if (isLoggedIn && user?.uid) {
       setLoadingTokens(true);
-      getTokenData(db, user.uid).then(({ tokens, isPro }) => {
+      getTokenData(db, user.uid).then(({ tokens, isPro, isStarter }) => {
         setTokens(tokens);
         setIsPro(isPro);
+        setIsStarter(isStarter);
         setLoadingTokens(false);
       }).catch(() => setLoadingTokens(false));
     } else {
       setTokens(null);
       setIsPro(false);
+      setIsStarter(false);
     }
   }, [isLoggedIn, user?.uid]);
 
@@ -1268,9 +1317,9 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
           </div>
           {isLoggedIn && (
             <div className="flex flex-col items-end gap-2">
-              <div className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black ${isPro ? 'bg-amber-500/10 border border-amber-500/30 text-amber-500' : tokens > 0 ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-500' : 'bg-red-500/10 border border-red-500/30 text-red-500'}`}>
-                <span>{isPro ? '👑' : '🎟'}</span>
-                {loadingTokens ? '...' : isPro ? 'Pro — nielimitowany' : `${tokens}/3 ${t.lang === 'EN' ? 'demo prompts' : 'promptów demo'}`}
+              <div className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black ${isPro ? 'bg-amber-500/10 border border-amber-500/30 text-amber-500' : isStarter ? 'bg-blue-500/10 border border-blue-500/30 text-blue-400' : tokens > 0 ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-500' : 'bg-red-500/10 border border-red-500/30 text-red-500'}`}>
+                <span>{isPro ? '👑' : isStarter ? '⚡' : '🎟'}</span>
+                {loadingTokens ? '...' : isPro ? 'All-in-one — nielimitowany' : isStarter ? 'Starter — nielimitowany' : `${tokens}/3 ${t.lang === 'EN' ? 'demo prompts' : 'promptów demo'}`}
               </div>
 
             </div>
@@ -1376,7 +1425,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
                   onClick={handleCopy}
                   className={`w-full py-3 font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all ${copied ? 'bg-emerald-500 text-black' : 'bg-black dark:bg-amber-500 text-white dark:text-black hover:bg-amber-500 hover:text-black'}`}
                 >
-                  {copied ? '✔ Skopiowano!' : isPro ? `Kopiuj Prompt (∞ Pro)` : isLoggedIn && tokens > 0 ? `Kopiuj Prompt (${tokens}/3 🎟)` : t.lang === 'EN' ? 'Copy Prompt →' : 'Kopiuj Prompt →'}
+                  {copied ? '✔ Skopiowano!' : isPro ? `Kopiuj Prompt (∞ All-in-one)` : isStarter ? `Kopiuj Prompt (∞ Starter)` : isLoggedIn && tokens > 0 ? `Kopiuj Prompt (${tokens}/3 🎟)` : t.lang === 'EN' ? 'Copy Prompt →' : 'Kopiuj Prompt →'}
                 </button>
               </div>
             </div>
@@ -2054,3 +2103,4 @@ export default function App() {
 }
 
 // updated Tue Mar  3 23:31:30 UTC 2026
+// pornola, biznes znaczy. 🏆
