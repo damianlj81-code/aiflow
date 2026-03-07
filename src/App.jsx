@@ -1763,6 +1763,11 @@ export default function App() {
 
 
   useEffect(() => {
+    document.body.style.overflowX = 'hidden';
+    document.documentElement.style.overflowX = 'hidden';
+  }, []);
+
+  useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (u) => {
       setUser(u);
       if (u && !u.isAnonymous) {
@@ -1811,7 +1816,7 @@ export default function App() {
 
   return (
     <div className={isDarkMode ? 'dark' : ''}>
-      <div className="min-h-screen bg-white dark:bg-black transition-colors duration-700 font-sans selection:bg-amber-500 selection:text-black">
+      <div className="min-h-screen bg-white dark:bg-black transition-colors duration-700 font-sans selection:bg-amber-500 selection:text-black" style={{overflowX:'hidden',maxWidth:'100vw'}}>
 
         {/* ===== NAV ===== */}
         <nav className="fixed top-0 left-0 right-0 z-50 h-16 flex items-center px-4 font-sans transition-colors duration-300"
@@ -1877,7 +1882,7 @@ export default function App() {
                 )}
               </div>
 
-              <LangSwitcher lang={lang} setLang={setLang} />
+              <div className="hidden sm:block"><LangSwitcher lang={lang} setLang={setLang} /></div>
 
               {isLoggedIn ? (
                 <div className="flex items-center gap-2">
@@ -1917,7 +1922,7 @@ export default function App() {
               )}
 
               <button onClick={() => setIsDarkMode(!isDarkMode)}
-                className={`w-9 h-9 flex items-center justify-center rounded-xl transition-colors ${isDarkMode ? 'text-white/40 hover:text-amber-400' : 'text-black/40 hover:text-amber-500'}`}
+                className={`hidden sm:flex w-9 h-9 items-center justify-center rounded-xl transition-colors ${isDarkMode ? 'text-white/40 hover:text-amber-400' : 'text-black/40 hover:text-amber-500'}`}
                 style={{border: isDarkMode ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.08)'}}>
                 {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               </button>
