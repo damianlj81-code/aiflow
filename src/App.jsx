@@ -1434,11 +1434,17 @@ const CennikView = ({ t, user, onLoginRequest }) => {
               <span className="text-5xl font-black text-black dark:text-white">30</span>
               <span className="text-sm text-slate-400 mb-2">PLN/{t.lang==='EN'?'mo':'mies.'}</span>
             </div>
-            <p className="text-slate-400 text-xs mb-6">{t.lang==='EN'?'Access to AI creator apps':'Dostęp do aplikacji AI'}</p>
+            <p className="text-slate-400 text-xs mb-2">{t.lang==='EN'?'Unlimited AI prompts for avatars & ads':'Nielimitowane prompty AI do awatarów i reklam'}</p>
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-2 mb-5">
+              <p className="text-amber-400 text-[10px] font-black uppercase tracking-widest">{t.lang==='EN'?'✨ Perfect for creators':'✨ Idealny dla twórców'}</p>
+              <p className="text-white/50 text-[10px] mt-0.5">{t.lang==='EN'?'Virtual AI characters & product ads':'Wirtualne postacie AI i reklamy produktów'}</p>
+            </div>
             <div className="space-y-2 mb-8 flex-grow">
-              {['✔ Avatar Builder','✔ Product Ad Builder',
+              {[
+                t.lang==='EN'?'✔ Kreator Awatarów AI (unlimited)':'✔ Kreator Awatarów AI (bez limitu)',
+                t.lang==='EN'?'✔ Kreator Reklam AI (unlimited)':'✔ Kreator Reklam Produktowych (bez limitu)',
                 t.lang==='EN'?'✔ Unlimited prompts':'✔ Nielimitowane prompty',
-                t.lang==='EN'?'✘ Tutorials':'✘ Tutoriale'
+                t.lang==='EN'?'✘ Tutorials (All-in-one only)':'✘ Tutoriale (tylko All-in-one)'
               ].map((f,i)=>(
                 <p key={i} className={`text-xs ${f.startsWith('✔') ? 'text-black dark:text-white' : 'text-slate-500'}`}>{f}</p>
               ))}
@@ -1712,6 +1718,7 @@ export default function App() {
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterSent, setNewsletterSent] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [globalPaymentFailed, setGlobalPaymentFailed] = useState(false);
   const [globalDaysLeft, setGlobalDaysLeft] = useState(null);
   const [globalSubscriptionData, setGlobalSubscriptionData] = useState(null);
@@ -1745,6 +1752,7 @@ export default function App() {
   };
 
   // New nav items: Academy → Aplikacje → Dodatki → Tutoriale
+  const handleNavigate = (view) => { setCurrentView(view); setMobileMenuOpen(false); };
   const navItems = [
     { id: 'home', label: t.lang === 'EN' ? 'Academy' : 'Academy' },
     { id: 'aplikacje', label: 'Aplikacje' },
@@ -1820,6 +1828,7 @@ export default function App() {
 
             {/* Main nav - NEW STRUCTURE */}
             <div className="flex items-center gap-2">
+              {/* Desktop nav */}
               <div className="hidden sm:flex items-center gap-1 p-1 rounded-xl transition-colors"
                 style={{
                   background: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
@@ -1838,13 +1847,34 @@ export default function App() {
                     }`}
                   >
                     {label}
-                    {/* Glowing arrow indicator between tabs */}
                     {currentView === id && id !== 'tutorials' && (
                       <span className="absolute -right-1.5 top-1/2 -translate-y-1/2 w-1 h-1 bg-amber-400 rounded-full"
                         style={{ boxShadow: '0 0 6px rgba(245,158,11,0.8)' }} />
                     )}
                   </button>
                 ))}
+              </div>
+              {/* Mobile hamburger */}
+              <div className="sm:hidden relative">
+                <button
+                  onClick={() => setMobileMenuOpen(prev => !prev)}
+                  className={`w-9 h-9 flex items-center justify-center rounded-xl transition-colors ${isDarkMode ? 'text-white/70 hover:text-amber-400' : 'text-black/70 hover:text-amber-500'}`}
+                  style={{border: isDarkMode ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.08)'}}>
+                  <span className="font-black text-lg">{mobileMenuOpen ? '✕' : '☰'}</span>
+                </button>
+                {mobileMenuOpen && (
+                  <div className="absolute right-0 top-12 w-48 rounded-2xl overflow-hidden z-50 shadow-2xl"
+                    style={{background: isDarkMode ? '#0f0f0f' : '#fff', border: isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)'}}>
+                    {navItems.map(({ id, label }) => (
+                      <button key={id} onClick={() => { setCurrentView(id); setMobileMenuOpen(false); }}
+                        className={`w-full text-left px-5 py-3.5 text-[11px] font-bold uppercase tracking-widest transition-colors ${
+                          currentView === id ? 'bg-amber-500 text-black' : isDarkMode ? 'text-white/60 hover:text-white hover:bg-white/5' : 'text-black/60 hover:text-black hover:bg-black/5'
+                        }`}>
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <LangSwitcher lang={lang} setLang={setLang} />
