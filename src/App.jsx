@@ -392,8 +392,6 @@ const HomeView = ({ t, user, onLoginRequest }) => {
   const [activeFeature, setActiveFeature] = useState(0);
   const features = t.lang === 'EN' ? ['AI Avatar Creation', 'Prompt Engineering', 'Workflow Automation', 'Live Coaching'] : ['Tworzenie Awatarów AI', 'Inżynieria Promptów', 'Automatyzacja Workflow', 'Live Coaching'];
   useEffect(() => { const fi = setInterval(() => setActiveFeature(p => (p + 1) % features.length), 4000); return () => clearInterval(fi); }, []);
-  const scrollToPricing = () => { document.getElementById('pricing-section')?.scrollIntoView({ behavior: 'smooth' }); };
-
   return (
     <div className="font-sans flex flex-col">
       <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden bg-white dark:bg-black px-4 transition-colors duration-700">
@@ -418,10 +416,6 @@ const HomeView = ({ t, user, onLoginRequest }) => {
             {t.lang === 'EN' ? '✔ For complete beginners · No experience needed' : '✔ Dla kompletnych początkujących · Zero doświadczenia'}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-            <button onClick={scrollToPricing} className="group relative px-10 py-4 bg-amber-500 text-black font-black text-sm uppercase tracking-widest rounded-xl overflow-hidden transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(245,158,11,0.4)]">
-              <span className="relative z-10">{t.lang === 'EN' ? '🚀 See Plans & Pricing' : '🚀 Zobacz plany i ceny'}</span>
-              <div className="absolute inset-0 bg-amber-400 translate-y-full group-hover:translate-y-0 transition-transform duration-300"/>
-            </button>
             <button onClick={() => document.getElementById('historia')?.scrollIntoView({behavior:'smooth'})} className="px-10 py-4 border border-black/10 dark:border-white/10 text-black dark:text-white font-bold text-sm uppercase tracking-widest rounded-xl hover:border-amber-500/50 transition-all">
               {t.lang === 'EN' ? 'Our Story →' : 'Nasza Historia →'}
             </button>
