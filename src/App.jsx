@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInAnonymously, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
+import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
 import { getFirestore, collection, addDoc, onSnapshot, doc, deleteDoc, getDoc, setDoc, updateDoc, increment } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -38,9 +38,9 @@ const getYTId = (url) => {
 // TOKEN SYSTEM
 // =========================================================================
 const TOKENS_FREE = 3;
-const STRIPE_PRO_LINK = 'https://buy.stripe.com/4gM00ieORdCLfny2fE8bS09'; // TEST 0.50 EUR // 199 PLN miesiecznie (Pro/All-in-one)
-const STRIPE_STARTER_LINK = 'https://buy.stripe.com/dRm6oG9ux6ajeju3jI8bS08'; // TEST 0.50 EUR // 30 PLN miesiecznie (Starter)
-const STRIPE_ANNUAL_LINK = 'https://buy.stripe.com/fZudR89ux0PZ8ZaaMa8bS07'; // TEST 0.50 EUR // 1899 PLN rocznie (Annual)
+const STRIPE_PRO_LINK = 'https://buy.stripe.com/cNiaEWbCF6aj7V63jI8bS01'; // 199 PLN miesiecznie
+const STRIPE_STARTER_LINK = 'https://buy.stripe.com/14A28qcGJ56fdfq5rQ8bS05'; // 30 PLN miesiecznie
+const STRIPE_ANNUAL_LINK = 'https://buy.stripe.com/7sYfZg7mpgOX2AM5rQ8bS06'; // 1899 PLN rocznie
 const STRIPE_PRO_LINK_TEST = 'https://buy.stripe.com/dRm6oGeOR6aj3EQcUi8bS04'; // 2 PLN test admin
 const ADMIN_EMAIL = 'damianlj@live.com';
 const stripeLink = (baseUrl, uid, email) => { const base = email === ADMIN_EMAIL ? STRIPE_PRO_LINK_TEST : baseUrl; return uid ? `${base}?client_reference_id=${uid}` : base; };
@@ -122,7 +122,7 @@ const translations = {
     nav_studio: 'Studio Pro',
     home_tagline: 'Sztuka tworzenia wizji przyszłości.',
     home_pricing_title: 'Subskrypcja Premium',
-    footer_copy: '© 2026 Damian L. J. - Professional AI Suite',
+    footer_copy: '© 2026 DDC Ai Flow',
     lang: 'PL',
   },
   EN: {
@@ -131,7 +131,7 @@ const translations = {
     nav_studio: 'Studio Pro',
     home_tagline: 'The art of creating visions of the future.',
     home_pricing_title: 'Premium Subscription',
-    footer_copy: '© 2026 Damian L. J. - Professional AI Suite',
+    footer_copy: '© 2026 DDC Ai Flow',
     lang: 'EN',
   }
 };
@@ -282,8 +282,8 @@ const PricingButton = ({ plan, t, highlight, user, onLoginRequest }) => {
   };
   return (
     <a
-      href={user ? stripeLink(LINKS[plan], user.uid, user.email) : '#'}
-      onClick={e => { if (!user) { e.preventDefault(); onLoginRequest && onLoginRequest(); }}}
+      href={user && !user.isAnonymous ? stripeLink(LINKS[plan], user.uid, user.email) : '#'}
+      onClick={e => { if (!user || user.isAnonymous) { e.preventDefault(); onLoginRequest && onLoginRequest(); }}}
       target="_blank" rel="noopener noreferrer"
       className={`block w-full py-3.5 font-black text-[11px] uppercase tracking-widest rounded-xl transition-all text-center ${highlight ? 'bg-amber-500 hover:bg-amber-400 text-black shadow-lg shadow-amber-500/20' : 'bg-black dark:bg-white text-white dark:text-black hover:bg-amber-500 hover:text-black dark:hover:bg-amber-500 dark:hover:text-black'}`}>
       {t.lang === 'EN' ? 'Get Access →' : 'Uzyskaj dostęp →'}
@@ -480,17 +480,16 @@ const HomeView = ({ t, user, onLoginRequest }) => {
       <FAQSection t={t} />
 
       <section className="bg-slate-50 dark:bg-[#050505] py-24 px-4 border-t border-black/5 dark:border-white/5 transition-colors duration-700">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-3xl md:text-4xl font-black text-black dark:text-white uppercase tracking-tighter text-center mb-16">{t.lang === 'EN' ? 'What you get' : 'Co otrzymujesz'}<span className="text-amber-500">.</span></h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[{icon:'🎬',title:t.lang==='EN'?'VOD Library':'Baza VOD',desc:t.lang==='EN'?'100+ expert videos on demand':'100+ filmów eksperckich na żądanie'},{icon:'⚡',title:t.lang==='EN'?'Live Coaching':'Live Coaching',desc:t.lang==='EN'?'3x per week with Damian':'3x w tygodniu z Damianem'},{icon:'🧠',title:'Prompt Builder',desc:t.lang==='EN'?'Professional AI prompt studio':'Profesjonalne studio promptów AI'},{icon:'👥',title:t.lang==='EN'?'Community':'Społeczność',desc:t.lang==='EN'?'Private members group':'Zamknięta grupa członków'}].map(card => (
-              <div key={card.title} className="group p-6 bg-white dark:bg-black border border-black/5 dark:border-white/5 rounded-2xl hover:border-amber-500/30 hover:bg-amber-500/5 transition-all duration-300 cursor-default">
-                <div className="text-3xl mb-4">{card.icon}</div>
-                <h3 className="text-black dark:text-white font-bold text-sm uppercase tracking-tight mb-2">{card.title}</h3>
-                <p className="text-slate-500 text-xs leading-relaxed">{card.desc}</p>
-              </div>
-            ))}
-          </div>
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-4xl md:text-6xl font-black text-black dark:text-white uppercase tracking-tighter leading-none mb-6">
+            {t.lang === 'EN' ? 'Stop searching.' : 'Przestań szukać.'}<br/>
+            <span className="text-amber-500">{t.lang === 'EN' ? 'Start creating.' : 'Zacznij tworzyć.'}</span>
+          </h2>
+          <p className="text-slate-500 text-base md:text-lg leading-relaxed max-w-xl mx-auto">
+            {t.lang === 'EN'
+              ? 'AI tools, step-by-step tutorials and a community of people who get what you do.'
+              : 'Kreatory AI, tutoriale krok po kroku i społeczność ludzi którzy ogarniają to co Ty.'}
+          </p>
         </div>
       </section>
 
@@ -522,7 +521,6 @@ const TutorialsView = ({ t, user, onLoginRequest, onNavigate }) => {
       } else {
         setTutorials([
           { id:1, title_pl:'Wprowadzenie do Awatarów AI', title_en:'Introduction to AI Avatars', duration:'12:34', ytId:'1_1oHwOZMe4', naffyUrl:'https://naffy.io', vimeoUrl:'', price:'49' },
-          { id:2, title_pl:'Podstawy Inżynierii Promptów', title_en:'Prompt Engineering Basics', duration:'18:21', ytId:'1_1oHwOZMe4', naffyUrl:'https://naffy.io', vimeoUrl:'', price:'49' },
         ]);
       }
     });
@@ -595,33 +593,48 @@ const TutorialsView = ({ t, user, onLoginRequest, onNavigate }) => {
                     {t.lang === 'EN' ? tut.title_en : tut.title_pl}
                   </p>
 
-                  {isPro ? (
-                    /* Pro user — Vimeo aktywny */
-                    <div className="mt-auto flex flex-col gap-2">
-                      {tut.vimeoUrl ? (
-                        <a href={tut.vimeoUrl} target="_blank" rel="noopener noreferrer"
-                          className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest bg-amber-500 hover:bg-amber-400 text-black transition-all">
-                          ▶ {t.lang === 'EN' ? 'Watch now' : 'Oglądaj teraz'}
+                  <div className="mt-auto flex flex-col gap-2">
+                    {/* Przycisk Naffy — wymaga logowania */}
+                    {isLoggedIn ? (
+                      tut.naffyUrl ? (
+                        <a href={tut.naffyUrl} target="_blank" rel="noopener noreferrer"
+                          className="flex items-center justify-between px-4 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest bg-amber-500 hover:bg-amber-400 text-black transition-all">
+                          <span>{t.lang === 'EN' ? 'Buy on Naffy' : 'Kup na Naffy'}</span>
+                          <span>{tut.price ? `${tut.price} PLN` : '49 PLN'}</span>
                         </a>
                       ) : (
-                        <div className="flex items-center justify-center px-4 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest bg-amber-500/10 border border-amber-500/30 text-amber-400">
-                          ✓ {t.lang === 'EN' ? 'In your plan' : 'W Twoim planie'}
+                        <div className="flex items-center justify-between px-4 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest bg-amber-500/10 border border-amber-500/30 text-amber-400/50 cursor-not-allowed">
+                          <span>{t.lang === 'EN' ? 'Buy on Naffy' : 'Kup na Naffy'}</span>
+                          <span>{t.lang === 'EN' ? 'Soon' : 'Wkrótce'}</span>
                         </div>
-                      )}
-                    </div>
-                  ) : (
-                    /* Nie-Pro — Kup na Naffy + nieaktywny Vimeo */
-                    <div className="mt-auto flex flex-col gap-2">
-                      <a href={tut.naffyUrl} target="_blank" rel="noopener noreferrer"
+                      )
+                    ) : (
+                      <button onClick={onLoginRequest}
                         className="flex items-center justify-between px-4 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest bg-amber-500 hover:bg-amber-400 text-black transition-all">
-                        <span>{t.lang === 'EN' ? 'Buy now' : 'Kup teraz'}</span>
-                        <span>{tut.price} PLN</span>
-                      </a>
-                      <div className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-black text-[9px] uppercase tracking-widest border border-white/10 text-slate-600 cursor-not-allowed select-none">
-                        🔒 {t.lang === 'EN' ? 'Watch — All-in-one only' : 'Oglądaj — tylko All-in-one'}
-                      </div>
-                    </div>
-                  )}
+                        <span>{t.lang === 'EN' ? 'Buy on Naffy' : 'Kup na Naffy'}</span>
+                        <span>{t.lang === 'EN' ? 'Log in →' : 'Zaloguj →'}</span>
+                      </button>
+                    )}
+
+                    {/* Przycisk Vimeo — tylko Pro */}
+                    {isPro ? (
+                      tut.vimeoUrl ? (
+                        <a href={tut.vimeoUrl} target="_blank" rel="noopener noreferrer"
+                          className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white/5 border border-amber-500/40 text-amber-400 hover:bg-amber-500/10 transition-all">
+                          ▶ {t.lang === 'EN' ? 'Full tutorial' : 'Pełny instruktaż'}
+                        </a>
+                      ) : (
+                        <div className="flex items-center justify-center px-4 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white/5 border border-amber-500/20 text-amber-400/50">
+                          ✓ {t.lang === 'EN' ? 'Full tutorial — coming soon' : 'Pełny instruktaż — wkrótce'}
+                        </div>
+                      )
+                    ) : (
+                      <button onClick={isLoggedIn ? () => { if (typeof onNavigate === 'function') onNavigate('cennik'); } : onLoginRequest}
+                        className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest border border-white/10 text-slate-600 hover:border-amber-500/20 hover:text-slate-500 transition-all">
+                        🔒 {t.lang === 'EN' ? 'Full tutorial — Pro only' : 'Pełny instruktaż — tylko Pro'}
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             );
@@ -1030,10 +1043,13 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
       <div className="text-center max-w-sm">
         <div className="text-6xl mb-6">🔒</div>
         <h2 className="text-2xl font-black text-black dark:text-white uppercase tracking-tighter mb-3">
-          {t.lang === 'EN' ? 'Login Required' : 'Kreator tylko dla zalogowanych użytkowników!'}
+          {t.lang === 'EN' ? 'Login Required' : 'Zaloguj się aby korzystać z kreatora'}
         </h2>
-        <p className="text-slate-500 text-sm mb-8">
-          {t.lang === 'EN' ? 'Log in for free to access the Avatar Builder.' : 'Zaloguj się bezpłatnie aby korzystać z Kreatora Awatarów.'}
+        <p className="text-slate-500 text-sm mb-2">
+          {t.lang === 'EN' ? 'Log in for free — 3 prompts included.' : 'Zaloguj się bezpłatnie — 3 darmowe prompty w pakiecie.'}
+        </p>
+        <p className="text-slate-400 text-xs mb-8">
+          {t.lang === 'EN' ? 'We need your account to track your free tokens.' : 'Potrzebujemy konta żeby przypisać Ci darmowe tokeny.'}
         </p>
         <button onClick={onLoginRequest} className="bg-amber-500 hover:bg-amber-400 text-black font-black text-[11px] uppercase tracking-widest px-8 py-4 rounded-xl transition-all hover:scale-105">
           {t.lang === 'EN' ? 'Log In / Register →' : 'Zaloguj się / Zarejestruj →'}
@@ -1173,6 +1189,26 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
   const [tokens, setTokens] = useState(null);
   const [isPro, setIsPro] = useState(false);
   const [loadingTokens, setLoadingTokens] = useState(false);
+
+  if (!isLoggedIn) return (
+    <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center px-4 font-sans">
+      <div className="text-center max-w-sm">
+        <div className="text-6xl mb-6">🔒</div>
+        <h2 className="text-2xl font-black text-black dark:text-white uppercase tracking-tighter mb-3">
+          {t.lang === 'EN' ? 'Login Required' : 'Zaloguj się aby korzystać z kreatora'}
+        </h2>
+        <p className="text-slate-500 text-sm mb-2">
+          {t.lang === 'EN' ? 'Log in for free — 3 prompts included.' : 'Zaloguj się bezpłatnie — 3 darmowe prompty w pakiecie.'}
+        </p>
+        <p className="text-slate-400 text-xs mb-8">
+          {t.lang === 'EN' ? 'We need your account to track your free tokens.' : 'Potrzebujemy konta żeby przypisać Ci darmowe tokeny.'}
+        </p>
+        <button onClick={onLoginRequest} className="bg-amber-500 hover:bg-amber-400 text-black font-black text-[11px] uppercase tracking-widest px-8 py-4 rounded-xl transition-all hover:scale-105">
+          {t.lang === 'EN' ? 'Log In / Register →' : 'Zaloguj się / Zarejestruj →'}
+        </button>
+      </div>
+    </div>
+  );
 
   // Load tokens when user logs in
   useEffect(() => {
@@ -1590,7 +1626,6 @@ const AdminView = ({ setCurrentView, lang, user }) => {
       } else {
         setTutorials([
           { title_pl: 'Wprowadzenie do Awatarów AI', title_en: 'Introduction to AI Avatars', duration: '12:34', ytId: '1_1oHwOZMe4', naffyUrl: 'https://naffy.io', vimeoUrl: '', price: '49' },
-          { title_pl: 'Podstawy Inżynierii Promptów', title_en: 'Prompt Engineering Basics', duration: '18:21', ytId: '1_1oHwOZMe4', naffyUrl: 'https://naffy.io', vimeoUrl: '', price: '49' },
         ]);
       }
       setLoading(false);
@@ -1784,13 +1819,7 @@ export default function App() {
         setUserData(null);
         setGlobalPaymentFailed(false);
         setGlobalDaysLeft(null);
-        if (!u) {
-          setTimeout(() => {
-            if (!auth.currentUser) {
-              signInAnonymously(auth).catch(err => console.error('Auth error:', err));
-            }
-          }, 1500);
-        }
+        // Brak auto-logowania anonimowego — użytkownik musi się zalogować ręcznie
       }
     });
     return () => unsubscribe();
