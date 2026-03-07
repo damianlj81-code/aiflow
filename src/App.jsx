@@ -516,7 +516,7 @@ const TutorialsView = ({ t, user, onLoginRequest, onNavigate }) => {
 
   useEffect(() => {
     getDoc(doc(db, 'artifacts', 'aiflow_academy', 'public', 'data', 'config', 'tutorials')).then(snap => {
-      if (snap.exists() && snap.data().list) {
+      if (snap.exists() && snap.data().list && snap.data().list.length > 0) {
         setTutorials(snap.data().list.map((t, i) => ({ ...t, id: i + 1 })));
       } else {
         setTutorials([
