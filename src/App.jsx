@@ -2580,11 +2580,11 @@ const DatenschutzView = ({ setCurrentView, lang }) => (
   </div>
 );
 
+const RH = ({ n, children }) => <h2 style={{fontWeight:900,fontSize:'10px',textTransform:'uppercase',letterSpacing:'0.2em',color:'#f59e0b',marginBottom:'8px',marginTop:'24px',borderBottom:'1px solid rgba(245,158,11,0.2)',paddingBottom:'6px'}}>{n}. {children}</h2>;
+const RP = ({ children }) => <p style={{fontSize:'14px',lineHeight:'1.7',color:'inherit'}}>{children}</p>;
+
 const RegulaminView = ({ setCurrentView, lang }) => {
   const [activeTab, setActiveTab] = useState('regulamin');
-  const S = ({ children }) => <section className="space-y-3">{children}</section>;
-  const H = ({ n, children }) => <h2 className="font-black uppercase text-[10px] tracking-widest text-amber-500 mb-3 mt-8 border-b border-amber-500/20 pb-2">{n}. {children}</h2>;
-  const P = ({ children }) => <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{children}</p>;
 
   const tabs = [
     { id: 'regulamin', label: lang === 'EN' ? 'Terms & Tools' : 'Regulamin & Narzędzia' },
@@ -2619,16 +2619,16 @@ const RegulaminView = ({ setCurrentView, lang }) => {
             <h1 className="text-3xl font-black uppercase tracking-tighter text-black dark:text-white mb-2">
               {lang === 'EN' ? 'Terms & Conditions' : 'Regulamin serwisu i narzędzi'}
             </h1>
-            <P>Ostatnia aktualizacja: {new Date().toLocaleDateString('pl-PL')}</P>
+            <RP>Ostatnia aktualizacja: {new Date().toLocaleDateString('pl-PL')}</RP>
 
-            <H n="1">{lang === 'EN' ? 'General' : 'Postanowienia ogólne'}</H>
-            <P>Niniejszy regulamin określa zasady korzystania z serwisu AI Flow Academy dostępnego pod adresem loveaiflow.com, prowadzonego przez DDC — Dienstleistungen Damian Chlad, Garteler Weg 38, 27711 Osterholz-Scharmbeck, Niemcy.</P>
+            <RH n="1">{lang === 'EN' ? 'General' : 'Postanowienia ogólne'}</RH>
+            <RP>Niniejszy regulamin określa zasady korzystania z serwisu AI Flow Academy dostępnego pod adresem loveaiflow.com, prowadzonego przez DDC — Dienstleistungen Damian Chlad, Garteler Weg 38, 27711 Osterholz-Scharmbeck, Niemcy.</RP>
 
-            <H n="2">{lang === 'EN' ? 'Services' : 'Zakres usług'}</H>
-            <P>Serwis oferuje dostęp do materiałów edukacyjnych z zakresu AI, narzędzi do generowania promptów (Kreator Awatarów, Kreator Reklam) oraz społeczności. Dostęp do pełnych funkcji wymaga rejestracji i wykupienia planu Pro (29 PLN/miesiąc).</P>
+            <RH n="2">{lang === 'EN' ? 'Services' : 'Zakres usług'}</RH>
+            <RP>Serwis oferuje dostęp do materiałów edukacyjnych z zakresu AI, narzędzi do generowania promptów (Kreator Awatarów, Kreator Reklam) oraz społeczności. Dostęp do pełnych funkcji wymaga rejestracji i wykupienia planu Pro (29 PLN/miesiąc).</RP>
 
-            <H n="3">{lang === 'EN' ? 'AI Tools — Disclaimer' : 'Narzędzia AI — Zastrzeżenia'}</H>
-            <P>Kreatory promptów (zwane dalej „Narzędziami") generują tekstowe instrukcje pomocnicze przeznaczone do użycia w zewnętrznych generatorach obrazów AI. Rejestrując konto i korzystając z Narzędzi użytkownik akceptuje, że:</P>
+            <RH n="3">{lang === 'EN' ? 'AI Tools — Disclaimer' : 'Narzędzia AI — Zastrzeżenia'}</RH>
+            <RP>Kreatory promptów (zwane dalej „Narzędziami") generują tekstowe instrukcje pomocnicze przeznaczone do użycia w zewnętrznych generatorach obrazów AI. Rejestrując konto i korzystając z Narzędzi użytkownik akceptuje, że:</RP>
             <ul className="list-none space-y-2 mt-2">
               {[
                 'Narzędzia generują prompt tekstowy — nie tworzą gotowych obrazów ani nie gwarantują konkretnego efektu wizualnego',
@@ -2644,17 +2644,17 @@ const RegulaminView = ({ setCurrentView, lang }) => {
               ))}
             </ul>
 
-            <H n="4">{lang === 'EN' ? 'Subscription & Payments' : 'Subskrypcja i płatności'}</H>
-            <P>Plan Pro kosztuje 29 PLN brutto miesięcznie. Płatności obsługuje Stripe. Subskrypcja odnawia się automatycznie. Użytkownik może anulować w dowolnym momencie przez portal klienta Stripe lub wysyłając e-mail na info@loveaiflow.com. Dostęp pozostaje aktywny do końca opłaconego okresu.</P>
+            <RH n="4">{lang === 'EN' ? 'Subscription & Payments' : 'Subskrypcja i płatności'}</RH>
+            <RP>Plan Pro kosztuje 29 PLN brutto miesięcznie. Płatności obsługuje Stripe. Subskrypcja odnawia się automatycznie. Użytkownik może anulować w dowolnym momencie przez portal klienta Stripe lub wysyłając e-mail na info@loveaiflow.com. Dostęp pozostaje aktywny do końca opłaconego okresu.</RP>
 
-            <H n="5">{lang === 'EN' ? 'Right of Withdrawal (EU/DE)' : 'Prawo odstąpienia (UE/DE)'}</H>
-            <P>Zgodnie z prawem UE i przepisami niemieckimi (§ 312g BGB), użytkownik ma prawo odstąpić od umowy w ciągu 14 dni od jej zawarcia bez podania przyczyny. Prawo to wygasa z chwilą rozpoczęcia korzystania z usług cyfrowych za wyraźną zgodą użytkownika. Aby skorzystać z prawa odstąpienia, prosimy o kontakt: info@loveaiflow.com.</P>
+            <RH n="5">{lang === 'EN' ? 'Right of Withdrawal (EU/DE)' : 'Prawo odstąpienia (UE/DE)'}</RH>
+            <RP>Zgodnie z prawem UE i przepisami niemieckimi (§ 312g BGB), użytkownik ma prawo odstąpić od umowy w ciągu 14 dni od jej zawarcia bez podania przyczyny. Prawo to wygasa z chwilą rozpoczęcia korzystania z usług cyfrowych za wyraźną zgodą użytkownika. Aby skorzystać z prawa odstąpienia, prosimy o kontakt: info@loveaiflow.com.</RP>
 
-            <H n="6">{lang === 'EN' ? 'Liability' : 'Odpowiedzialność'}</H>
-            <P>DDC — Dienstleistungen Damian Chlad nie ponosi odpowiedzialności za treści generowane przez zewnętrzne narzędzia AI, przerwy w działaniu usług zewnętrznych (Stripe, Firebase, generatory AI) ani za szkody wynikające z nieprawidłowego użycia Narzędzi.</P>
+            <RH n="6">{lang === 'EN' ? 'Liability' : 'Odpowiedzialność'}</RH>
+            <RP>DDC — Dienstleistungen Damian Chlad nie ponosi odpowiedzialności za treści generowane przez zewnętrzne narzędzia AI, przerwy w działaniu usług zewnętrznych (Stripe, Firebase, generatory AI) ani za szkody wynikające z nieprawidłowego użycia Narzędzi.</RP>
 
-            <H n="7">{lang === 'EN' ? 'Governing Law' : 'Prawo właściwe'}</H>
-            <P>Niniejszy regulamin podlega prawu niemieckiemu. Wszelkie spory będą rozstrzygane przez sądy właściwe dla siedziby usługodawcy (Osterholz-Scharmbeck, Niemcy).</P>
+            <RH n="7">{lang === 'EN' ? 'Governing Law' : 'Prawo właściwe'}</RH>
+            <RP>Niniejszy regulamin podlega prawu niemieckiemu. Wszelkie spory będą rozstrzygane przez sądy właściwe dla siedziby usługodawcy (Osterholz-Scharmbeck, Niemcy).</RP>
           </div>
         )}
 
@@ -2662,30 +2662,30 @@ const RegulaminView = ({ setCurrentView, lang }) => {
         {activeTab === 'impressum' && (
           <div className="space-y-2">
             <h1 className="text-3xl font-black uppercase tracking-tighter text-black dark:text-white mb-6">Impressum</h1>
-            <P>Angaben gemäß § 5 TMG (Telemediengesetz)</P>
+            <RP>Angaben gemäß § 5 TMG (Telemediengesetz)</RP>
 
-            <H n="1">Anbieter</H>
-            <P><strong>DDC — Dienstleistungen Damian Chlad</strong><br/>
+            <RH n="1">Anbieter</RH>
+            <RP><strong>DDC — Dienstleistungen Damian Chlad</strong><br/>
             Garteler Weg 38<br/>
             27711 Osterholz-Scharmbeck<br/>
-            Deutschland</P>
+            Deutschland</RP>
 
-            <H n="2">Kontakt</H>
-            <P>E-Mail: info@loveaiflow.com<br/>
-            Website: loveaiflow.com</P>
+            <RH n="2">Kontakt</RH>
+            <RP>E-Mail: info@loveaiflow.com<br/>
+            Website: loveaiflow.com</RP>
 
-            <H n="3">Gewerbeanmeldung</H>
-            <P>Eingetragenes Gewerbe gemäß § 14 GewO.<br/>
-            Zuständige Behörde: Landkreis Osterholz</P>
+            <RH n="3">Gewerbeanmeldung</RH>
+            <RP>Eingetragenes Gewerbe gemäß § 14 GewO.<br/>
+            Zuständige Behörde: Landkreis Osterholz</RP>
 
-            <H n="4">Umsatzsteuer</H>
-            <P>Gemäß § 19 UStG wird keine Umsatzsteuer berechnet (Kleinunternehmerregelung).</P>
+            <RH n="4">Umsatzsteuer</RH>
+            <RP>Gemäß § 19 UStG wird keine Umsatzsteuer berechnet (Kleinunternehmerregelung).</RP>
 
-            <H n="5">Streitschlichtung</H>
-            <P>Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit: https://ec.europa.eu/consumers/odr. Wir sind nicht verpflichtet und nicht bereit, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</P>
+            <RH n="5">Streitschlichtung</RH>
+            <RP>Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit: https://ec.europa.eu/consumers/odr. Wir sind nicht verpflichtet und nicht bereit, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</RP>
 
-            <H n="6">Haftungsausschluss</H>
-            <P>Die Inhalte dieser Website wurden mit größtmöglicher Sorgfalt erstellt. Für die Richtigkeit, Vollständigkeit und Aktualität der Inhalte kann keine Gewähr übernommen werden. Als Diensteanbieter sind wir gemäß § 7 Abs.1 TMG für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich.</P>
+            <RH n="6">Haftungsausschluss</RH>
+            <RP>Die Inhalte dieser Website wurden mit größtmöglicher Sorgfalt erstellt. Für die Richtigkeit, Vollständigkeit und Aktualität der Inhalte kann keine Gewähr übernommen werden. Als Diensteanbieter sind wir gemäß § 7 Abs.1 TMG für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich.</RP>
           </div>
         )}
 
@@ -2695,28 +2695,28 @@ const RegulaminView = ({ setCurrentView, lang }) => {
             <h1 className="text-3xl font-black uppercase tracking-tighter text-black dark:text-white mb-2">
               {lang === 'EN' ? 'Privacy Policy' : 'Polityka Prywatności / Datenschutzerklärung'}
             </h1>
-            <P>Ostatnia aktualizacja: {new Date().toLocaleDateString('pl-PL')}</P>
+            <RP>Ostatnia aktualizacja: {new Date().toLocaleDateString('pl-PL')}</RP>
 
-            <H n="1">{lang === 'EN' ? 'Controller' : 'Administrator danych'}</H>
-            <P>DDC — Dienstleistungen Damian Chlad, Garteler Weg 38, 27711 Osterholz-Scharmbeck. E-Mail: info@loveaiflow.com</P>
+            <RH n="1">{lang === 'EN' ? 'Controller' : 'Administrator danych'}</RH>
+            <RP>DDC — Dienstleistungen Damian Chlad, Garteler Weg 38, 27711 Osterholz-Scharmbeck. E-Mail: info@loveaiflow.com</RP>
 
-            <H n="2">{lang === 'EN' ? 'Data collected' : 'Zbierane dane'}</H>
-            <P>Zbieramy następujące dane: adres e-mail (przy rejestracji), dane logowania Google (przy logowaniu przez Google), dane płatności (obsługiwane wyłącznie przez Stripe — nie przechowujemy danych kart), logi aktywności (Firebase Analytics).</P>
+            <RH n="2">{lang === 'EN' ? 'Data collected' : 'Zbierane dane'}</RH>
+            <RP>Zbieramy następujące dane: adres e-mail (przy rejestracji), dane logowania Google (przy logowaniu przez Google), dane płatności (obsługiwane wyłącznie przez Stripe — nie przechowujemy danych kart), logi aktywności (Firebase Analytics).</RP>
 
-            <H n="3">{lang === 'EN' ? 'Purpose & Legal basis' : 'Cel i podstawa prawna'}</H>
-            <P>Dane przetwarzamy w celu: realizacji umowy (art. 6 ust. 1 lit. b RODO), obsługi płatności (Stripe), zapewnienia bezpieczeństwa serwisu. Podstawą prawną jest wykonanie umowy oraz uzasadniony interes administratora.</P>
+            <RH n="3">{lang === 'EN' ? 'Purpose & Legal basis' : 'Cel i podstawa prawna'}</RH>
+            <RP>Dane przetwarzamy w celu: realizacji umowy (art. 6 ust. 1 lit. b RODO), obsługi płatności (Stripe), zapewnienia bezpieczeństwa serwisu. Podstawą prawną jest wykonanie umowy oraz uzasadniony interes administratora.</RP>
 
-            <H n="4">{lang === 'EN' ? 'Third parties' : 'Podmioty trzecie'}</H>
-            <P>Dane przekazujemy: Firebase/Google (hosting, auth, baza danych), Stripe (płatności). Wszystkie podmioty działają zgodnie z RODO/GDPR.</P>
+            <RH n="4">{lang === 'EN' ? 'Third parties' : 'Podmioty trzecie'}</RH>
+            <RP>Dane przekazujemy: Firebase/Google (hosting, auth, baza danych), Stripe (płatności). Wszystkie podmioty działają zgodnie z RODO/GDPR.</RP>
 
-            <H n="5">{lang === 'EN' ? 'Your rights' : 'Twoje prawa'}</H>
-            <P>Masz prawo do: dostępu do danych, sprostowania, usunięcia („prawo do bycia zapomnianym"), ograniczenia przetwarzania, przenoszenia danych, sprzeciwu. Aby skorzystać z praw, skontaktuj się: info@loveaiflow.com</P>
+            <RH n="5">{lang === 'EN' ? 'Your rights' : 'Twoje prawa'}</RH>
+            <RP>Masz prawo do: dostępu do danych, sprostowania, usunięcia („prawo do bycia zapomnianym"), ograniczenia przetwarzania, przenoszenia danych, sprzeciwu. Aby skorzystać z praw, skontaktuj się: info@loveaiflow.com</RP>
 
-            <H n="6">{lang === 'EN' ? 'Retention' : 'Okres przechowywania'}</H>
-            <P>Dane przechowujemy przez czas trwania umowy oraz wymagany przez prawo (np. dane księgowe — 10 lat zgodnie z prawem niemieckim). Po tym czasie dane są usuwane.</P>
+            <RH n="6">{lang === 'EN' ? 'Retention' : 'Okres przechowywania'}</RH>
+            <RP>Dane przechowujemy przez czas trwania umowy oraz wymagany przez prawo (np. dane księgowe — 10 lat zgodnie z prawem niemieckim). Po tym czasie dane są usuwane.</RP>
 
-            <H n="7">{lang === 'EN' ? 'Complaints' : 'Skargi'}</H>
-            <P>Masz prawo złożyć skargę do organu nadzorczego. W Niemczech: Der Landesbeauftragte für den Datenschutz Niedersachsen (www.lfd.niedersachsen.de).</P>
+            <RH n="7">{lang === 'EN' ? 'Complaints' : 'Skargi'}</RH>
+            <RP>Masz prawo złożyć skargę do organu nadzorczego. W Niemczech: Der Landesbeauftragte für den Datenschutz Niedersachsen (www.lfd.niedersachsen.de).</RP>
           </div>
         )}
 
