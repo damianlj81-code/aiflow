@@ -190,7 +190,7 @@ const LangSwitcher = ({ lang, setLang }) => (
   </div>
 );
 
-const LoginModal = ({ onClose, lang }) => {
+const LoginModal = ({ onClose, lang, onRegulamin }) => {
   const [mode, setMode] = useState('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -269,6 +269,14 @@ const LoginModal = ({ onClose, lang }) => {
             {mode === 'login' ? (lang === 'EN' ? 'Register' : 'Zarejestruj się') : (lang === 'EN' ? 'Sign In' : 'Zaloguj się')}
           </button>
         </p>
+        {mode === 'register' && (
+          <p className="text-center text-[10px] text-slate-400 dark:text-slate-500 mt-3 leading-relaxed px-2">
+            {lang === 'EN'
+              ? <>By creating an account you accept our <button onClick={() => { if (onClose) onClose(); if (onRegulamin) onRegulamin(); }} className="text-amber-500 hover:underline font-bold">Terms of Service</button> and <button onClick={() => { if (onClose) onClose(); if (onRegulamin) onRegulamin(); }} className="text-amber-500 hover:underline font-bold">Privacy Policy</button>, including the terms of use for AI tools.</>
+              : <>Zakładając konto akceptujesz <button onClick={() => { if (onClose) onClose(); if (onRegulamin) onRegulamin(); }} className="text-amber-500 hover:underline font-bold">Regulamin</button> oraz <button onClick={() => { if (onClose) onClose(); if (onRegulamin) onRegulamin(); }} className="text-amber-500 hover:underline font-bold">Politykę Prywatności</button> serwisu, w tym warunki korzystania z narzędzi AI.</>
+            }
+          </p>
+        )}
       </div>
     </div>
   );
@@ -1710,8 +1718,53 @@ const CharCard = ({ ch, idx, onChange, t }) => {
   );
 };
 
+// =========================================================================
+// DISCLAIMER MODAL — jednorazowy, zapamiętany w localStorage
+// =========================================================================
+const DisclaimerModal = ({ storageKey, onAccept }) => {
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(8px)' }}>
+      <div className="bg-[#0a0a0a] border border-[#2a2a2a] rounded-2xl max-w-lg w-full p-8 flex flex-col gap-6">
+        {/* Header */}
+        <div className="flex flex-col gap-2">
+          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-3 py-1.5 rounded-full w-fit">
+            ⚠️ Regulamin Kreatora
+          </div>
+          <h2 className="text-xl font-black text-white uppercase tracking-tight">
+            Przed skorzystaniem z Kreatora
+          </h2>
+        </div>
+
+        {/* Treść */}
+        <div className="text-[12px] text-white/60 leading-relaxed flex flex-col gap-3">
+          <p>Niniejszy <strong className="text-white/90">Kreator</strong> (zwany dalej „Kreatorem") służy do generowania promptów pomocniczych przeznaczonych do użycia w zewnętrznych generatorach obrazów AI (m.in. Midjourney, Stable Diffusion, DALL-E i innych).</p>
+          <p className="font-bold text-white/80">Korzystając z Kreatora akceptujesz, że:</p>
+          <ul className="flex flex-col gap-2 pl-2">
+            <li className="flex gap-2"><span className="text-amber-500 mt-0.5">→</span><span>Kreator generuje prompt tekstowy — nie tworzy gotowych obrazów ani nie gwarantuje konkretnego efektu wizualnego</span></li>
+            <li className="flex gap-2"><span className="text-amber-500 mt-0.5">→</span><span>Wyniki generowania zależą wyłącznie od wybranego narzędzia AI, jego wersji i ustawień</span></li>
+            <li className="flex gap-2"><span className="text-amber-500 mt-0.5">→</span><span>AI Flow Academy nie ponosi odpowiedzialności za treść, jakość ani zgodność wygenerowanych obrazów z oczekiwaniami</span></li>
+            <li className="flex gap-2"><span className="text-amber-500 mt-0.5">→</span><span>Użytkownik korzysta z promptów i wygenerowanych materiałów na własną odpowiedzialność</span></li>
+            <li className="flex gap-2"><span className="text-amber-500 mt-0.5">→</span><span>Wygenerowane materiały muszą być zgodne z regulaminem wybranego generatora AI oraz z obowiązującym prawem</span></li>
+          </ul>
+        </div>
+
+        {/* Przycisk */}
+        <button
+          onClick={onAccept}
+          className="w-full py-4 bg-amber-500 hover:bg-amber-400 text-black font-black text-[11px] uppercase tracking-widest rounded-xl transition-all">
+          ✓ Akceptuję i korzystam z Kreatora
+        </button>
+        <p className="text-[10px] text-white/25 text-center -mt-3">Ta informacja nie pojawi się ponownie</p>
+      </div>
+    </div>
+  );
+};
+
 const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
   const isLoggedIn = user && !user.isAnonymous;
+  const [disclaimerAccepted, setDisclaimerAccepted] = useState(() => localStorage.getItem('aiflow_disclaimer_avatar') === '1');
+  const handleAcceptDisclaimer = () => { localStorage.setItem('aiflow_disclaimer_avatar', '1'); setDisclaimerAccepted(true); };
   const [tokens, setTokens] = useState(null);
   const [isPro, setIsPro] = useState(false);
   const [isStarter, setIsStarter] = useState(false);
@@ -1834,6 +1887,7 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
 
   return (
     <div className="relative pb-20 bg-black transition-colors duration-700 min-h-screen font-sans">
+      {!disclaimerAccepted && <DisclaimerModal storageKey="aiflow_disclaimer_avatar" onAccept={handleAcceptDisclaimer} />}
       {/* Header */}
       <div className="px-4 pt-6 pb-4 max-w-[1800px] mx-auto">
         <div className="flex items-start justify-between flex-wrap gap-4 mb-5">
@@ -2159,6 +2213,8 @@ const buildAdPrompt = (catId, values) => {
 
 const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
   const isLoggedIn = user && !user.isAnonymous;
+  const [disclaimerAccepted, setDisclaimerAccepted] = useState(() => localStorage.getItem('aiflow_disclaimer_ad') === '1');
+  const handleAcceptDisclaimer = () => { localStorage.setItem('aiflow_disclaimer_ad', '1'); setDisclaimerAccepted(true); };
   const [copied, setCopied] = useState(false);
   const [tokens, setTokens] = useState(null);
   const [isPro, setIsPro] = useState(false);
@@ -2204,6 +2260,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
 
   return (
     <div className="relative pb-20 bg-black transition-colors duration-700 min-h-screen font-sans">
+      {!disclaimerAccepted && <DisclaimerModal storageKey="aiflow_disclaimer_ad" onAccept={handleAcceptDisclaimer} />}
       <div className="px-4 pt-6 pb-4 max-w-[1800px] mx-auto">
         <div className="flex items-start justify-between flex-wrap gap-4 mb-5">
           <div>
@@ -2523,18 +2580,188 @@ const DatenschutzView = ({ setCurrentView, lang }) => (
   </div>
 );
 
-const RegulaminView = ({ setCurrentView, lang }) => (
-  <div className="min-h-screen bg-white dark:bg-black p-6 md:p-16 font-sans transition-colors duration-500">
-    <div className="max-w-3xl mx-auto">
-      <button onClick={() => setCurrentView('home')} className="text-[10px] font-bold uppercase tracking-widest text-amber-500 mb-8 flex items-center gap-2 hover:gap-3 transition-all">← {lang === 'EN' ? 'Back' : 'Powrót'}</button>
-      <h1 className="text-3xl font-extrabold uppercase tracking-tighter text-black dark:text-white mb-10 border-b border-black dark:border-[#222] pb-6">{lang === 'EN' ? 'Terms & Conditions' : 'Regulamin'}</h1>
-      <div className="space-y-8 text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
-        <div><h2 className="font-bold uppercase text-[10px] tracking-widest text-amber-600 dark:text-amber-500 mb-2">1. {lang === 'EN' ? 'Provider' : 'Usługodawca'}</h2><p>DDC — Dienstleistungen Damian Chlad, Garteler Weg 38, 27711 Osterholz-Scharmbeck. E-Mail: info@loveaiflow.com</p></div>
-        <div><h2 className="font-bold uppercase text-[10px] tracking-widest text-amber-600 dark:text-amber-500 mb-2">2. {lang === 'EN' ? 'Cancellation' : 'Rezygnacja'}</h2><p>{lang === 'EN' ? 'Cancel anytime by email: info@loveaiflow.com. Access continues until end of paid period.' : 'Rezygnacja w dowolnym momencie przez e-mail: info@loveaiflow.com.'}</p></div>
+const RegulaminView = ({ setCurrentView, lang }) => {
+  const [activeTab, setActiveTab] = useState('regulamin');
+  const S = ({ children }) => <section className="space-y-3">{children}</section>;
+  const H = ({ n, children }) => <h2 className="font-black uppercase text-[10px] tracking-widest text-amber-500 mb-3 mt-8 border-b border-amber-500/20 pb-2">{n}. {children}</h2>;
+  const P = ({ children }) => <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{children}</p>;
+
+  const tabs = [
+    { id: 'regulamin', label: lang === 'EN' ? 'Terms & Tools' : 'Regulamin & Narzędzia' },
+    { id: 'impressum', label: 'Impressum' },
+    { id: 'datenschutz', label: lang === 'EN' ? 'Privacy Policy' : 'Polityka Prywatności' },
+    { id: 'kontakt', label: lang === 'EN' ? 'Contact' : 'Kontakt' },
+  ];
+
+  return (
+    <div className="min-h-screen bg-white dark:bg-black p-6 md:p-16 font-sans transition-colors duration-500">
+      <div className="max-w-3xl mx-auto">
+        <button onClick={() => setCurrentView('home')} className="text-[10px] font-bold uppercase tracking-widest text-amber-500 mb-8 flex items-center gap-2 hover:gap-3 transition-all">← {lang === 'EN' ? 'Back' : 'Powrót'}</button>
+
+        {/* Tabs */}
+        <div className="flex flex-wrap gap-2 mb-10">
+          {tabs.map(tab => (
+            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+              className="px-4 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all"
+              style={{
+                background: activeTab === tab.id ? '#f59e0b' : 'transparent',
+                border: activeTab === tab.id ? '1px solid #f59e0b' : '1px solid rgba(100,100,100,0.3)',
+                color: activeTab === tab.id ? '#000' : '',
+              }}>
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* REGULAMIN */}
+        {activeTab === 'regulamin' && (
+          <div className="space-y-2">
+            <h1 className="text-3xl font-black uppercase tracking-tighter text-black dark:text-white mb-2">
+              {lang === 'EN' ? 'Terms & Conditions' : 'Regulamin serwisu i narzędzi'}
+            </h1>
+            <P>Ostatnia aktualizacja: {new Date().toLocaleDateString('pl-PL')}</P>
+
+            <H n="1">{lang === 'EN' ? 'General' : 'Postanowienia ogólne'}</H>
+            <P>Niniejszy regulamin określa zasady korzystania z serwisu AI Flow Academy dostępnego pod adresem loveaiflow.com, prowadzonego przez DDC — Dienstleistungen Damian Chlad, Garteler Weg 38, 27711 Osterholz-Scharmbeck, Niemcy.</P>
+
+            <H n="2">{lang === 'EN' ? 'Services' : 'Zakres usług'}</H>
+            <P>Serwis oferuje dostęp do materiałów edukacyjnych z zakresu AI, narzędzi do generowania promptów (Kreator Awatarów, Kreator Reklam) oraz społeczności. Dostęp do pełnych funkcji wymaga rejestracji i wykupienia planu Pro (29 PLN/miesiąc).</P>
+
+            <H n="3">{lang === 'EN' ? 'AI Tools — Disclaimer' : 'Narzędzia AI — Zastrzeżenia'}</H>
+            <P>Kreatory promptów (zwane dalej „Narzędziami") generują tekstowe instrukcje pomocnicze przeznaczone do użycia w zewnętrznych generatorach obrazów AI. Rejestrując konto i korzystając z Narzędzi użytkownik akceptuje, że:</P>
+            <ul className="list-none space-y-2 mt-2">
+              {[
+                'Narzędzia generują prompt tekstowy — nie tworzą gotowych obrazów ani nie gwarantują konkretnego efektu wizualnego',
+                'Wyniki generowania zależą wyłącznie od wybranego zewnętrznego narzędzia AI, jego wersji i ustawień',
+                'AI Flow Academy nie ponosi odpowiedzialności za treść, jakość ani zgodność wygenerowanych obrazów z oczekiwaniami użytkownika',
+                'Użytkownik korzysta z promptów i wygenerowanych materiałów na własną odpowiedzialność oraz zgodnie z regulaminem wybranego generatora AI',
+                'Wygenerowane materiały muszą być zgodne z obowiązującym prawem, w tym z prawem autorskim i prawem Unii Europejskiej',
+                'Zabrania się generowania treści nielegalnych, naruszających prawa osób trzecich lub sprzecznych z dobrymi obyczajami',
+              ].map((item, i) => (
+                <li key={i} className="flex gap-2 text-sm text-slate-600 dark:text-slate-300">
+                  <span className="text-amber-500 mt-0.5 shrink-0">→</span><span>{item}</span>
+                </li>
+              ))}
+            </ul>
+
+            <H n="4">{lang === 'EN' ? 'Subscription & Payments' : 'Subskrypcja i płatności'}</H>
+            <P>Plan Pro kosztuje 29 PLN brutto miesięcznie. Płatności obsługuje Stripe. Subskrypcja odnawia się automatycznie. Użytkownik może anulować w dowolnym momencie przez portal klienta Stripe lub wysyłając e-mail na info@loveaiflow.com. Dostęp pozostaje aktywny do końca opłaconego okresu.</P>
+
+            <H n="5">{lang === 'EN' ? 'Right of Withdrawal (EU/DE)' : 'Prawo odstąpienia (UE/DE)'}</H>
+            <P>Zgodnie z prawem UE i przepisami niemieckimi (§ 312g BGB), użytkownik ma prawo odstąpić od umowy w ciągu 14 dni od jej zawarcia bez podania przyczyny. Prawo to wygasa z chwilą rozpoczęcia korzystania z usług cyfrowych za wyraźną zgodą użytkownika. Aby skorzystać z prawa odstąpienia, prosimy o kontakt: info@loveaiflow.com.</P>
+
+            <H n="6">{lang === 'EN' ? 'Liability' : 'Odpowiedzialność'}</H>
+            <P>DDC — Dienstleistungen Damian Chlad nie ponosi odpowiedzialności za treści generowane przez zewnętrzne narzędzia AI, przerwy w działaniu usług zewnętrznych (Stripe, Firebase, generatory AI) ani za szkody wynikające z nieprawidłowego użycia Narzędzi.</P>
+
+            <H n="7">{lang === 'EN' ? 'Governing Law' : 'Prawo właściwe'}</H>
+            <P>Niniejszy regulamin podlega prawu niemieckiemu. Wszelkie spory będą rozstrzygane przez sądy właściwe dla siedziby usługodawcy (Osterholz-Scharmbeck, Niemcy).</P>
+          </div>
+        )}
+
+        {/* IMPRESSUM */}
+        {activeTab === 'impressum' && (
+          <div className="space-y-2">
+            <h1 className="text-3xl font-black uppercase tracking-tighter text-black dark:text-white mb-6">Impressum</h1>
+            <P>Angaben gemäß § 5 TMG (Telemediengesetz)</P>
+
+            <H n="1">Anbieter</H>
+            <P><strong>DDC — Dienstleistungen Damian Chlad</strong><br/>
+            Garteler Weg 38<br/>
+            27711 Osterholz-Scharmbeck<br/>
+            Deutschland</P>
+
+            <H n="2">Kontakt</H>
+            <P>E-Mail: info@loveaiflow.com<br/>
+            Website: loveaiflow.com</P>
+
+            <H n="3">Gewerbeanmeldung</H>
+            <P>Eingetragenes Gewerbe gemäß § 14 GewO.<br/>
+            Zuständige Behörde: Landkreis Osterholz</P>
+
+            <H n="4">Umsatzsteuer</H>
+            <P>Gemäß § 19 UStG wird keine Umsatzsteuer berechnet (Kleinunternehmerregelung).</P>
+
+            <H n="5">Streitschlichtung</H>
+            <P>Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit: https://ec.europa.eu/consumers/odr. Wir sind nicht verpflichtet und nicht bereit, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</P>
+
+            <H n="6">Haftungsausschluss</H>
+            <P>Die Inhalte dieser Website wurden mit größtmöglicher Sorgfalt erstellt. Für die Richtigkeit, Vollständigkeit und Aktualität der Inhalte kann keine Gewähr übernommen werden. Als Diensteanbieter sind wir gemäß § 7 Abs.1 TMG für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich.</P>
+          </div>
+        )}
+
+        {/* DATENSCHUTZ */}
+        {activeTab === 'datenschutz' && (
+          <div className="space-y-2">
+            <h1 className="text-3xl font-black uppercase tracking-tighter text-black dark:text-white mb-2">
+              {lang === 'EN' ? 'Privacy Policy' : 'Polityka Prywatności / Datenschutzerklärung'}
+            </h1>
+            <P>Ostatnia aktualizacja: {new Date().toLocaleDateString('pl-PL')}</P>
+
+            <H n="1">{lang === 'EN' ? 'Controller' : 'Administrator danych'}</H>
+            <P>DDC — Dienstleistungen Damian Chlad, Garteler Weg 38, 27711 Osterholz-Scharmbeck. E-Mail: info@loveaiflow.com</P>
+
+            <H n="2">{lang === 'EN' ? 'Data collected' : 'Zbierane dane'}</H>
+            <P>Zbieramy następujące dane: adres e-mail (przy rejestracji), dane logowania Google (przy logowaniu przez Google), dane płatności (obsługiwane wyłącznie przez Stripe — nie przechowujemy danych kart), logi aktywności (Firebase Analytics).</P>
+
+            <H n="3">{lang === 'EN' ? 'Purpose & Legal basis' : 'Cel i podstawa prawna'}</H>
+            <P>Dane przetwarzamy w celu: realizacji umowy (art. 6 ust. 1 lit. b RODO), obsługi płatności (Stripe), zapewnienia bezpieczeństwa serwisu. Podstawą prawną jest wykonanie umowy oraz uzasadniony interes administratora.</P>
+
+            <H n="4">{lang === 'EN' ? 'Third parties' : 'Podmioty trzecie'}</H>
+            <P>Dane przekazujemy: Firebase/Google (hosting, auth, baza danych), Stripe (płatności). Wszystkie podmioty działają zgodnie z RODO/GDPR.</P>
+
+            <H n="5">{lang === 'EN' ? 'Your rights' : 'Twoje prawa'}</H>
+            <P>Masz prawo do: dostępu do danych, sprostowania, usunięcia („prawo do bycia zapomnianym"), ograniczenia przetwarzania, przenoszenia danych, sprzeciwu. Aby skorzystać z praw, skontaktuj się: info@loveaiflow.com</P>
+
+            <H n="6">{lang === 'EN' ? 'Retention' : 'Okres przechowywania'}</H>
+            <P>Dane przechowujemy przez czas trwania umowy oraz wymagany przez prawo (np. dane księgowe — 10 lat zgodnie z prawem niemieckim). Po tym czasie dane są usuwane.</P>
+
+            <H n="7">{lang === 'EN' ? 'Complaints' : 'Skargi'}</H>
+            <P>Masz prawo złożyć skargę do organu nadzorczego. W Niemczech: Der Landesbeauftragte für den Datenschutz Niedersachsen (www.lfd.niedersachsen.de).</P>
+          </div>
+        )}
+
+        {/* KONTAKT */}
+        {activeTab === 'kontakt' && (
+          <div className="space-y-2">
+            <h1 className="text-3xl font-black uppercase tracking-tighter text-black dark:text-white mb-6">
+              {lang === 'EN' ? 'Contact' : 'Kontakt'}
+            </h1>
+
+            <div className="grid gap-4 mt-6">
+              {[
+                { icon: '🏢', label: lang === 'EN' ? 'Company' : 'Firma', value: 'DDC — Dienstleistungen Damian Chlad' },
+                { icon: '📍', label: lang === 'EN' ? 'Address' : 'Adres', value: 'Garteler Weg 38, 27711 Osterholz-Scharmbeck, Deutschland' },
+                { icon: '✉️', label: 'E-Mail', value: 'info@loveaiflow.com' },
+                { icon: '🌐', label: 'Website', value: 'loveaiflow.com' },
+              ].map(item => (
+                <div key={item.label} className="flex gap-4 p-4 bg-slate-50 dark:bg-[#0a0a0a] border border-slate-200 dark:border-[#1f1f1f] rounded-xl">
+                  <span className="text-2xl">{item.icon}</span>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-amber-500 mb-1">{item.label}</p>
+                    <p className="text-sm text-slate-700 dark:text-slate-300">{item.value}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-8 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl">
+              <p className="text-[11px] text-amber-600 dark:text-amber-400 font-bold uppercase tracking-widest mb-1">
+                {lang === 'EN' ? 'Response time' : 'Czas odpowiedzi'}
+              </p>
+              <p className="text-sm text-slate-600 dark:text-slate-300">
+                {lang === 'EN' ? 'We respond to all inquiries within 2 business days.' : 'Odpowiadamy na wszystkie zapytania w ciągu 2 dni roboczych.'}
+              </p>
+            </div>
+          </div>
+        )}
+
+        <div className="mt-16 pt-8 border-t border-slate-200 dark:border-[#1f1f1f]">
+          <p className="text-[10px] text-slate-400 dark:text-slate-600">© {new Date().getFullYear()} DDC — Dienstleistungen Damian Chlad · loveaiflow.com</p>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 
 // =========================================================================
@@ -2957,7 +3184,7 @@ export default function App() {
           {currentView === 'regulamin' && <RegulaminView setCurrentView={setCurrentView} lang={lang} />}
         </main>
 
-        {showLogin && <LoginModal onClose={() => setShowLogin(false)} lang={lang} />}
+        {showLogin && <LoginModal onClose={() => setShowLogin(false)} lang={lang} onRegulamin={() => setCurrentView('regulamin')} />}
 
         {/* Banner ostrzegawczy — nieudana płatność */}
         {isLoggedIn && globalPaymentFailed && (
