@@ -1066,7 +1066,10 @@ const defaultFemaleChar = () => ({
   hairLength: 'long',
   // Makijaż
   makeupBase: '',
-  makeupEyes: '',
+  makeupBrows: '',
+  makeupEyeshadow: '',
+  makeupLiner: '',
+  makeupLashes: '',
   makeupLips: '',
   // Ubranie
   topClothing: 'casual white t-shirt',
@@ -1094,7 +1097,10 @@ const defaultMaleChar = () => ({
   hairTexture: 'straight',
   hairLength: 'short',
   makeupBase: '',
-  makeupEyes: '',
+  makeupBrows: '',
+  makeupEyeshadow: '',
+  makeupLiner: '',
+  makeupLashes: '',
   makeupLips: '',
   topClothing: 'fitted black t-shirt',
   bottomClothing: 'slim fit dark jeans',
@@ -1119,7 +1125,10 @@ const defaultGirlChar = () => ({
   hairTexture: 'straight',
   hairLength: 'medium',
   makeupBase: '',
-  makeupEyes: '',
+  makeupBrows: '',
+  makeupEyeshadow: '',
+  makeupLiner: '',
+  makeupLashes: '',
   makeupLips: '',
   topClothing: 'colorful casual top',
   bottomClothing: 'jeans',
@@ -1144,7 +1153,10 @@ const defaultBoyChar = () => ({
   hairTexture: 'straight',
   hairLength: 'short',
   makeupBase: '',
-  makeupEyes: '',
+  makeupBrows: '',
+  makeupEyeshadow: '',
+  makeupLiner: '',
+  makeupLashes: '',
   makeupLips: '',
   topClothing: 'colorful casual t-shirt',
   bottomClothing: 'jeans',
@@ -1193,29 +1205,75 @@ const HAIR_COLORS = [
   ['black', 'Czarne'],
   ['red hair', 'Rude'],
   ['auburn hair', 'Kasztanowe'],
-  ['gray hair', 'Siwe'],
+  ['gray hair', 'Siwe/Srebrne'],
   ['platinum hair', 'Platynowe'],
+  ['colored hair', 'Farbowane specjalne'],
 ];
 const HAIR_SHADES = {
   blonde: [
-    ['warm golden blonde hair', 'Złoty blond'],
-    ['icy platinum blonde hair', 'Platynowy blond'],
-    ['strawberry blonde hair', 'Truskawkowy blond'],
-    ['dirty blonde hair', 'Ciemny blond'],
-    ['ash blonde hair', 'Popielaty blond'],
+    ['platinum blonde hair, icy white', 'Platynowy — lodowy biały'],
+    ['icy ash blonde hair', 'Lodowy — popielaty'],
+    ['pearl blonde hair, silver tones', 'Perłowy — srebrnawy'],
+    ['ash blonde hair, cool tone', 'Popielaty blond — chłodny'],
+    ['light golden blonde hair', 'Złoty jasny — słoneczny'],
+    ['warm golden blonde hair', 'Złoty ciepły — miodowy'],
+    ['honey blonde hair, warm', 'Miodowy — ciepły'],
+    ['strawberry blonde hair, peachy', 'Truskawkowy — brzoskwiniowy'],
+    ['dirty blonde hair, natural', 'Ciemny blond — naturalny'],
+    ['dark blonde hair, sandy', 'Piaskowy ciemny — naturalny'],
   ],
   brunette: [
-    ['dark brown hair', 'Ciemny brąz'],
-    ['medium brown hair', 'Średni brąz'],
-    ['light brown hair', 'Jasny brąz'],
-    ['chestnut brown hair', 'Kasztanowy'],
-    ['chocolate brown hair', 'Czekoladowy'],
+    ['light brown hair, natural', 'Jasny brąz — naturalny'],
+    ['warm light brown hair, caramel', 'Karmelowy — ciepły jasny'],
+    ['medium brown hair, classic', 'Średni brąz — klasyczny'],
+    ['chestnut brown hair, warm', 'Kasztanowy — ciepły'],
+    ['chocolate brown hair, rich', 'Czekoladowy — głęboki'],
+    ['dark brown hair, deep', 'Ciemny brąz — głęboki'],
+    ['espresso brown hair, very dark', 'Espresso — prawie czarny'],
   ],
-  black: [['jet black hair', 'Kruczoczarne'],['soft black hair', 'Miękka czerń']],
-  'red hair': [['deep red hair', 'Ciemna ruda'],['bright copper red hair', 'Miedź'],['auburn red hair', 'Kasztanowa ruda']],
-  'auburn hair': [['warm auburn hair', 'Ciepły kasztan'],['dark auburn hair', 'Ciemny kasztan']],
-  'gray hair': [['silver gray hair', 'Srebrne'],['salt and pepper hair', 'Sól i pieprz']],
-  'platinum hair': [['platinum silver hair', 'Platynowe srebrne'],['icy white hair', 'Lodowate białe']],
+  black: [
+    ['soft black hair, natural', 'Miękka czerń — naturalna'],
+    ['jet black hair, pure', 'Kruczoczarny — czysty'],
+    ['blue-black hair, raven', 'Kruczy czarny — niebieskie refleksy'],
+    ['black cherry hair, dark red tones', 'Czarna wiśnia — ciemnoczerwone refleksy'],
+  ],
+  'red hair': [
+    ['light copper red hair, bright', 'Miedź jasna — intensywna'],
+    ['bright copper red hair, vivid', 'Miedź intensywna — żywa'],
+    ['classic red hair, natural ginger', 'Klasyczna ruda — naturalny imbir'],
+    ['deep red hair, rich', 'Głęboka ruda — bogata'],
+    ['dark auburn red hair', 'Ciemna ruda — ciepła'],
+    ['fiery red hair, dramatic', 'Ognista — dramatyczna'],
+  ],
+  'auburn hair': [
+    ['light auburn hair, warm brown-red', 'Jasny kasztan — ciepły brązowo-rudy'],
+    ['warm auburn hair, classic', 'Ciepły kasztan — klasyczny'],
+    ['dark auburn hair, deep', 'Ciemny kasztan — głęboki'],
+    ['mahogany auburn, reddish brown', 'Mahoń — brązowo-czerwony'],
+    ['burgundy auburn hair', 'Bordo — czerwono-bordowy'],
+  ],
+  'gray hair': [
+    ['silver gray hair, elegant', 'Srebrne — eleganckie'],
+    ['salt and pepper hair, natural', 'Sól i pieprz — naturalne'],
+    ['white silver hair, platinum', 'Białe srebrne — platynowe'],
+    ['steel gray hair, cool', 'Stalowe — zimne'],
+  ],
+  'platinum hair': [
+    ['platinum silver hair, metallic', 'Platynowe srebrne — metaliczne'],
+    ['icy white hair, very pale', 'Lodowate białe — bardzo blade'],
+    ['pearl white hair, soft', 'Perłowe białe — miękkie'],
+  ],
+  'colored hair': [
+    ['rose gold hair, pink tones', 'Różowe złoto — pastelowy róż'],
+    ['pastel pink hair, soft', 'Pastelowy różowy — miękki'],
+    ['vibrant pink hair, bold', 'Intensywny różowy — odważny'],
+    ['pastel lavender hair', 'Lawendowy — pastelowy'],
+    ['vivid purple hair, dramatic', 'Intensywny fiolet — dramatyczny'],
+    ['teal blue hair, vivid', 'Turkusowy niebieski — żywy'],
+    ['vivid blue hair, electric', 'Elektryczny niebieski'],
+    ['silver with blue highlights', 'Srebrny z niebieskimi refleksami'],
+    ['rainbow hair, multi-color', 'Tęczowe — wielokolorowe'],
+  ],
   '': [['', 'Brak']],
 };
 const HAIR_TEXTURES = [
@@ -1241,29 +1299,75 @@ const HAIR_LENGTHS_MALE = [
 ];
 const MAKEUP_BASE = [
   ['', 'Brak'],
-  ['natural no-makeup look, bare skin', 'Naturalny'],
-  ['light foundation, fresh face', 'Lekki'],
-  ['full coverage matte foundation', 'Pełny matowy'],
-  ['dewy glowing skin, luminous makeup', 'Glowing'],
-  ['bronzed sun-kissed complexion', 'Bronzowy'],
+  ['bare skin, no makeup, natural complexion', 'Brak — gołe'],
+  ['very light tinted moisturizer, barely-there look', 'BB cream — ledwo widoczny'],
+  ['light foundation, fresh dewy face', 'Lekki świeży'],
+  ['full coverage matte foundation, porcelain finish', 'Matowy pełny'],
+  ['dewy glowing skin, luminous glass skin effect', 'Glowing — szklana cera'],
+  ['bronzed sun-kissed complexion, warm glow', 'Bronzowy — opalona'],
+  ['contoured face, sharp cheekbones, sculpted', 'Konturowany — rzeźbiony'],
+  ['porcelain pale skin, editorial makeup base', 'Porcelanowy — blady'],
 ];
-const MAKEUP_EYES = [
+const MAKEUP_BROWS = [
   ['', 'Brak'],
-  ['subtle mascara, natural lashes', 'Naturalny'],
-  ['cat eyes, sharp winged eyeliner', 'Kocie oko'],
-  ['smoky eye, dark and dramatic', 'Smoky eye'],
-  ['bold colorful eyeshadow', 'Kolorowy'],
-  ['thick dramatic eyeliner', 'Eyeliner'],
-  ['false lashes, dramatic volume', 'Sztuczne rzęsy'],
+  ['natural barely-groomed brows', 'Naturalne — bez ingerencji'],
+  ['lightly filled brows, soft definition', 'Delikatnie wypełnione'],
+  ['medium arched brows, defined', 'Łukowe — wypełnione'],
+  ['thick bold straight brows, strong', 'Grube proste — mocne'],
+  ['sharp high-arched dramatic brows', 'Wysoko łukowe — dramatyczne'],
+  ['microbladed brows, hair-stroke effect', 'Microblading — włoskowate'],
+];
+const MAKEUP_EYESHADOW = [
+  ['', 'Brak'],
+  ['no eyeshadow, bare lids', 'Brak — czyste powieki'],
+  ['subtle neutral shadow, day look', 'Delikatny neutralny — dzienny'],
+  ['soft warm brown crease shadow', 'Ciepły brązowy — miękki'],
+  ['classic smoky eye, dark grey and black', 'Smoky — klasyczny szary'],
+  ['deep black smoky eye, intense', 'Smoky — głęboki czarny'],
+  ['brown smoky eye, warm tones', 'Smoky — brązowy ciepły'],
+  ['golden shimmer eyeshadow, glam', 'Złoty shimmer — glamour'],
+  ['bold colorful eyeshadow, editorial', 'Kolorowy — editorial'],
+  ['cut crease, sharp definition', 'Cut crease — ostry'],
+  ['halo eye, light center', 'Halo eye — jasny środek'],
+];
+const MAKEUP_LINER = [
+  ['', 'Brak'],
+  ['no eyeliner', 'Brak — bez kreski'],
+  ['thin subtle lower lash line', 'Cienka dolna — subtelna'],
+  ['thin upper liner, classic', 'Cienka górna — klasyczna'],
+  ['medium black liner upper lid', 'Średnia czarna — górna'],
+  ['thick bold liner upper lid', 'Gruba czarna — mocna'],
+  ['sharp cat eye flick, winged', 'Kocie oko — skrzydełko'],
+  ['dramatic long cat eye flick', 'Kocie oko — dramatyczne długie'],
+  ['full upper and lower liner, smoky smudged', 'Góra i dół — zadymiona'],
+  ['graphic liner, artistic shape', 'Graficzna — artystyczna'],
+];
+const MAKEUP_LASHES = [
+  ['', 'Brak'],
+  ['no lashes, natural', 'Brak — naturalne'],
+  ['light mascara, subtle lift', 'Mascara — lekka'],
+  ['full mascara, volumized natural lashes', 'Mascara — pełna objętość'],
+  ['wispy false lashes, natural flutter', 'Sztuczne — wispy naturalne'],
+  ['medium false lashes, defined volume', 'Sztuczne — średnie'],
+  ['dramatic false lashes, full glam', 'Sztuczne — dramatyczne glamour'],
+  ['mega volume false lashes, ultra dramatic', 'Sztuczne — mega objętość'],
+  ['individual lash clusters, precise', 'Kępkowe — precyzyjne'],
 ];
 const MAKEUP_LIPS = [
   ['', 'Brak'],
-  ['nude lips, natural color', 'Nude'],
-  ['classic red lipstick', 'Czerwone'],
-  ['deep berry lip color', 'Berry'],
-  ['pink glossy lips', 'Różowy gloss'],
-  ['dark plum lipstick', 'Śliwkowe'],
-  ['coral lips', 'Koralowe'],
+  ['bare lips, natural color', 'Gołe — bez niczego'],
+  ['lip balm, sheer shine', 'Balsam — ledwo widoczny'],
+  ['nude matte lips, your-lips-but-better', 'Nude matowe — naturalne'],
+  ['nude glossy lips, plump look', 'Nude gloss — wypełnione'],
+  ['pink soft lips, feminine', 'Różowe — delikatne'],
+  ['pink glossy lips, juicy', 'Różowy gloss — soczysty'],
+  ['coral lips, warm tone', 'Koralowe — ciepłe'],
+  ['classic red lipstick, matte', 'Czerwone matowe — klasyczne'],
+  ['glossy red lips, lacquered', 'Czerwone glossy — lakierowane'],
+  ['deep berry lip color', 'Berry — jagodowe'],
+  ['dark plum lipstick, gothic', 'Śliwkowe — gotyckie'],
+  ['black cherry lips, very dark', 'Czarna wiśnia — bardzo ciemne'],
+  ['brown nude lips, editorial', 'Brązowe nude — editorial'],
 ];
 const FACE_OPTIONS_F = [
   ['', 'Brak'],
@@ -1494,8 +1598,12 @@ const buildCharPrompt = (ch) => {
     ch.hairTexture !== 'straight' ? ch.hairTexture : '',
     ch.hairStyle,
     ch.makeupBase,
-    ch.makeupEyes,
+    ch.makeupBrows,
+    ch.makeupEyeshadow,
+    ch.makeupLiner,
+    ch.makeupLashes,
     ch.makeupLips,
+    ch.customNote ? `additional details: ${ch.customNote}` : '',
     ch.topClothing,
     ch.bottomClothing,
     ch.legwear,
@@ -1571,8 +1679,11 @@ const CharCard = ({ ch, idx, onChange, t }) => {
 
       {!isMale && !isKid && (
         <CharSection label="Makijaż" icon="💄" fields={[
-          { label: 'Podstawa', value: ch.makeupBase, set: f('makeupBase'), opts: MAKEUP_BASE },
-          { label: 'Oczy', value: ch.makeupEyes, set: f('makeupEyes'), opts: MAKEUP_EYES },
+          { label: 'Cera', value: ch.makeupBase, set: f('makeupBase'), opts: MAKEUP_BASE },
+          { label: 'Brwi', value: ch.makeupBrows, set: f('makeupBrows'), opts: MAKEUP_BROWS },
+          { label: 'Cień', value: ch.makeupEyeshadow, set: f('makeupEyeshadow'), opts: MAKEUP_EYESHADOW },
+          { label: 'Kreska', value: ch.makeupLiner, set: f('makeupLiner'), opts: MAKEUP_LINER },
+          { label: 'Rzęsy', value: ch.makeupLashes, set: f('makeupLashes'), opts: MAKEUP_LASHES },
           { label: 'Usta', value: ch.makeupLips, set: f('makeupLips'), opts: MAKEUP_LIPS },
         ]} />
       )}
@@ -1606,7 +1717,6 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
   const [isStarter, setIsStarter] = useState(false);
   const [loadingTokens, setLoadingTokens] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [openSection, setOpenSection] = useState('sylwetka');
 
   useEffect(() => {
     if (isLoggedIn && user?.uid) {
@@ -1619,6 +1729,7 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
 
   const [characters, setCharacters] = useState([defaultFemaleChar()]);
   const [globalBg, setGlobalBg] = useState('luxurious mansion interior, marble floors');
+  const [customNote, setCustomNote] = useState('');
 
   const PRESET_CONFIGS = [
     { label: '1 Kobieta', icon: '👩', fn: () => [defaultFemaleChar()] },
@@ -1651,6 +1762,7 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
       'photorealistic, 8k resolution, masterpiece',
       'high-end fashion photography, ultra-detailed, sharp focus, cinematic lighting',
       'editorial style, tasteful, professional model shoot',
+      customNote ? `additional details: ${customNote}` : '',
     ].filter(p => p && p.trim() !== '').join(', ');
   };
 
@@ -1698,8 +1810,11 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
     },
     {
       id: 'makijaz', label: '💄 Makijaż', rows: [
-        { key: 'makeupBase', label: 'Podstawa', getOpts: () => MAKEUP_BASE, hide: ch => ch.type === 'male' || ch.type === 'boy' },
-        { key: 'makeupEyes', label: 'Oczy', getOpts: () => MAKEUP_EYES, hide: ch => ch.type === 'male' || ch.type === 'boy' },
+        { key: 'makeupBase', label: 'Cera', getOpts: () => MAKEUP_BASE, hide: ch => ch.type === 'male' || ch.type === 'boy' },
+        { key: 'makeupBrows', label: 'Brwi', getOpts: () => MAKEUP_BROWS, hide: ch => ch.type === 'male' || ch.type === 'boy' },
+        { key: 'makeupEyeshadow', label: 'Cień', getOpts: () => MAKEUP_EYESHADOW, hide: ch => ch.type === 'male' || ch.type === 'boy' },
+        { key: 'makeupLiner', label: 'Kreska', getOpts: () => MAKEUP_LINER, hide: ch => ch.type === 'male' || ch.type === 'boy' },
+        { key: 'makeupLashes', label: 'Rzęsy', getOpts: () => MAKEUP_LASHES, hide: ch => ch.type === 'male' || ch.type === 'boy' },
         { key: 'makeupLips', label: 'Usta', getOpts: () => MAKEUP_LIPS, hide: ch => ch.type === 'male' || ch.type === 'boy' },
       ]
     },
@@ -1752,32 +1867,33 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
       {/* Main area */}
       <div className="px-4 max-w-[1800px] mx-auto flex gap-4" style={{ alignItems: 'flex-start' }}>
 
-        {/* LEFT NAV — kategorie */}
+        {/* LEFT NAV — scroll anchors */}
         <div style={{ width: '140px', flexShrink: 0, position: 'sticky', top: '80px' }}>
           <div className="flex flex-col gap-1">
             {SECTIONS.map(sec => (
-              <button key={sec.id} onClick={() => setOpenSection(openSection === sec.id ? null : sec.id)}
+              <button key={sec.id}
+                onClick={() => document.getElementById(`av-sec-${sec.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
                 className="w-full text-left px-3 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all"
                 style={{
-                  background: openSection === sec.id ? 'rgba(245,158,11,0.15)' : 'rgba(255,255,255,0.03)',
-                  border: openSection === sec.id ? '1px solid rgba(245,158,11,0.4)' : '1px solid rgba(255,255,255,0.07)',
-                  color: openSection === sec.id ? '#f59e0b' : 'rgba(255,255,255,0.5)',
-                }}>
+                  background: 'rgba(255,255,255,0.03)',
+                  border: '1px solid rgba(255,255,255,0.07)',
+                  color: 'rgba(255,255,255,0.5)',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(245,158,11,0.5)'; e.currentTarget.style.color = '#f59e0b'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'; e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; }}
+              >
                 {sec.label}
               </button>
             ))}
           </div>
         </div>
 
-        {/* CENTER — tabela: wiersze=pola, kolumny=postacie */}
-        <div className="flex-1 min-w-0">
-          {openSection && (() => {
-            const sec = SECTIONS.find(s => s.id === openSection);
-            if (!sec) return null;
-
+        {/* CENTER — wszystkie sekcje naraz */}
+        <div className="flex-1 min-w-0 flex flex-col gap-4">
+          {SECTIONS.map(sec => {
             // Tło — osobna sekcja
             if (sec.id === 'tlo') return (
-              <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-2xl overflow-hidden">
+              <div key="tlo" id="av-sec-tlo" className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-2xl overflow-hidden">
                 <div className="px-4 py-3 border-b border-[#1f1f1f]">
                   <span className="text-[10px] font-black uppercase tracking-widest text-amber-500">🌄 Tło sceny (wspólne dla wszystkich)</span>
                 </div>
@@ -1792,13 +1908,14 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
               </div>
             );
 
-            // Filtruj wiersze — pokaż tylko te gdzie przynajmniej jedna postać go ma (nie hide dla wszystkich)
+            // Filtruj wiersze — pokaż tylko te gdzie przynajmniej jedna postać go ma
             const visibleRows = sec.rows.filter(row =>
               characters.some(ch => !row.hide || !row.hide(ch))
             );
+            if (visibleRows.length === 0) return null;
 
             return (
-              <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-2xl overflow-hidden">
+              <div key={sec.id} id={`av-sec-${sec.id}`} className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-2xl overflow-hidden">
                 {/* Nagłówki kolumn — postacie */}
                 <div className="grid border-b border-[#1f1f1f]" style={{ gridTemplateColumns: `120px repeat(${characters.length}, 1fr)` }}>
                   <div className="px-3 py-3 text-[10px] font-black uppercase tracking-widest text-amber-500">{sec.label}</div>
@@ -1878,6 +1995,34 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
                     className="bg-amber-500 hover:bg-amber-400 text-black font-black text-[10px] uppercase tracking-widest px-4 py-2 rounded-xl transition-all mt-2">
                     Kup Plan →
                   </a>
+                </div>
+              )}
+            </div>
+            {/* Pole sugestii */}
+            <div className="mt-4 mb-3 relative">
+              <label className="block text-[9px] font-black uppercase tracking-widest text-amber-500 mb-2">
+                ✏️ Twoje sugestie
+              </label>
+              <textarea
+                value={customNote}
+                onChange={e => { if (isLoggedIn && (isPro || isStarter || tokens > 0)) setCustomNote(e.target.value); }}
+                placeholder={isLoggedIn ? "Dopisz cokolwiek... np. 'trzyma kieliszek wina', 'patrzy przez ramię', 'śmieje się'" : "Zaloguj się aby dodać sugestie..."}
+                rows={3}
+                className="w-full bg-[#060606] border border-[#2a2a2a] rounded-xl px-3 py-2.5 text-[11px] text-white placeholder-white/20 focus:border-amber-500 focus:outline-none resize-none transition-all"
+                style={{ filter: (!isLoggedIn || (!isPro && !isStarter && tokens !== null && tokens <= 0)) ? 'blur(2px)' : 'none' }}
+              />
+              {!isLoggedIn && (
+                <div className="absolute inset-0 rounded-xl flex flex-col items-center justify-center cursor-pointer gap-1" onClick={onLoginRequest}
+                  style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(2px)' }}>
+                  <span className="text-lg">🔒</span>
+                  <span className="text-white font-black text-[9px] uppercase tracking-widest">Zaloguj się</span>
+                </div>
+              )}
+              {isLoggedIn && !isPro && !isStarter && tokens !== null && tokens <= 0 && (
+                <div className="absolute inset-0 rounded-xl flex flex-col items-center justify-center gap-1"
+                  style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(2px)' }}>
+                  <span className="text-lg">💳</span>
+                  <span className="text-white font-black text-[9px] uppercase tracking-widest">Brak tokenów</span>
                 </div>
               )}
             </div>
@@ -2019,7 +2164,6 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
   const [isPro, setIsPro] = useState(false);
   const [isStarter, setIsStarter] = useState(false);
   const [loadingTokens, setLoadingTokens] = useState(false);
-  const [openSection, setOpenSection] = useState('produkt');
   const [category, setCategory] = useState('kosmetyki');
 
 
@@ -2037,7 +2181,6 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
   const handleCategoryChange = (catId) => {
     setCategory(catId);
     setValues(defaultAdValues(catId));
-    setOpenSection('produkt');
   };
 
   const handleValueChange = (key, val) => setValues(prev => ({ ...prev, [key]: val }));
@@ -2096,40 +2239,37 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
       {/* Main 3-col layout */}
       <div className="px-4 max-w-[1800px] mx-auto flex gap-4" style={{ alignItems: 'flex-start' }}>
 
-        {/* LEFT NAV */}
+        {/* LEFT NAV — scroll anchors */}
         <div style={{ width: '140px', flexShrink: 0, position: 'sticky', top: '80px' }}>
           <div className="flex flex-col gap-1">
             {AD_SECTION_DEFS.map(sec => (
-              <button key={sec.id} onClick={() => setOpenSection(openSection === sec.id ? null : sec.id)}
+              <button key={sec.id}
+                onClick={() => document.getElementById(`ad-sec-${sec.id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
                 className="w-full text-left px-3 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all"
-                style={{
-                  background: openSection === sec.id ? `${activeCat?.color}22` : 'rgba(255,255,255,0.03)',
-                  border: openSection === sec.id ? `1px solid ${activeCat?.color}88` : '1px solid rgba(255,255,255,0.07)',
-                  color: openSection === sec.id ? activeCat?.color : 'rgba(255,255,255,0.5)',
-                }}>
+                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', color: 'rgba(255,255,255,0.5)' }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = activeCat?.color || '#f59e0b'; e.currentTarget.style.color = activeCat?.color || '#f59e0b'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.07)'; e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; }}
+              >
                 {sec.label}
               </button>
             ))}
           </div>
         </div>
 
-        {/* CENTER — tabela pól */}
-        <div className="flex-1 min-w-0">
-          {openSection && (() => {
-            const sec = AD_SECTION_DEFS.find(s => s.id === openSection);
-            if (!sec) return null;
-
+        {/* CENTER — wszystkie sekcje naraz */}
+        <div className="flex-1 min-w-0 flex flex-col gap-4">
+          {AD_SECTION_DEFS.map(sec => {
             const fieldKeys = sec.fields.filter(fk => catFields[fk]);
-
+            if (fieldKeys.length === 0) return null;
+            const fieldLabels = { produkt: 'Produkt', material: 'Materiał', kolor: 'Kolor', efekt: 'Efekt główny', efekt2: 'Efekt dodatkowy', oswietlenie: 'Oświetlenie', nastoj: 'Nastrój', ruch: 'Ruch kamery', tlo: 'Tło' };
             return (
-              <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-2xl overflow-hidden">
+              <div key={sec.id} id={`ad-sec-${sec.id}`} className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-2xl overflow-hidden">
                 <div className="px-4 py-3 border-b border-[#1f1f1f] flex items-center gap-3">
                   <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: activeCat?.color }}>{sec.label}</span>
                   <span className="text-[10px] text-white/30 uppercase tracking-widest">{activeCat?.label}</span>
                 </div>
                 {fieldKeys.map((fk, ri) => {
                   const opts = catFields[fk] || [];
-                  const fieldLabels = { produkt: 'Produkt', material: 'Materiał', kolor: 'Kolor', efekt: 'Efekt główny', efekt2: 'Efekt dodatkowy', oswietlenie: 'Oświetlenie', nastoj: 'Nastrój', ruch: 'Ruch kamery', tlo: 'Tło' };
                   return (
                     <div key={fk} className="grid border-b border-[#151515]" style={{ gridTemplateColumns: '140px 1fr', background: ri % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.01)' }}>
                       <div className="flex items-center px-4 py-3">
@@ -2148,7 +2288,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
                 })}
               </div>
             );
-          })()}
+          })}
         </div>
 
         {/* RIGHT — Prompt sticky */}
@@ -2176,6 +2316,34 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
                     className="bg-amber-500 hover:bg-amber-400 text-black font-black text-[10px] uppercase tracking-widest px-4 py-2 rounded-xl transition-all mt-2">
                     Kup Plan →
                   </a>
+                </div>
+              )}
+            </div>
+            {/* Pole sugestii */}
+            <div className="mt-4 mb-3 relative">
+              <label className="block text-[9px] font-black uppercase tracking-widest text-amber-500 mb-2">
+                ✏️ Twoje sugestie
+              </label>
+              <textarea
+                value={customNote}
+                onChange={e => { if (isLoggedIn && (isPro || isStarter || tokens > 0)) setCustomNote(e.target.value); }}
+                placeholder={isLoggedIn ? "Dopisz cokolwiek... np. 'trzyma kieliszek wina', 'patrzy przez ramię', 'śmieje się'" : "Zaloguj się aby dodać sugestie..."}
+                rows={3}
+                className="w-full bg-[#060606] border border-[#2a2a2a] rounded-xl px-3 py-2.5 text-[11px] text-white placeholder-white/20 focus:border-amber-500 focus:outline-none resize-none transition-all"
+                style={{ filter: (!isLoggedIn || (!isPro && !isStarter && tokens !== null && tokens <= 0)) ? 'blur(2px)' : 'none' }}
+              />
+              {!isLoggedIn && (
+                <div className="absolute inset-0 rounded-xl flex flex-col items-center justify-center cursor-pointer gap-1" onClick={onLoginRequest}
+                  style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(2px)' }}>
+                  <span className="text-lg">🔒</span>
+                  <span className="text-white font-black text-[9px] uppercase tracking-widest">Zaloguj się</span>
+                </div>
+              )}
+              {isLoggedIn && !isPro && !isStarter && tokens !== null && tokens <= 0 && (
+                <div className="absolute inset-0 rounded-xl flex flex-col items-center justify-center gap-1"
+                  style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(2px)' }}>
+                  <span className="text-lg">💳</span>
+                  <span className="text-white font-black text-[9px] uppercase tracking-widest">Brak tokenów</span>
                 </div>
               )}
             </div>
