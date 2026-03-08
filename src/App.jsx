@@ -1738,7 +1738,7 @@ const DisclaimerModal = ({ storageKey, onAccept }) => {
 
         {/* Treść */}
         <div className="text-[12px] text-white/60 leading-relaxed flex flex-col gap-3">
-          <p>Niniejszy <strong className="text-white/90">Kreator</strong> (zwany dalej &bdquo;Kreatorem") służy do generowania promptów pomocniczych przeznaczonych do użycia w zewnętrznych generatorach obrazów AI (m.in. Midjourney, Stable Diffusion, DALL-E i innych).</p>
+          <p>Niniejszy <strong className="text-white/90">Kreator</strong> (zwany dalej „Kreatorem") służy do generowania promptów pomocniczych przeznaczonych do użycia w zewnętrznych generatorach obrazów AI (m.in. Midjourney, Stable Diffusion, DALL-E i innych).</p>
           <p className="font-bold text-white/80">Korzystając z Kreatora akceptujesz, że:</p>
           <ul className="flex flex-col gap-2 pl-2">
             <li className="flex gap-2"><span className="text-amber-500 mt-0.5">→</span><span>Kreator generuje prompt tekstowy — nie tworzy gotowych obrazów ani nie gwarantuje konkretnego efektu wizualnego</span></li>
@@ -1763,6 +1763,8 @@ const DisclaimerModal = ({ storageKey, onAccept }) => {
 
 const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
   const isLoggedIn = user && !user.isAnonymous;
+  const [disclaimerAccepted, setDisclaimerAccepted] = useState(() => localStorage.getItem('aiflow_disclaimer_avatar') === '1');
+  const handleAcceptDisclaimer = () => { localStorage.setItem('aiflow_disclaimer_avatar', '1'); setDisclaimerAccepted(true); };
   const [tokens, setTokens] = useState(null);
   const [isPro, setIsPro] = useState(false);
   const [isStarter, setIsStarter] = useState(false);
@@ -1885,6 +1887,7 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
 
   return (
     <div className="relative pb-20 bg-black transition-colors duration-700 min-h-screen font-sans">
+      {!disclaimerAccepted && <DisclaimerModal storageKey="aiflow_disclaimer_avatar" onAccept={handleAcceptDisclaimer} />}
       {/* Header */}
       <div className="px-4 pt-6 pb-4 max-w-[1800px] mx-auto">
         <div className="flex items-start justify-between flex-wrap gap-4 mb-5">
@@ -2210,13 +2213,16 @@ const buildAdPrompt = (catId, values) => {
 
 const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
   const isLoggedIn = user && !user.isAnonymous;
+  const [disclaimerAccepted, setDisclaimerAccepted] = useState(() => localStorage.getItem('aiflow_disclaimer_ad') === '1');
+  const handleAcceptDisclaimer = () => { localStorage.setItem('aiflow_disclaimer_ad', '1'); setDisclaimerAccepted(true); };
   const [copied, setCopied] = useState(false);
   const [tokens, setTokens] = useState(null);
   const [isPro, setIsPro] = useState(false);
   const [isStarter, setIsStarter] = useState(false);
   const [loadingTokens, setLoadingTokens] = useState(false);
   const [category, setCategory] = useState('kosmetyki');
-  const [customNote, setCustomNote] = useState('');
+
+
   const [values, setValues] = useState(() => defaultAdValues('kosmetyki'));
 
   useEffect(() => {
@@ -2254,6 +2260,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
 
   return (
     <div className="relative pb-20 bg-black transition-colors duration-700 min-h-screen font-sans">
+      {!disclaimerAccepted && <DisclaimerModal storageKey="aiflow_disclaimer_ad" onAccept={handleAcceptDisclaimer} />}
       <div className="px-4 pt-6 pb-4 max-w-[1800px] mx-auto">
         <div className="flex items-start justify-between flex-wrap gap-4 mb-5">
           <div>
@@ -2621,7 +2628,7 @@ const RegulaminView = ({ setCurrentView, lang }) => {
             <RP>Serwis oferuje dostęp do materiałów edukacyjnych z zakresu AI, narzędzi do generowania promptów (Kreator Awatarów, Kreator Reklam) oraz społeczności. Dostęp do pełnych funkcji wymaga rejestracji i wykupienia planu Pro (29 PLN/miesiąc).</RP>
 
             <RH n="3">{lang === 'EN' ? 'AI Tools — Disclaimer' : 'Narzędzia AI — Zastrzeżenia'}</RH>
-            <RP>Kreatory promptów (zwane dalej &bdquo;Narzędziami") generują tekstowe instrukcje pomocnicze przeznaczone do użycia w zewnętrznych generatorach obrazów AI. Rejestrując konto i korzystając z Narzędzi użytkownik akceptuje, że:</RP>
+            <RP>Kreatory promptów (zwane dalej „Narzędziami") generują tekstowe instrukcje pomocnicze przeznaczone do użycia w zewnętrznych generatorach obrazów AI. Rejestrując konto i korzystając z Narzędzi użytkownik akceptuje, że:</RP>
             <ul className="list-none space-y-2 mt-2">
               {[
                 'Narzędzia generują prompt tekstowy — nie tworzą gotowych obrazów ani nie gwarantują konkretnego efektu wizualnego',
@@ -2703,7 +2710,7 @@ const RegulaminView = ({ setCurrentView, lang }) => {
             <RP>Dane przekazujemy: Firebase/Google (hosting, auth, baza danych), Stripe (płatności). Wszystkie podmioty działają zgodnie z RODO/GDPR.</RP>
 
             <RH n="5">{lang === 'EN' ? 'Your rights' : 'Twoje prawa'}</RH>
-            <RP>Masz prawo do: dostępu do danych, sprostowania, usunięcia (&bdquo;prawo do bycia zapomnianym"), ograniczenia przetwarzania, przenoszenia danych, sprzeciwu. Aby skorzystać z praw, skontaktuj się: info@loveaiflow.com</RP>
+            <RP>Masz prawo do: dostępu do danych, sprostowania, usunięcia („prawo do bycia zapomnianym"), ograniczenia przetwarzania, przenoszenia danych, sprzeciwu. Aby skorzystać z praw, skontaktuj się: info@loveaiflow.com</RP>
 
             <RH n="6">{lang === 'EN' ? 'Retention' : 'Okres przechowywania'}</RH>
             <RP>Dane przechowujemy przez czas trwania umowy oraz wymagany przez prawo (np. dane księgowe — 10 lat zgodnie z prawem niemieckim). Po tym czasie dane są usuwane.</RP>
