@@ -1606,6 +1606,7 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
   const [isStarter, setIsStarter] = useState(false);
   const [loadingTokens, setLoadingTokens] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [openSection, setOpenSection] = useState('sylwetka');
 
   useEffect(() => {
     if (isLoggedIn && user?.uid) {
@@ -1616,12 +1617,8 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
     } else { setTokens(null); setIsPro(false); setIsStarter(false); }
   }, [isLoggedIn, user?.uid]);
 
-  // Lista postaci (domyślnie 1 kobieta)
   const [characters, setCharacters] = useState([defaultFemaleChar()]);
-  // Globalne tło (jedno dla całej sceny)
   const [globalBg, setGlobalBg] = useState('luxurious mansion interior, marble floors');
-  // Ilość na zdjęciu
-  const [shotCount, setShotCount] = useState('1');
 
   const PRESET_CONFIGS = [
     { label: '1 Kobieta', icon: '👩', fn: () => [defaultFemaleChar()] },
@@ -1636,14 +1633,9 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
     { label: 'Chłopiec', icon: '👦', fn: () => [defaultBoyChar()] },
   ];
 
-  const handlePreset = (preset) => {
-    setCharacters(preset.fn());
-    setShotCount(String(preset.fn().length));
-  };
-
-  const handleCharChange = (idx, key, val) => {
+  const handlePreset = (preset) => setCharacters(preset.fn());
+  const handleCharChange = (idx, key, val) =>
     setCharacters(prev => prev.map((ch, i) => i === idx ? { ...ch, [key]: val } : ch));
-  };
 
   const generatePrompt = () => {
     const count = characters.length;
@@ -1652,16 +1644,14 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
       const p = buildCharPrompt(ch);
       return count > 1 ? `[Person ${i + 1}: ${p}]` : p;
     });
-    const bg = globalBg || 'studio background';
-    const base = [
+    return [
       `full body shot, ${countLabel}`,
       ...charParts,
-      bg,
+      globalBg || 'studio background',
       'photorealistic, 8k resolution, masterpiece',
       'high-end fashion photography, ultra-detailed, sharp focus, cinematic lighting',
       'editorial style, tasteful, professional model shoot',
-    ];
-    return base.filter(p => p && p.trim() !== '').join(', ');
+    ].filter(p => p && p.trim() !== '').join(', ');
   };
 
   const handleCopy = async () => {
@@ -1676,18 +1666,67 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
     }
   };
 
+  const selCls = "w-full bg-[#0d0d0d] border border-[#2a2a2a] px-2 py-2 text-[12px] text-white focus:border-amber-500 focus:outline-none transition-all rounded-lg appearance-none cursor-pointer";
+  const typeColors = { female: '#ec4899', male: '#3b82f6', girl: '#a855f7', boy: '#22c55e' };
+  const typeLabels = { female: '👩 Kobieta', male: '👨 Mężczyzna', girl: '👧 Dziewczynka', boy: '👦 Chłopiec' };
+
+  // Definicje sekcji — każda zawiera wiersze pól
+  // Każdy wiersz: { key, label, getOpts(ch) }
+  const SECTIONS = [
+    {
+      id: 'sylwetka', label: '🏃 Sylwetka', rows: [
+        { key: 'bodyType', label: 'Sylwetka', getOpts: ch => ch.type === 'male' ? BODY_TYPES_M : (ch.type === 'girl' || ch.type === 'boy') ? BODY_TYPES_KID : BODY_TYPES_F },
+        { key: 'breastSize', label: 'Biust', getOpts: ch => BREAST_SIZES, hide: ch => ch.type === 'male' || ch.type === 'girl' || ch.type === 'boy' },
+        { key: 'bodyHair', label: 'Owłosienie', getOpts: () => BODY_HAIR },
+        { key: 'lowerAnatomy', label: 'Dół (anatomia)', getOpts: () => LOWER_ANATOMY },
+      ]
+    },
+    {
+      id: 'twarz', label: '👁️ Twarz & Oczy', rows: [
+        { key: 'face', label: 'Twarz', getOpts: ch => ch.type === 'male' || ch.type === 'boy' ? FACE_OPTIONS_M : FACE_OPTIONS_F },
+        { key: 'eyes', label: 'Oczy', getOpts: () => EYES_OPTIONS },
+      ]
+    },
+    {
+      id: 'wlosy', label: '💇 Włosy', rows: [
+        { key: 'hairStyle', label: 'Fryzura', getOpts: ch => ch.type === 'male' || ch.type === 'boy' ? MALE_HAIR_STYLES : FEMALE_HAIR_STYLES },
+        { key: 'hairColor', label: 'Kolor', getOpts: () => HAIR_COLORS, onChange: (idx, val) => { handleCharChange(idx, 'hairColor', val); handleCharChange(idx, 'hairColorShade', (HAIR_SHADES[val] || [['']])[0][0]); } },
+        { key: 'hairColorShade', label: 'Odcień', getOpts: ch => HAIR_SHADES[ch.hairColor] || [['', 'Brak']] },
+        { key: 'hairTexture', label: 'Tekstura', getOpts: () => HAIR_TEXTURES },
+        { key: 'hairLength', label: 'Długość', getOpts: ch => ch.type === 'male' || ch.type === 'boy' ? HAIR_LENGTHS_MALE : HAIR_LENGTHS_FEMALE },
+      ]
+    },
+    {
+      id: 'makijaz', label: '💄 Makijaż', rows: [
+        { key: 'makeupBase', label: 'Podstawa', getOpts: () => MAKEUP_BASE, hide: ch => ch.type === 'male' || ch.type === 'boy' },
+        { key: 'makeupEyes', label: 'Oczy', getOpts: () => MAKEUP_EYES, hide: ch => ch.type === 'male' || ch.type === 'boy' },
+        { key: 'makeupLips', label: 'Usta', getOpts: () => MAKEUP_LIPS, hide: ch => ch.type === 'male' || ch.type === 'boy' },
+      ]
+    },
+    {
+      id: 'ubranie', label: '👗 Ubranie & Obuwie', rows: [
+        { key: 'topClothing', label: 'Góra', getOpts: ch => ch.type === 'male' ? TOP_CLOTHING_M : (ch.type === 'girl' || ch.type === 'boy') ? TOP_CLOTHING_KID : TOP_CLOTHING_F },
+        { key: 'bottomClothing', label: 'Dół', getOpts: ch => ch.type === 'male' ? BOTTOM_CLOTHING_M : (ch.type === 'girl' || ch.type === 'boy') ? BOTTOM_CLOTHING_KID : BOTTOM_CLOTHING_F },
+        { key: 'shoes', label: 'Obuwie', getOpts: ch => ch.type === 'male' ? SHOES_M : (ch.type === 'girl' || ch.type === 'boy') ? SHOES_KID : SHOES_F },
+        { key: 'legwear', label: 'Nogi', getOpts: () => LEGWEAR, hide: ch => ch.type === 'male' || ch.type === 'boy' },
+        { key: 'accessories', label: 'Akcesoria', getOpts: ch => ch.type === 'male' ? ACCESSORIES_M : ACCESSORIES_F },
+      ]
+    },
+    {
+      id: 'tlo', label: '🌄 Tło', rows: [] // tło jest osobne — globalBg
+    },
+  ];
+
   return (
-    <div className="relative pb-20 bg-slate-50 dark:bg-black transition-colors duration-700 min-h-screen font-sans">
+    <div className="relative pb-20 bg-black transition-colors duration-700 min-h-screen font-sans">
       {/* Header */}
-      <div className="px-4 pt-6 pb-4 max-w-[1600px] mx-auto">
-        <div className="flex items-start justify-between flex-wrap gap-4 mb-6">
+      <div className="px-4 pt-6 pb-4 max-w-[1800px] mx-auto">
+        <div className="flex items-start justify-between flex-wrap gap-4 mb-5">
           <div>
-            <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-3">
+            <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-3">
               <Crown className="w-3 h-3"/>Kreator Awatarów
             </div>
-            <h1 className="text-3xl md:text-4xl font-black text-black dark:text-white uppercase tracking-tighter">
-              {t.lang === 'EN' ? 'Avatar Builder' : 'Kreator Awatarów'}
-            </h1>
+            <h1 className="text-3xl font-black text-white uppercase tracking-tighter">Avatar Builder</h1>
           </div>
           {isLoggedIn && (
             <div className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black ${isPro ? 'bg-amber-500/10 border border-amber-500/30 text-amber-500' : isStarter ? 'bg-blue-500/10 border border-blue-500/30 text-blue-400' : tokens > 0 ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-500' : 'bg-red-500/10 border border-red-500/30 text-red-500'}`}>
@@ -1697,324 +1736,461 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
           )}
         </div>
 
-        {/* Preset buttons */}
-        <div className="flex flex-wrap gap-2 mb-6">
+        {/* Presety */}
+        <div className="flex flex-wrap gap-2 mb-4">
           {PRESET_CONFIGS.map(preset => (
             <button key={preset.label} onClick={() => handlePreset(preset)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all hover:scale-105"
-              style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)', color: 'rgba(255,255,255,0.8)', boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(245,158,11,0.25)'; e.currentTarget.style.color = '#fff'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(245,158,11,0.1)'; e.currentTarget.style.color = 'rgba(255,255,255,0.8)'; }}
-            >
-              <span>{preset.icon}</span>{preset.label}
-            </button>
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all"
+              style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.25)', color: 'rgba(255,255,255,0.7)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(245,158,11,0.2)'; e.currentTarget.style.color = '#fff'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(245,158,11,0.08)'; e.currentTarget.style.color = 'rgba(255,255,255,0.7)'; }}
+            >{preset.icon} {preset.label}</button>
           ))}
         </div>
       </div>
 
-      {/* Main 3-column layout */}
-      <div className="px-4 max-w-[1600px] mx-auto">
-        <div className="flex gap-4" style={{ alignItems: 'flex-start' }}>
+      {/* Main area */}
+      <div className="px-4 max-w-[1800px] mx-auto flex gap-4" style={{ alignItems: 'flex-start' }}>
 
-          {/* LEFT: Character cards */}
-          <div className="flex-1 min-w-0" style={{ maxWidth: '75%' }}>
-            <div className="flex gap-4" style={{ alignItems: 'flex-start' }}>
-              {characters.map((ch, idx) => (
-                <div key={idx} className="flex-1 min-w-0">
-                  <CharCard ch={ch} idx={idx} onChange={handleCharChange} t={t} />
-                </div>
-              ))}
-            </div>
-
-            {/* Global background (jedna scena dla wszystkich) */}
-            <div className="bg-white dark:bg-[#0A0A0A] border border-black/10 dark:border-[#222] p-4 rounded-2xl mt-2">
-              <div className="text-[10px] font-bold tracking-widest text-amber-500 mb-3 flex items-center gap-1.5 uppercase"><span>🌄</span>Tło sceny (wspólne)</div>
-              <div className="relative">
-                <select value={globalBg} onChange={e => setGlobalBg(e.target.value)}
-                  className="w-full bg-slate-100 dark:bg-[#121212] border border-black/10 dark:border-[#333] px-3 py-2 text-[13px] dark:text-white focus:border-amber-500 focus:outline-none transition-all rounded-lg appearance-none">
-                  {BACKGROUNDS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                </select>
-                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/>
-              </div>
-            </div>
-          </div>
-
-          {/* RIGHT: Prompt box — sticky */}
-          <div style={{ width: '280px', flexShrink: 0, position: 'sticky', top: '80px' }}>
-            <div className="relative bg-white dark:bg-[#0A0A0A] border border-black/10 dark:border-[#333] p-5 rounded-2xl">
-              <h2 className="text-[10px] font-bold tracking-widest mb-3 border-b border-black/10 dark:border-[#333] pb-2 text-black dark:text-amber-500 uppercase">Prompt</h2>
-              <div className="relative">
-                <div className="bg-slate-100 dark:bg-[#121212] p-3 min-h-[220px] max-h-[50vh] overflow-y-auto text-black dark:text-white font-mono text-[10px] leading-relaxed break-words border border-black/10 dark:border-[#222] mb-4 rounded-xl">
-                  <span className="text-amber-500 font-bold">{"> "}</span>{generatePrompt()}
-                </div>
-                {!isLoggedIn && (
-                  <div className="absolute inset-0 mb-4 rounded-xl backdrop-blur-sm bg-black/70 flex flex-col items-center justify-center p-4 text-center cursor-pointer" onClick={onLoginRequest}>
-                    <div className="text-3xl mb-2">🔒</div>
-                    <p className="text-white font-black text-xs uppercase tracking-widest mb-1">Zaloguj się aby skopiować</p>
-                    <p className="text-white/60 text-[10px] mb-3">Bezpłatnie · 3 prompty gratis</p>
-                    <span className="bg-amber-500 text-black font-black text-[10px] uppercase tracking-widest px-4 py-2 rounded-xl">Zaloguj / Zarejestruj</span>
-                  </div>
-                )}
-                {isLoggedIn && !isPro && !isStarter && tokens !== null && tokens <= 0 && (
-                  <div className="absolute inset-0 mb-4 rounded-xl backdrop-blur-sm bg-black/70 flex flex-col items-center justify-center p-4 text-center">
-                    <div className="text-3xl mb-2">💳</div>
-                    <p className="text-white font-black text-xs uppercase tracking-widest mb-1">Brak promptów</p>
-                    <p className="text-white/60 text-[10px] mb-3">Kup Starter — 30 zł/mies.</p>
-                    <a href={user && !user.isAnonymous ? stripeLink(STRIPE_STARTER_LINK, user.uid, user.email) : '#'}
-                      onClick={e => { if (!user || user.isAnonymous) { e.preventDefault(); onLoginRequest && onLoginRequest(); }}}
-                      target="_blank" rel="noopener noreferrer"
-                      className="bg-amber-500 hover:bg-amber-400 text-black font-black text-[10px] uppercase tracking-widest px-4 py-2 rounded-xl transition-all">
-                      Kup Pro →
-                    </a>
-                  </div>
-                )}
-              </div>
-              <button onClick={handleCopy}
-                className={`w-full py-3 font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all ${copied ? 'bg-emerald-500 text-black' : 'bg-black dark:bg-amber-500 text-white dark:text-black hover:bg-amber-500 hover:text-black'}`}>
-                {copied ? '✔ Skopiowano!' : isPro ? 'Kopiuj Prompt (∞)' : isStarter ? 'Kopiuj Prompt (∞ Starter)' : isLoggedIn && tokens > 0 ? `Kopiuj Prompt (${tokens}/3 🎟)` : 'Kopiuj Prompt →'}
+        {/* LEFT NAV — kategorie */}
+        <div style={{ width: '140px', flexShrink: 0, position: 'sticky', top: '80px' }}>
+          <div className="flex flex-col gap-1">
+            {SECTIONS.map(sec => (
+              <button key={sec.id} onClick={() => setOpenSection(openSection === sec.id ? null : sec.id)}
+                className="w-full text-left px-3 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all"
+                style={{
+                  background: openSection === sec.id ? 'rgba(245,158,11,0.15)' : 'rgba(255,255,255,0.03)',
+                  border: openSection === sec.id ? '1px solid rgba(245,158,11,0.4)' : '1px solid rgba(255,255,255,0.07)',
+                  color: openSection === sec.id ? '#f59e0b' : 'rgba(255,255,255,0.5)',
+                }}>
+                {sec.label}
               </button>
-            </div>
+            ))}
           </div>
-
         </div>
+
+        {/* CENTER — tabela: wiersze=pola, kolumny=postacie */}
+        <div className="flex-1 min-w-0">
+          {openSection && (() => {
+            const sec = SECTIONS.find(s => s.id === openSection);
+            if (!sec) return null;
+
+            // Tło — osobna sekcja
+            if (sec.id === 'tlo') return (
+              <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-2xl overflow-hidden">
+                <div className="px-4 py-3 border-b border-[#1f1f1f]">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-amber-500">🌄 Tło sceny (wspólne dla wszystkich)</span>
+                </div>
+                <div className="p-4">
+                  <div className="relative" style={{ maxWidth: '400px' }}>
+                    <select value={globalBg} onChange={e => setGlobalBg(e.target.value)} className={selCls}>
+                      {BACKGROUNDS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                    </select>
+                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/>
+                  </div>
+                </div>
+              </div>
+            );
+
+            // Filtruj wiersze — pokaż tylko te gdzie przynajmniej jedna postać go ma (nie hide dla wszystkich)
+            const visibleRows = sec.rows.filter(row =>
+              characters.some(ch => !row.hide || !row.hide(ch))
+            );
+
+            return (
+              <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-2xl overflow-hidden">
+                {/* Nagłówki kolumn — postacie */}
+                <div className="grid border-b border-[#1f1f1f]" style={{ gridTemplateColumns: `120px repeat(${characters.length}, 1fr)` }}>
+                  <div className="px-3 py-3 text-[10px] font-black uppercase tracking-widest text-amber-500">{sec.label}</div>
+                  {characters.map((ch, idx) => (
+                    <div key={idx} className="px-3 py-3 text-center border-l border-[#1f1f1f]">
+                      <span className="text-[11px] font-black uppercase tracking-widest" style={{ color: typeColors[ch.type] }}>
+                        {typeLabels[ch.type]}
+                      </span>
+                      <span className="text-[10px] text-white/30 ml-1">#{idx + 1}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Wiersze — pola */}
+                {visibleRows.map((row, ri) => (
+                  <div key={row.key} className="grid border-b border-[#151515]" style={{ gridTemplateColumns: `120px repeat(${characters.length}, 1fr)`, background: ri % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.01)' }}>
+                    {/* Label */}
+                    <div className="flex items-center px-3 py-2">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-white/40">{row.label}</span>
+                    </div>
+                    {/* Dropdown per postać */}
+                    {characters.map((ch, idx) => {
+                      const isHidden = row.hide && row.hide(ch);
+                      return (
+                        <div key={idx} className="px-2 py-2 border-l border-[#151515]">
+                          {isHidden ? (
+                            <div className="h-9 flex items-center justify-center">
+                              <span className="text-[10px] text-white/15">—</span>
+                            </div>
+                          ) : (
+                            <div className="relative">
+                              <select
+                                value={ch[row.key] || ''}
+                                onChange={e => {
+                                  if (row.onChange) row.onChange(idx, e.target.value);
+                                  else handleCharChange(idx, row.key, e.target.value);
+                                }}
+                                className={selCls}
+                              >
+                                {row.getOpts(ch).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                              </select>
+                              <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-500 pointer-events-none"/>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
+        </div>
+
+        {/* RIGHT — Prompt box sticky */}
+        <div style={{ width: '260px', flexShrink: 0, position: 'sticky', top: '80px' }}>
+          <div className="relative bg-[#0a0a0a] border border-[#1f1f1f] p-4 rounded-2xl">
+            <h2 className="text-[10px] font-black tracking-widest mb-3 border-b border-[#1f1f1f] pb-2 text-amber-500 uppercase">Prompt</h2>
+            <div className="relative">
+              <div className="bg-[#060606] p-3 min-h-[200px] max-h-[55vh] overflow-y-auto text-white font-mono text-[10px] leading-relaxed break-words border border-[#1a1a1a] mb-4 rounded-xl">
+                <span className="text-amber-500 font-bold">{"> "}</span>{generatePrompt()}
+              </div>
+              {!isLoggedIn && (
+                <div className="absolute inset-0 mb-4 rounded-xl backdrop-blur-sm bg-black/80 flex flex-col items-center justify-center p-4 text-center cursor-pointer" onClick={onLoginRequest}>
+                  <div className="text-3xl mb-2">🔒</div>
+                  <p className="text-white font-black text-xs uppercase tracking-widest mb-1">Zaloguj się</p>
+                  <p className="text-white/50 text-[10px] mb-3">3 prompty gratis</p>
+                  <span className="bg-amber-500 text-black font-black text-[10px] uppercase tracking-widest px-4 py-2 rounded-xl">Zaloguj</span>
+                </div>
+              )}
+              {isLoggedIn && !isPro && !isStarter && tokens !== null && tokens <= 0 && (
+                <div className="absolute inset-0 mb-4 rounded-xl backdrop-blur-sm bg-black/80 flex flex-col items-center justify-center p-4 text-center">
+                  <div className="text-3xl mb-2">💳</div>
+                  <p className="text-white font-black text-xs uppercase tracking-widest mb-1">Brak promptów</p>
+                  <a href={user ? stripeLink(STRIPE_STARTER_LINK, user.uid, user.email) : '#'}
+                    target="_blank" rel="noopener noreferrer"
+                    className="bg-amber-500 hover:bg-amber-400 text-black font-black text-[10px] uppercase tracking-widest px-4 py-2 rounded-xl transition-all mt-2">
+                    Kup Plan →
+                  </a>
+                </div>
+              )}
+            </div>
+            <button onClick={handleCopy}
+              className={`w-full py-3 font-black text-[10px] uppercase tracking-widest rounded-xl transition-all ${copied ? 'bg-emerald-500 text-black' : 'bg-amber-500 hover:bg-amber-400 text-black'}`}>
+              {copied ? '✔ Skopiowano!' : isPro ? 'Kopiuj (∞)' : isStarter ? 'Kopiuj (∞)' : isLoggedIn && tokens > 0 ? `Kopiuj (${tokens}/3 🎟)` : 'Kopiuj Prompt →'}
+            </button>
+          </div>
+        </div>
+
       </div>
     </div>
   );
 };
 
 
+// =========================================================================
+// PRODUCT AD BUILDER — DATA
+// =========================================================================
+
+const AD_CATEGORIES = [
+  { id: 'kosmetyki', label: '🌸 Kosmetyki', color: '#ec4899' },
+  { id: 'chemia', label: '🧴 Chemia domowa', color: '#f59e0b' },
+  { id: 'napoje', label: '🥤 Napoje', color: '#3b82f6' },
+  { id: 'jedzenie', label: '🍫 Jedzenie', color: '#22c55e' },
+  { id: 'apteczne', label: '💊 Apteczne', color: '#a855f7' },
+  { id: 'fashion', label: '👜 Fashion', color: '#f97316' },
+];
+
+const AD_FIELDS = {
+  kosmetyki: {
+    produkt: [['', 'Brak'], ['luksusowy flakon perfum, matowy czarny', 'Perfumy'], ['elegancki flakon perfum, transparentny', 'Perfumy transparentne'], ['krem do twarzy w białym słoiczku', 'Krem do twarzy'], ['serum w butelce z pipetą', 'Serum'], ['szminka w złotej oprawce', 'Szminka'], ['podkład w szklanej butelce', 'Podkład'], ['tusz do rzęs, elegancki', 'Mascara'], ['paleta cieni do powiek', 'Paleta cieni'], ['balsam do ust w złotym tubie', 'Balsam'], ['szampon w eleganckim flakonie', 'Szampon'], ['odżywka do włosów, premium', 'Odżywka']],
+    material: [['', 'Brak'], ['szklany, premium', 'Szkło premium'], ['matowe szkło, frosted', 'Szkło matowe'], ['kryształ, transparentny', 'Kryształ'], ['czarny matowy plastik, luksusowy', 'Czarny mat'], ['złoto i szkło', 'Złoto i szkło'], ['różowe złoto, metaliczny', 'Różowe złoto'], ['marmur i złoto', 'Marmur i złoto']],
+    kolor: [['', 'Brak'], ['czarny, matowy', 'Czarny mat'], ['złoty, błyszczący', 'Złoty'], ['biały, czysty', 'Biały'], ['różowy, delikatny', 'Różowy'], ['bordowy, elegancki', 'Bordowy'], ['transparentny', 'Transparentny'], ['srebrny, chromowany', 'Srebrny']],
+    efekt: [['', 'Brak'], ['para i mgła unosząca się elegancko', 'Para i mgła'], ['złote drobinki i brokat unoszące się', 'Złoty brokat'], ['delikatne płatki kwiatów opadające', 'Płatki kwiatów'], ['krople wody na powierzchni', 'Krople wody'], ['refleksy i błyski światła', 'Refleksy światła'], ['lód i kryształy lodu', 'Lód i kryształy']],
+    efekt2: [['', 'Brak'], ['eksplozja kolorowego proszku w slow motion', 'Eksplozja proszku'], ['odpryski wody w slow motion', 'Odpryski wody'], ['śnieg opadający delikatnie', 'Śnieg'], ['płomienie w tle', 'Ogień'], ['bąbelki powietrza', 'Bąbelki'], ['dym kolorowy', 'Kolorowy dym']],
+    oswietlenie: [['', 'Brak'], ['złote ciepłe światło, golden hour', 'Golden hour'], ['dramatyczne studyjne, twarde cienie', 'Studyjne'], ['miękkie naturalne, rozproszone', 'Naturalne miękkie'], ['neonowe, cyberpunk', 'Neon'], ['zimne niebieskie, lodowe', 'Zimne niebieskie'], ['świece i ciepłe punktowe', 'Świece']],
+    ruch: [['', 'Brak'], ['powolny obrót 360 stopni', '360° obrót'], ['delikatne kołysanie lewo-prawo', 'Kołysanie'], ['unoszenie się w górę i dół', 'Lewitacja'], ['zoom in powoli', 'Zoom in'], ['statyczny', 'Statyczny']],
+    nastoj: [['', 'Brak'], ['luksusowy, premium, elegancki', 'Luksus'], ['romantyczny, zmysłowy', 'Romantyczny'], ['świeży, naturalny', 'Naturalny'], ['minimalistyczny, czysty', 'Minimalizm'], ['tajemniczy, mroczny', 'Mroczny']],
+    tlo: [['', 'Brak'], ['ciemne studio, czarny gradient', 'Czarne studio'], ['białe czyste studio', 'Białe studio'], ['marmurowa posadzka, luksus', 'Marmur'], ['natura, zielone liście, bokeh', 'Natura'], ['ocean o zachodzie słońca', 'Ocean sunset'], ['nocne miasto, neon', 'Nocne miasto'], ['śnieg i góry', 'Zimowy krajobraz']],
+  },
+  chemia: {
+    produkt: [['', 'Brak'], ['butelka Domestos, biała z niebieską etykietą', 'Domestos'], ['butelka płynu do naczyń, kolorowa', 'Płyn do naczyń'], ['opakowanie proszku do prania', 'Proszek do prania'], ['butelka płynu do płukania', 'Płyn do płukania'], ['spray do czyszczenia', 'Spray czyszczący'], ['tabletki do zmywarki w opakowaniu', 'Tabletki zmywarki'], ['odświeżacz powietrza', 'Odświeżacz powietrza'], ['żel do WC', 'Żel do WC'], ['środek do okien, spray', 'Środek do okien']],
+    material: [['', 'Brak'], ['plastik HDPE, biały matowy', 'Plastik biały'], ['plastik kolorowy, błyszczący', 'Plastik kolorowy'], ['aluminium, matowe', 'Aluminium'], ['spray trigger, transparentny', 'Spray transparentny']],
+    kolor: [['', 'Brak'], ['biały i niebieski', 'Biały/Niebieski'], ['żółty, energetyczny', 'Żółty'], ['zielony, świeży', 'Zielony'], ['pomarańczowy', 'Pomarańczowy'], ['czerwony, intensywny', 'Czerwony'], ['fioletowy', 'Fioletowy']],
+    efekt: [['', 'Brak'], ['trysk płynu w slow motion', 'Trysk płynu'], ['bąbelki mydlane unoszące się', 'Bąbelki mydlane'], ['czysta lśniąca powierzchnia', 'Lśniąca powierzchnia'], ['krople wody na czystej szybie', 'Krople na szybie'], ['biała piana', 'Biała piana'], ['para i czystość', 'Para czystości']],
+    efekt2: [['', 'Brak'], ['eksplozja czystości, czyste tło', 'Eksplozja czystości'], ['deszcz kropelek', 'Deszcz kropelek'], ['błyszcząca czysta podłoga w tle', 'Czysta podłoga'], ['bąbelki w wodzie', 'Bąbelki w wodzie']],
+    oswietlenie: [['', 'Brak'], ['czyste białe studio', 'Białe studio'], ['jasne naturalne', 'Naturalne jasne'], ['dramatyczne punktowe', 'Punktowe'], ['zimne niebieskie, czyste', 'Zimne niebieskie']],
+    ruch: [['', 'Brak'], ['powolny obrót 360 stopni', '360° obrót'], ['zoom in powoli', 'Zoom in'], ['statyczny', 'Statyczny'], ['kamera orbituje', 'Orbita kamery']],
+    nastoj: [['', 'Brak'], ['czysty, higieniczny, świeży', 'Czysty i świeży'], ['energetyczny, silny', 'Silny i energetyczny'], ['naturalny, ekologiczny', 'Eko'], ['profesjonalny, skuteczny', 'Profesjonalny']],
+    tlo: [['', 'Brak'], ['białe czyste studio', 'Białe studio'], ['nowoczesna łazienka, marmur', 'Łazienka'], ['nowoczesna kuchnia, czysta', 'Kuchnia'], ['jasne niebieskie tło', 'Niebieskie tło'], ['zielone tło, natura', 'Zielone tło']],
+  },
+  napoje: {
+    produkt: [['', 'Brak'], ['butelka soku owocowego, szklana', 'Sok owocowy'], ['butelka mleka owocowego', 'Mleko owocowe'], ['puszka energy drink', 'Energy drink'], ['butelka wody mineralnej', 'Woda mineralna'], ['butelka wina, elegancka', 'Wino'], ['butelka piwa, szklana', 'Piwo'], ['smoothie w słoiku', 'Smoothie'], ['butelka cold brew coffee', 'Cold brew'], ['karton soku, premium', 'Karton soku'], ['butelka lemonady', 'Lemonade'], ['herbata w butelce', 'Herbata ice tea']],
+    material: [['', 'Brak'], ['szkło transparentne', 'Szkło'], ['szkło matowe, frosted', 'Szkło matowe'], ['aluminium, puszka', 'Aluminium'], ['PET, transparentny', 'PET'], ['karton premium', 'Karton']],
+    kolor: [['', 'Brak'], ['pomarańczowy, soczysty', 'Pomarańczowy'], ['czerwony, intensywny', 'Czerwony'], ['zielony, świeży', 'Zielony'], ['żółty, słoneczny', 'Żółty'], ['różowy, owoce leśne', 'Różowy'], ['transparentny', 'Transparentny'], ['niebieski, orzeźwiający', 'Niebieski'], ['fioletowy, winogronowy', 'Fioletowy']],
+    efekt: [['', 'Brak'], ['eksplozja świeżych owoców wokół butelki', 'Eksplozja owoców'], ['krople wody spływające po butelce', 'Krople wody'], ['lód i kostki lodu wokół', 'Lód'], ['bąbelki unoszące się', 'Bąbelki'], ['plusk soku w slow motion', 'Plusk soku'], ['świeże owoce w tle', 'Świeże owoce']],
+    efekt2: [['', 'Brak'], ['odpryski płynu w slow motion', 'Odpryski płynu'], ['eksplozja kolorowych owoców', 'Eksplozja owoców'], ['śnieg i lód', 'Śnieg i lód'], ['para i mgła', 'Para i mgła'], ['deszcz kropelek', 'Deszcz kropelek']],
+    oswietlenie: [['', 'Brak'], ['naturalne słoneczne, letnie', 'Słoneczne letnie'], ['golden hour, ciepłe', 'Golden hour'], ['studyjne, czyste białe', 'Białe studio'], ['zimne niebieskie, orzeźwiające', 'Zimne niebieskie'], ['neonowe, nocne', 'Neon']],
+    ruch: [['', 'Brak'], ['powolny obrót 360 stopni', '360° obrót'], ['lewitacja butelki', 'Lewitacja'], ['zoom in na etykietę', 'Zoom in'], ['statyczny', 'Statyczny'], ['kamera orbituje', 'Orbita kamery']],
+    nastoj: [['', 'Brak'], ['świeży, naturalny, zdrowy', 'Świeży i zdrowy'], ['energetyczny, dynamiczny', 'Energetyczny'], ['luksusowy, premium', 'Luksus'], ['letni, wakacyjny', 'Letni'], ['orzeźwiający, lodowy', 'Orzeźwiający']],
+    tlo: [['', 'Brak'], ['tropikalna plaża, palmy', 'Plaża tropikalna'], ['zielona łąka, natura', 'Łąka'], ['białe studio, czyste', 'Białe studio'], ['ocean, fale', 'Ocean'], ['letni ogród', 'Ogród'], ['kuchnia premium', 'Kuchnia'], ['czarne studio', 'Czarne studio']],
+  },
+  jedzenie: {
+    produkt: [['', 'Brak'], ['tabliczka czekolady premium', 'Czekolada'], ['jogurt w eleganckim kubku', 'Jogurt'], ['masło w złotym opakowaniu', 'Masło'], ['chipsy w kolorowej torbie', 'Chipsy'], ['kawa w eleganckiej puszce', 'Kawa'], ['herbata w luksusowym pudełku', 'Herbata'], ['miód w szklanym słoiku', 'Miód'], ['dżem premium w słoiczku', 'Dżem'], ['makaron premium w opakowaniu', 'Makaron'], ['oliwa z oliwek w butelce', 'Oliwa'], ['ciastka w eleganckim pudełku', 'Ciastka']],
+    material: [['', 'Brak'], ['karton premium, tłoczony', 'Karton premium'], ['szkło, słoik', 'Szkło'], ['metalowa puszka', 'Metal'], ['folia aluminiowa, błyszcząca', 'Folia'], ['papier kraft, eco', 'Kraft eco'], ['plastik transparentny', 'Plastik transparentny']],
+    kolor: [['', 'Brak'], ['złoty, premium', 'Złoty'], ['brązowy, czekoladowy', 'Brązowy'], ['czerwony, intensywny', 'Czerwony'], ['zielony, naturalny', 'Zielony'], ['biały, czysty', 'Biały'], ['czarny, luksus', 'Czarny'], ['niebieski', 'Niebieski']],
+    efekt: [['', 'Brak'], ['kawałki czekolady unoszące się', 'Kawałki czekolady'], ['roztopiona czekolada spływa', 'Roztopiona czekolada'], ['świeże składniki wokół', 'Świeże składniki'], ['ziarna kawy unoszące się', 'Ziarna kawy'], ['płatki i liście herbaty', 'Liście herbaty'], ['miód spływający', 'Spływający miód'], ['para z gorącego napoju', 'Para']],
+    efekt2: [['', 'Brak'], ['eksplozja składników', 'Eksplozja składników'], ['krople wody', 'Krople wody'], ['złoty brokat', 'Złoty brokat'], ['dym i para', 'Dym i para']],
+    oswietlenie: [['', 'Brak'], ['ciepłe domowe, przytulne', 'Ciepłe domowe'], ['golden hour', 'Golden hour'], ['naturalne okienne', 'Naturalne okienne'], ['studyjne, czyste', 'Studyjne'], ['świece, romantyczne', 'Świece']],
+    ruch: [['', 'Brak'], ['powolny obrót 360 stopni', '360° obrót'], ['zoom in na produkt', 'Zoom in'], ['statyczny', 'Statyczny'], ['lewitacja', 'Lewitacja']],
+    nastoj: [['', 'Brak'], ['premium, luksusowy', 'Luksus'], ['naturalny, zdrowy, organic', 'Naturalny organic'], ['przytulny, domowy', 'Domowy'], ['intensywny, bogaty smak', 'Intensywny'], ['delikatny, elegancki', 'Delikatny']],
+    tlo: [['', 'Brak'], ['ciemne drewno, rustykalny', 'Drewno rustykal'], ['marmur biały', 'Marmur biały'], ['białe studio', 'Białe studio'], ['naturalne liście, zieleń', 'Zieleń'], ['kuchnia premium', 'Kuchnia'], ['czarne tło, luksus', 'Czarne tło']],
+  },
+  apteczne: {
+    produkt: [['', 'Brak'], ['butelka suplementów, premium', 'Suplementy'], ['syrop w butelce szklanej', 'Syrop'], ['tabletki w blistrze', 'Tabletki'], ['krem leczniczy w tubie', 'Krem leczniczy'], ['spray do nosa', 'Spray do nosa'], ['opakowanie witamin', 'Witaminy'], ['żel na mięśnie, tuba', 'Żel na mięśnie'], ['krople do oczu', 'Krople do oczu'], ['plaster premium', 'Plastry']],
+    material: [['', 'Brak'], ['szkło bursztynowe', 'Szkło bursztynowe'], ['biały plastik, apteczny', 'Biały plastik'], ['aluminium, czyste', 'Aluminium'], ['szkło transparentne', 'Szkło transparentne'], ['karton biały', 'Karton biały']],
+    kolor: [['', 'Brak'], ['biały, czysty', 'Biały'], ['niebieski, medyczny', 'Niebieski'], ['zielony, naturalny', 'Zielony'], ['pomarańczowy', 'Pomarańczowy'], ['bursztynowy', 'Bursztynowy']],
+    efekt: [['', 'Brak'], ['kryształy i czystość', 'Kryształy'], ['liście i zioła wokół', 'Zioła'], ['krople wody', 'Krople wody'], ['blask i czystość', 'Blask'], ['molekuły i nauka', 'Molekuły'], ['naturalne składniki', 'Naturalne składniki']],
+    efekt2: [['', 'Brak'], ['eksplozja składników naturalnych', 'Eksplozja składników'], ['DNA i nauka', 'Wizualizacja DNA'], ['bąbelki', 'Bąbelki'], ['złoty blask', 'Złoty blask']],
+    oswietlenie: [['', 'Brak'], ['czyste białe, kliniczne', 'Białe kliniczne'], ['naturalne ciepłe', 'Naturalne ciepłe'], ['niebieskie zimne', 'Niebieskie zimne'], ['punktowe, dramatyczne', 'Punktowe']],
+    ruch: [['', 'Brak'], ['powolny obrót 360 stopni', '360° obrót'], ['zoom in', 'Zoom in'], ['statyczny', 'Statyczny'], ['lewitacja', 'Lewitacja']],
+    nastoj: [['', 'Brak'], ['zaufany, medyczny', 'Medyczny'], ['naturalny, ziołowy', 'Naturalny'], ['nowoczesny, naukowy', 'Naukowy'], ['czysty, higieniczny', 'Czysty'], ['premium, luksusowy', 'Premium']],
+    tlo: [['', 'Brak'], ['białe czyste studio', 'Białe studio'], ['niebieskie gradientowe', 'Niebieskie'], ['natura, zielone zioła', 'Natura ziołowa'], ['laboratorium, czyste', 'Laboratorium'], ['marmur biały', 'Marmur']],
+  },
+  fashion: {
+    produkt: [['', 'Brak'], ['luksusowa torebka damska', 'Torebka'], ['eleganckie szpilki', 'Szpilki'], ['naszyjnik z diamentami', 'Naszyjnik'], ['luksusowy zegarek', 'Zegarek'], ['bransoletka złota', 'Bransoletka'], ['kolczyki diamentowe', 'Kolczyki'], ['okulary przeciwsłoneczne', 'Okulary'], ['elegancki portfel', 'Portfel'], ['pasek skórzany, luksusowy', 'Pasek'], ['buty sneakers, premium', 'Sneakersy']],
+    material: [['', 'Brak'], ['skóra naturalna, gładka', 'Skóra gładka'], ['skóra pikowana, Chanel', 'Skóra pikowana'], ['skóra krokodyla', 'Krokodyl'], ['zamsz, matowy', 'Zamsz'], ['złoto 18k', 'Złoto 18k'], ['platyna', 'Platyna'], ['stal szlachetna', 'Stal szlachetna'], ['szkło szafirowe', 'Szkło szafirowe']],
+    kolor: [['', 'Brak'], ['czarny, klasyczny', 'Czarny'], ['złoty, luksus', 'Złoty'], ['kremowy, beżowy', 'Kremowy'], ['burgundy, elegancki', 'Burgundy'], ['srebrny', 'Srebrny'], ['nude, delikatny', 'Nude'], ['biały', 'Biały'], ['różowe złoto', 'Różowe złoto']],
+    efekt: [['', 'Brak'], ['złote drobinki unoszące się', 'Złoty brokat'], ['refleksy i błyski na skórze', 'Refleksy'], ['delikatne płatki kwiatów', 'Płatki kwiatów'], ['jedwab opadający', 'Jedwab'], ['diamentowe błyski', 'Diamenty'], ['para i mgła elegancka', 'Mgła']],
+    efekt2: [['', 'Brak'], ['eksplozja złotego brokatu', 'Eksplozja brokatu'], ['konfetti złote', 'Złote konfetti'], ['płatki różane', 'Płatki różane'], ['lód i kryształy', 'Lód i kryształy']],
+    oswietlenie: [['', 'Brak'], ['złote ciepłe, golden hour', 'Golden hour'], ['studyjne dramatyczne', 'Studyjne'], ['miękkie naturalne', 'Naturalne miękkie'], ['zimne niebieskie', 'Zimne'], ['neonowe', 'Neon']],
+    ruch: [['', 'Brak'], ['powolny obrót 360 stopni', '360° obrót'], ['lewitacja', 'Lewitacja'], ['zoom in na detal', 'Zoom in detal'], ['statyczny', 'Statyczny'], ['kołysanie eleganckie', 'Kołysanie']],
+    nastoj: [['', 'Brak'], ['luksusowy, premium', 'Luksus'], ['elegancki, wyrafinowany', 'Elegancja'], ['minimalistyczny', 'Minimalizm'], ['romantyczny', 'Romantyczny'], ['nowoczesny, edgy', 'Nowoczesny']],
+    tlo: [['', 'Brak'], ['ciemne studio, czarny gradient', 'Czarne studio'], ['białe studio', 'Białe studio'], ['marmur i złoto', 'Marmur i złoto'], ['Paris, elegancja', 'Paryż'], ['luksusowe wnętrze', 'Luksusowe wnętrze'], ['nature, bokeh', 'Natura bokeh']],
+  },
+};
+
+const AD_SECTION_DEFS = [
+  { id: 'produkt', label: '📦 Produkt', fields: ['produkt', 'material', 'kolor'] },
+  { id: 'efekty', label: '✨ Efekty', fields: ['efekt', 'efekt2'] },
+  { id: 'swiatlo', label: '💡 Światło & Nastrój', fields: ['oswietlenie', 'nastoj'] },
+  { id: 'ruch', label: '🎬 Ruch', fields: ['ruch'] },
+  { id: 'tlo', label: '🌄 Tło', fields: ['tlo'] },
+];
+
+const defaultAdValues = (catId) => {
+  const fields = AD_FIELDS[catId] || {};
+  const result = {};
+  Object.entries(fields).forEach(([key, opts]) => {
+    result[key] = opts[1]?.[0] || '';
+  });
+  return result;
+};
+
+const buildAdPrompt = (catId, values) => {
+  const f = (key) => values[key] || '';
+  const parts = [
+    'Cinematic product advertisement video',
+    f('produkt') ? `product: ${f('produkt')}` : '',
+    f('material') ? `material: ${f('material')}` : '',
+    f('kolor') ? `color: ${f('kolor')}` : '',
+    f('nastoj') ? `mood: ${f('nastoj')}` : '',
+    f('efekt') ? `main effect: ${f('efekt')}` : '',
+    f('efekt2') ? `additional effect: ${f('efekt2')}` : '',
+    f('oswietlenie') ? `lighting: ${f('oswietlenie')}` : '',
+    f('ruch') ? `camera motion: ${f('ruch')}` : '',
+    f('tlo') ? `background: ${f('tlo')}` : '',
+    'photorealistic, 8K, ultra-detailed, sharp focus',
+    'high-end commercial photography, cinematic lighting, visual masterpiece',
+  ];
+  return parts.filter(p => p && p.trim() !== '').join(', ');
+};
+
 const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
   const isLoggedIn = user && !user.isAnonymous;
-  const [clicked, setClicked] = useState(false);
   const [copied, setCopied] = useState(false);
   const [tokens, setTokens] = useState(null);
   const [isPro, setIsPro] = useState(false);
   const [isStarter, setIsStarter] = useState(false);
   const [loadingTokens, setLoadingTokens] = useState(false);
+  const [openSection, setOpenSection] = useState('produkt');
+  const [category, setCategory] = useState('kosmetyki');
 
-  // Load tokens when user logs in
+
+  const [values, setValues] = useState(() => defaultAdValues('kosmetyki'));
+
   useEffect(() => {
     if (isLoggedIn && user?.uid) {
       setLoadingTokens(true);
       getTokenData(db, user.uid).then(({ tokens, isPro, isStarter }) => {
-        setTokens(tokens);
-        setIsPro(isPro);
-        setIsStarter(isStarter);
-        setLoadingTokens(false);
+        setTokens(tokens); setIsPro(isPro); setIsStarter(isStarter); setLoadingTokens(false);
       }).catch(() => setLoadingTokens(false));
-    } else {
-      setTokens(null);
-      setIsPro(false);
-      setIsStarter(false);
-    }
+    } else { setTokens(null); setIsPro(false); setIsStarter(false); }
   }, [isLoggedIn, user?.uid]);
 
-  // Category
-  const [category, setCategory] = useState('perfumy');
-
-  // Produkt
-  const [product, setProduct] = useState('luksusowy flakon perfum, matowy czarny');
-  const [productColor, setProductColor] = useState('matowy czarny');
-  const [material, setMaterial] = useState('szklany, premium');
-
-  // Efekty
-  const [effect, setEffect] = useState('para i mgła unosząca się elegancko wokół');
-  const [splashEffect, setSplashEffect] = useState('eksplozja kolorowego proszku w slow motion');
-  const [lighting, setLighting] = useState('złote ciepłe światło, golden hour, zachód słońca');
-
-  // Ruch
-  const [rotation, setRotation] = useState('powolny obrót 360 stopni, sweeping orbit kamery');
-  const [levitation, setLevitation] = useState('unoszenie się w górę i dół, eleganckie i płynne');
-  const [speed, setSpeed] = useState('wolno i elegancko, ultra slow motion');
-
-  // Tło i styl
-  const [bg, setBg] = useState('spokojny ocean o zachodzie słońca, golden hour');
-  const [style, setStyle] = useState('fotorealistyczny, 8K, kinowy');
-  const [mood, setMood] = useState('luksusowy, premium, elegancki');
-
-  const CATEGORIES = {
-    perfumy: { label: t.lang==='EN'?'🌸 Perfume/Cosmetics':'🌸 Perfumy/Kosmetyki', product: 'luksusowy flakon perfum, matowy czarny', material: 'szklany, premium' },
-    torebka: { label: t.lang==='EN'?'👜 Handbag':'👜 Torebka', product: 'luksusowa torebka damska', material: 'skóra naturalna, gładka' },
-    buty: { label: t.lang==='EN'?'👠 Heels/Shoes':'👠 Szpilki/Buty', product: 'eleganckie szpilki damskie, wysokie obcasy', material: 'skóra lakierowana' },
-    bizuteria: { label: t.lang==='EN'?'💎 Jewelry':'💎 Biżuteria', product: 'luksusowy naszyjnik z diamentami', material: 'złoto 18k, błyszczący' },
-    zegarek: { label: t.lang==='EN'?'⌚ Watch':'⌚ Zegarek', product: 'luksusowy zegarek męski', material: 'stal szlachetna, szkło szafirowe' },
-    napoj: { label: t.lang==='EN'?'🥤 Drink/Bottle':'🥤 Napój/Butelka', product: 'elegancka butelka szklana z napojem', material: 'szkło przezroczyste' },
+  const handleCategoryChange = (catId) => {
+    setCategory(catId);
+    setValues(defaultAdValues(catId));
+    setOpenSection('produkt');
   };
 
-  const handleCategoryChange = (cat) => {
-    setCategory(cat);
-    const c = CATEGORIES[cat];
-    setProduct(c.product);
-    setMaterial(c.material);
-  };
-
-  const generatePrompt = () => {
-    const productDesc = category === 'torebka' 
-      ? `${product}, ${material}, kolor: ${productColor}`
-      : category === 'buty'
-      ? `${product}, ${material}, kolor: ${productColor}`
-      : category === 'bizuteria'
-      ? `${product}, ${material}, kolor: ${productColor}`
-      : `${product}, ${material}, kolor: ${productColor}`;
-
-    return [
-      'Cinematic product advertisement',
-      `of a ${mood} ${productDesc}`,
-      `${effect},`,
-      `${splashEffect !== 'brak' ? `suddenly enhanced by a ${splashEffect},` : ''}`,
-      `The product ${levitation}.`,
-      `Background: ${bg},`,
-      `bathed in ${lighting}.`,
-      `The camera executes a ${rotation}.`,
-      `${style}, cinematic lighting, visual masterpiece, ultra-detailed, sharp focus, high-end commercial photography, ${mood} mood.`
-    ].filter(p => p.trim()).join(' ');
-  };
+  const handleValueChange = (key, val) => setValues(prev => ({ ...prev, [key]: val }));
+  const generatePrompt = () => buildAdPrompt(category, values);
 
   const handleCopy = async () => {
-    if (!isLoggedIn) { setClicked(true); return; }
-    if (!isPro && tokens !== null && tokens <= 0) return;
+    if (!isLoggedIn) { onLoginRequest && onLoginRequest(); return; }
+    if (!isPro && !isStarter && tokens !== null && tokens <= 0) return;
     const ok = await useToken(db, user.uid);
     if (ok) {
       navigator.clipboard.writeText(generatePrompt());
       setCopied(true);
-      if (!isPro) setTokens(prev => Math.max(0, (prev || 0) - 1));
+      if (!isPro && !isStarter) setTokens(prev => Math.max(0, (prev || 0) - 1));
       setTimeout(() => setCopied(false), 2000);
     }
   };
 
-  const sectionClass = "bg-white dark:bg-[#0A0A0A] border border-black/10 dark:border-[#222] p-5 rounded-2xl mb-6 transition-all duration-500 font-sans";
-  const labelClass = "block text-[9px] uppercase tracking-widest text-slate-500 mb-1.5 font-bold";
-  const inputClass = "w-full bg-slate-100 dark:bg-[#121212] border border-black/10 dark:border-[#333] px-3 py-2 text-[13px] dark:text-white focus:border-amber-500 focus:outline-none transition-all rounded-lg appearance-none";
-  const headerClass = "text-xs font-bold tracking-widest text-black dark:text-amber-500 mb-5 flex items-center gap-2 border-b border-black/10 dark:border-[#222] pb-3 uppercase";
+  const selCls = "w-full bg-[#0d0d0d] border border-[#2a2a2a] px-2 py-2 text-[12px] text-white focus:border-amber-500 focus:outline-none transition-all rounded-lg appearance-none cursor-pointer";
+  const catFields = AD_FIELDS[category] || {};
+  const activeCat = AD_CATEGORIES.find(c => c.id === category);
 
   return (
-    <div className="relative pb-20 p-4 md:p-8 bg-slate-50 dark:bg-black transition-colors duration-700 min-h-screen">
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-8 flex items-start justify-between flex-wrap gap-4">
+    <div className="relative pb-20 bg-black transition-colors duration-700 min-h-screen font-sans">
+      <div className="px-4 pt-6 pb-4 max-w-[1800px] mx-auto">
+        <div className="flex items-start justify-between flex-wrap gap-4 mb-5">
           <div>
-            <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-4"><Sparkles className="w-3 h-3"/>Ad Prompt Studio</div>
-            <h1 className="text-3xl md:text-4xl font-black text-black dark:text-white uppercase tracking-tighter">{t.lang === 'EN' ? 'Product Ad Builder' : 'Kreator Reklam Produktowych'}</h1>
+            <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-3">
+              <Sparkles className="w-3 h-3"/>Kreator Reklam
+            </div>
+            <h1 className="text-3xl font-black text-white uppercase tracking-tighter">Product Ad Builder</h1>
           </div>
           {isLoggedIn && (
-            <div className="flex flex-col items-end gap-2">
-              <div className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black ${isPro ? 'bg-amber-500/10 border border-amber-500/30 text-amber-500' : isStarter ? 'bg-blue-500/10 border border-blue-500/30 text-blue-400' : tokens > 0 ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-500' : 'bg-red-500/10 border border-red-500/30 text-red-500'}`}>
-                <span>{isPro ? '👑' : isStarter ? '⚡' : '🎟'}</span>
-                {loadingTokens ? '...' : isPro ? 'All-in-one — nielimitowany' : isStarter ? 'Starter — nielimitowany' : `${tokens}/3 ${t.lang === 'EN' ? 'demo prompts' : 'promptów demo'}`}
-              </div>
-
+            <div className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black ${isPro ? 'bg-amber-500/10 border border-amber-500/30 text-amber-500' : isStarter ? 'bg-blue-500/10 border border-blue-500/30 text-blue-400' : tokens > 0 ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-500' : 'bg-red-500/10 border border-red-500/30 text-red-500'}`}>
+              <span>{isPro ? '👑' : isStarter ? '⚡' : '🎟'}</span>
+              {loadingTokens ? '...' : isPro ? 'All-in-one — nielimitowany' : isStarter ? 'Starter — nielimitowany' : `${tokens}/3 promptów demo`}
             </div>
           )}
         </div>
 
-        {/* Category selector */}
-        <div className="flex flex-wrap gap-2 mb-6">
-          {Object.entries(CATEGORIES).map(([key, val]) => (
-            <button key={key} onClick={e => { e.stopPropagation(); handleCategoryChange(key); }} className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${category === key ? 'bg-amber-500 text-black border-amber-500' : 'border-black/10 dark:border-white/10 text-black dark:text-white hover:border-amber-500/50'}`}>
-              {val.label}
+        {/* Kategorie produktów */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          {AD_CATEGORIES.map(cat => (
+            <button key={cat.id} onClick={() => handleCategoryChange(cat.id)}
+              className="px-3 py-1.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all"
+              style={{
+                background: category === cat.id ? cat.color : 'rgba(255,255,255,0.04)',
+                border: `1px solid ${category === cat.id ? cat.color : 'rgba(255,255,255,0.1)'}`,
+                color: category === cat.id ? '#000' : 'rgba(255,255,255,0.6)',
+              }}>
+              {cat.label}
             </button>
           ))}
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          <div className="lg:col-span-3 lg:order-1 order-2">
-            <div className={sectionClass}>
-              <h2 className={headerClass}><span className="text-lg">📦</span> I. Produkt</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                {[
-                  {label:'Opis produktu',value:product,set:setProduct,opts:
-                    category === 'torebka' ? [['luksusowa torebka damska','Torebka klasyczna'],['kopertówka wieczorowa, mała','Kopertówka'],['shopperka, duża pojemna torba','Shopperka'],['plecak damski, elegancki','Plecak'],['saszetka, mini bag','Saszetka']] :
-                    category === 'buty' ? [['eleganckie szpilki damskie, wysokie obcasy','Szpilki klasyczne'],['sandały na platformie, letnie','Sandały na platformie'],['botki damskie, za kostkę','Botki'],['kozaki damskie, za kolano','Kozaki'],['mokasyny damskie, płaskie','Mokasyny']] :
-                    category === 'bizuteria' ? [['luksusowy naszyjnik z diamentami','Naszyjnik'],['pierścionek zaręczynowy z brylantem','Pierścionek'],['kolczyki wiszące, kryształy','Kolczyki'],['bransoletka tenisowa, diamenty','Bransoletka'],['broszka, vintage style','Broszka']] :
-                    category === 'zegarek' ? [['luksusowy zegarek męski','Zegarek męski'],['zegarek damski, elegancki','Zegarek damski'],['smartwatch premium','Smartwatch'],['zegarek vintage, klasyczny','Zegarek vintage']] :
-                    category === 'napoj' ? [['elegancka butelka szklana z napojem','Butelka szklana'],['puszka aluminiowa, nowoczesna','Puszka'],['butelka sportowa, premium','Butelka sportowa'],['karafka z napojem, luksusowa','Karafka']] :
-                    [['luksusowy flakon perfum, matowy czarny','Flakon perfum'],['butelka kosmetyczna, elegancka','Butelka kosmetyczna'],['pudełko kosmetyczne, premium','Pudełko kosmetyczne'],['słoik z kremem, luksusowy','Słoik kremu']]
-                  },
-                  {label:t.lang==='EN'?'Color':'Kolor',value:productColor,set:setProductColor,opts:[['matowy czarny',t.lang==='EN'?'Matte Black':'Czarny mat'],['błyszczący złoty',t.lang==='EN'?'Shiny Gold':'Złoty'],['perłowy biały',t.lang==='EN'?'Pearl White':'Perłowy biały'],['głęboka czerwień',t.lang==='EN'?'Deep Red':'Czerwony'],['szampański beż',t.lang==='EN'?'Champagne':'Szampański'],['srebrny metaliczny',t.lang==='EN'?'Silver':'Srebrny'],['granatowy głęboki',t.lang==='EN'?'Navy Blue':'Granatowy'],['burgund, wino',t.lang==='EN'?'Burgundy':'Burgund']]},
-                  {label:'Materiał',value:material,set:setMaterial,opts:
-                    category === 'torebka' ? [['natural leather, smooth',t.lang==='EN'?'Smooth leather':'Skóra gładka'],['quilted leather, Chanel style',t.lang==='EN'?'Quilted leather':'Skóra pikowana'],['crocodile leather, exotic',t.lang==='EN'?'Crocodile':'Skóra krokodyla'],['suede, matte',t.lang==='EN'?'Suede':'Zamsz'],['fabric, premium canvas',t.lang==='EN'?'Fabric':'Tkanina'],['patent leather, lacquered',t.lang==='EN'?'Patent leather':'Patent/Lakier']] :
-                    category === 'buty' ? [['skóra lakierowana','Lakierowana'],['skóra naturalna, matowa','Skóra naturalna'],['zamsz','Zamsz'],['satyna, wieczorowa','Satyna'],['patent, błyszcząca','Patent']] :
-                    category === 'bizuteria' ? [['złoto 18k, błyszczący','Złoto 18k'],['platyna, lustrzany połysk','Platyna'],['srebro 925, polerowane','Srebro 925'],['różowe złoto, delikatne','Różowe złoto'],['tytan, nowoczesny','Tytan']] :
-                    [['glass, premium',t.lang==='EN'?'Premium glass':'Szkło premium'],['metallic, chrome',t.lang==='EN'?'Chrome metal':'Metal chromowany'],['matte, concrete texture',t.lang==='EN'?'Matte concrete':'Matowy beton'],['crystal, transparent',t.lang==='EN'?'Crystal':'Kryształ']]
-                  },
-                ].map(f => (
-                  <div key={f.label}><label className={labelClass}>{f.label}</label><div className="relative"><select value={f.value} onChange={e => { e.stopPropagation(); f.set(e.target.value); }} className={inputClass}>{f.opts.map(([v,l]) => <option key={v} value={v}>{l}</option>)}</select><ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/></div></div>
-                ))}
-              </div>
-            </div>
+      {/* Main 3-col layout */}
+      <div className="px-4 max-w-[1800px] mx-auto flex gap-4" style={{ alignItems: 'flex-start' }}>
 
-            <div className={sectionClass}>
-              <h2 className={headerClass}><span className="text-lg">💧</span> II. Efekty i Oświetlenie</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                {[
-                  {label:t.lang==='EN'?'Main Effect':'Efekt główny',value:effect,set:setEffect,opts:[['para i mgła unosząca się elegancko wokół',t.lang==='EN'?'Steam & Mist':'Para i mgła'],['krople wody spływające powoli po powierzchni',t.lang==='EN'?'Water Drops':'Krople wody'],['lód i kryształy lodu otaczające produkt',t.lang==='EN'?'Ice & Crystals':'Lód i kryształy'],['złote drobinki i brokat unoszące się',t.lang==='EN'?'Gold Glitter':'Złoty brokat'],['delikatne płatki kwiatów opadające',t.lang==='EN'?'Flower Petals':'Płatki kwiatów'],['refleksy i błyski światła na powierzchni',t.lang==='EN'?'Light Reflections':'Refleksy światła']]},
-                  {label:t.lang==='EN'?'Extra Effect':'Efekt dodatkowy',value:splashEffect,set:setSplashEffect,opts:[['eksplozja kolorowego proszku w slow motion',t.lang==='EN'?'Powder Explosion':'Eksplozja proszku'],['brak',t.lang==='EN'?'None':'Brak'],['odpryski wody w slow motion',t.lang==='EN'?'Water Splash':'Odpryski wody'],['śnieg i płatki śniegu opadające',t.lang==='EN'?'Snow':'Śnieg'],['płomienie i ogień w tle',t.lang==='EN'?'Fire':'Ogień'],['bąbelki powietrza unoszące się',t.lang==='EN'?'Bubbles':'Bąbelki']]},
-                  {label:t.lang==='EN'?'Lighting':'Oświetlenie',value:lighting,set:setLighting,opts:[['złote ciepłe światło, golden hour, zachód słońca','Golden hour'],['dramatyczne studyjne, twarde cienie',t.lang==='EN'?'Studio Dramatic':'Studyjne'],['miękkie naturalne, rozproszone',t.lang==='EN'?'Soft Natural':'Naturalne miękkie'],['neonowe, cyberpunk, nocne miasto','Neon'],['zimne niebieskie, lodowe, zimowe',t.lang==='EN'?'Cold Blue':'Zimne niebieskie'],['świece i ciepłe punktowe',t.lang==='EN'?'Candles':'Świece']]},
-                ].map(f => (
-                  <div key={f.label}><label className={labelClass}>{f.label}</label><div className="relative"><select value={f.value} onChange={e => { e.stopPropagation(); f.set(e.target.value); }} className={inputClass}>{f.opts.map(([v,l]) => <option key={v} value={v}>{l}</option>)}</select><ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/></div></div>
-                ))}
-              </div>
-            </div>
-
-            <div className={sectionClass}>
-              <h2 className={headerClass}><span className="text-lg">🎬</span> III. Ruch, Kamera i Nastrój</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                {[
-                  {label:t.lang==='EN'?'Rotation':'Obrót',value:rotation,set:setRotation,opts:[['powolny obrót 360 stopni, sweeping orbit kamery','360° sweeping orbit'],['delikatne kołysanie lewo-prawo',t.lang==='EN'?'Gentle Sway':'Kołysanie'],['kamera orbituje wokół produktu',t.lang==='EN'?'Camera Orbit':'Orbita kamery'],['statyczny, bez ruchu',t.lang==='EN'?'Static':'Statyczny'],['zoom in powoli na produkt','Zoom in']]},
-                  {label:t.lang==='EN'?'Product Motion':'Ruch produktu',value:levitation,set:setLevitation,opts:[['unoszenie się w górę i dół, eleganckie i płynne','Levitation'],['brak ruchu produktu',t.lang==='EN'?'None':'Brak'],['delikatne drżenie, jak oddech',t.lang==='EN'?'Breathing':'Oddech'],['obrót produktu w miejscu',t.lang==='EN'?'Spin in place':'Obrót w miejscu']]},
-                  {label:t.lang==='EN'?'Speed':'Prędkość',value:speed,set:setSpeed,opts:[['wolno i elegancko, ultra slow motion','Ultra slow motion'],['normalnie, płynnie',t.lang==='EN'?'Normal':'Normalnie'],['dynamicznie i szybko',t.lang==='EN'?'Dynamic':'Dynamicznie'],['ramping speed, od slow do fast','Speed ramp']]},
-                  {label:t.lang==='EN'?'Mood':'Nastrój',value:mood,set:setMood,opts:[['luksusowy, premium, elegancki',t.lang==='EN'?'Luxury':'Luksus'],['świeży, naturalny, organiczny',t.lang==='EN'?'Natural':'Naturalny'],['energetyczny, dynamiczny, sportowy',t.lang==='EN'?'Sporty':'Sportowy'],['romantyczny, zmysłowy, delikatny',t.lang==='EN'?'Romantic':'Romantyczny'],['minimalistyczny, czysty',t.lang==='EN'?'Minimal':'Minimalizm'],['tajemniczy, mroczny, noir','Noir']]},
-                ].map(f => (
-                  <div key={f.label}><label className={labelClass}>{f.label}</label><div className="relative"><select value={f.value} onChange={e => { e.stopPropagation(); f.set(e.target.value); }} className={inputClass}>{f.opts.map(([v,l]) => <option key={v} value={v}>{l}</option>)}</select><ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/></div></div>
-                ))}
-              </div>
-              <div className="mt-4"><label className={labelClass}>Tło</label><div className="relative"><select value={bg} onChange={e => { e.stopPropagation(); setBg(e.target.value); }} className={inputClass}><option value="spokojny ocean o zachodzie słońca, golden hour">{t.lang==='EN'?'Ocean Sunset':'Ocean o zachodzie słońca'}</option><option value="ciemne studyjne tło, czarny gradient">{t.lang==='EN'?'Black Studio':'Czarne studio'}</option><option value="białe czyste minimalistyczne studio">{t.lang==='EN'?'White Studio':'Białe studio'}</option><option value="marmurowa posadzka, luksusowe wnętrze">{t.lang==='EN'?'Marble Luxury':'Marmur i luksus'}</option><option value="natura, zielone liście, bokeh">{t.lang==='EN'?'Nature Bokeh':'Natura z bokeh'}</option><option value="nocne miasto, neon, deszcz">{t.lang==='EN'?'Night City':'Nocne miasto'}</option><option value="śnieg i góry, zimowy krajobraz">{t.lang==='EN'?'Winter Landscape':'Zimowy krajobraz'}</option></select><ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/></div></div>
-            </div>
-          </div>
-
-          <div className="lg:col-span-1 lg:order-2 order-1">
-            <div className="sticky top-24">
-              <div className="relative bg-white dark:bg-[#0A0A0A] border border-black/10 dark:border-[#333] p-6 rounded-2xl">
-                <h2 className="text-[10px] font-bold uppercase tracking-widest mb-4 border-b border-black/10 dark:border-[#333] pb-2 text-black dark:text-amber-500">Prompt</h2>
-                <div className="relative">
-                  {/* Prompt always visible */}
-                  <div className="bg-slate-100 dark:bg-[#121212] p-4 min-h-[200px] text-black dark:text-white font-mono text-[10px] leading-relaxed break-words border border-black/10 dark:border-[#222] mb-4 rounded-xl">
-                    <span className="text-amber-500 font-bold">{"> "}</span>{generatePrompt()}
-                  </div>
-                  {/* Lock — only after clicking copy when not logged in */}
-                  {!isLoggedIn && (
-                    <div className="absolute inset-0 mb-4 rounded-xl backdrop-blur-sm bg-black/70 flex flex-col items-center justify-center p-4 text-center cursor-pointer" onClick={onLoginRequest}>
-                      <div className="text-3xl mb-3">🔒</div>
-                      <p className="text-white font-black text-xs uppercase tracking-widest mb-1">{t.lang === 'EN' ? 'Log in to copy' : 'Zaloguj się aby skopiować'}</p>
-                      <p className="text-white/60 text-[10px] mb-3">{t.lang === 'EN' ? 'Free · 3 prompts included' : 'Bezpłatnie · 3 prompty gratis'}</p>
-                      <span className="bg-amber-500 text-black font-black text-[10px] uppercase tracking-widest px-4 py-2 rounded-xl">{t.lang === 'EN' ? 'Log In / Register' : 'Zaloguj / Zarejestruj'}</span>
-                    </div>
-                  )}
-                  {/* Lock — when logged in but tokens exhausted and tried to copy */}
-                  {isLoggedIn && !isPro && tokens !== null && tokens <= 0 && (
-                    <div className="absolute inset-0 mb-4 rounded-xl backdrop-blur-sm bg-black/70 flex flex-col items-center justify-center p-4 text-center">
-                      <div className="text-3xl mb-3">💳</div>
-                      <p className="text-white font-black text-xs uppercase tracking-widest mb-1">{t.lang === 'EN' ? 'No prompts left' : 'Brak promptów'}</p>
-                      <p className="text-white/60 text-[10px] mb-3">{t.lang === 'EN' ? 'Upgrade to Starter — 30 PLN/mo' : 'Kup Starter — 30 zł/mies.'}</p>
-                      <a href={user && !user.isAnonymous ? stripeLink(STRIPE_STARTER_LINK, user.uid, user.email) : '#'} onClick={e => { if (!user || user.isAnonymous) { e.preventDefault(); onLoginRequest && onLoginRequest(); }}} target="_blank" rel="noopener noreferrer" className="bg-amber-500 hover:bg-amber-400 text-black font-black text-[10px] uppercase tracking-widest px-4 py-2 rounded-xl transition-all">
-                        {t.lang === 'EN' ? 'Go Pro →' : 'Kup Pro →'}
-                      </a>
-                    </div>
-                  )}
-                </div>
-                <button
-                  onClick={handleCopy}
-                  className={`w-full py-3 font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all ${copied ? 'bg-emerald-500 text-black' : 'bg-black dark:bg-amber-500 text-white dark:text-black hover:bg-amber-500 hover:text-black'}`}
-                >
-                  {copied ? '✔ Skopiowano!' : isPro ? `Kopiuj Prompt (∞ All-in-one)` : isStarter ? `Kopiuj Prompt (∞ Starter)` : isLoggedIn && tokens > 0 ? `Kopiuj Prompt (${tokens}/3 🎟)` : t.lang === 'EN' ? 'Copy Prompt →' : 'Kopiuj Prompt →'}
-                </button>
-              </div>
-            </div>
+        {/* LEFT NAV */}
+        <div style={{ width: '140px', flexShrink: 0, position: 'sticky', top: '80px' }}>
+          <div className="flex flex-col gap-1">
+            {AD_SECTION_DEFS.map(sec => (
+              <button key={sec.id} onClick={() => setOpenSection(openSection === sec.id ? null : sec.id)}
+                className="w-full text-left px-3 py-3 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all"
+                style={{
+                  background: openSection === sec.id ? `${activeCat?.color}22` : 'rgba(255,255,255,0.03)',
+                  border: openSection === sec.id ? `1px solid ${activeCat?.color}88` : '1px solid rgba(255,255,255,0.07)',
+                  color: openSection === sec.id ? activeCat?.color : 'rgba(255,255,255,0.5)',
+                }}>
+                {sec.label}
+              </button>
+            ))}
           </div>
         </div>
+
+        {/* CENTER — tabela pól */}
+        <div className="flex-1 min-w-0">
+          {openSection && (() => {
+            const sec = AD_SECTION_DEFS.find(s => s.id === openSection);
+            if (!sec) return null;
+
+            const fieldKeys = sec.fields.filter(fk => catFields[fk]);
+
+            return (
+              <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-2xl overflow-hidden">
+                <div className="px-4 py-3 border-b border-[#1f1f1f] flex items-center gap-3">
+                  <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: activeCat?.color }}>{sec.label}</span>
+                  <span className="text-[10px] text-white/30 uppercase tracking-widest">{activeCat?.label}</span>
+                </div>
+                {fieldKeys.map((fk, ri) => {
+                  const opts = catFields[fk] || [];
+                  const fieldLabels = { produkt: 'Produkt', material: 'Materiał', kolor: 'Kolor', efekt: 'Efekt główny', efekt2: 'Efekt dodatkowy', oswietlenie: 'Oświetlenie', nastoj: 'Nastrój', ruch: 'Ruch kamery', tlo: 'Tło' };
+                  return (
+                    <div key={fk} className="grid border-b border-[#151515]" style={{ gridTemplateColumns: '140px 1fr', background: ri % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.01)' }}>
+                      <div className="flex items-center px-4 py-3">
+                        <span className="text-[10px] font-black uppercase tracking-widest text-white/40">{fieldLabels[fk] || fk}</span>
+                      </div>
+                      <div className="px-3 py-2 border-l border-[#151515]">
+                        <div className="relative" style={{ maxWidth: '500px' }}>
+                          <select value={values[fk] || ''} onChange={e => handleValueChange(fk, e.target.value)} className={selCls}>
+                            {opts.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                          </select>
+                          <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-500 pointer-events-none"/>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
+        </div>
+
+        {/* RIGHT — Prompt sticky */}
+        <div style={{ width: '260px', flexShrink: 0, position: 'sticky', top: '80px' }}>
+          <div className="relative bg-[#0a0a0a] border border-[#1f1f1f] p-4 rounded-2xl">
+            <h2 className="text-[10px] font-black tracking-widest mb-3 border-b border-[#1f1f1f] pb-2 text-amber-500 uppercase">Prompt</h2>
+            <div className="relative">
+              <div className="bg-[#060606] p-3 min-h-[200px] max-h-[55vh] overflow-y-auto text-white font-mono text-[10px] leading-relaxed break-words border border-[#1a1a1a] mb-4 rounded-xl">
+                <span className="text-amber-500 font-bold">{"> "}</span>{generatePrompt()}
+              </div>
+              {!isLoggedIn && (
+                <div className="absolute inset-0 mb-4 rounded-xl backdrop-blur-sm bg-black/80 flex flex-col items-center justify-center p-4 text-center cursor-pointer" onClick={onLoginRequest}>
+                  <div className="text-3xl mb-2">🔒</div>
+                  <p className="text-white font-black text-xs uppercase tracking-widest mb-1">Zaloguj się</p>
+                  <p className="text-white/50 text-[10px] mb-3">3 prompty gratis</p>
+                  <span className="bg-amber-500 text-black font-black text-[10px] uppercase tracking-widest px-4 py-2 rounded-xl">Zaloguj</span>
+                </div>
+              )}
+              {isLoggedIn && !isPro && !isStarter && tokens !== null && tokens <= 0 && (
+                <div className="absolute inset-0 mb-4 rounded-xl backdrop-blur-sm bg-black/80 flex flex-col items-center justify-center p-4 text-center">
+                  <div className="text-3xl mb-2">💳</div>
+                  <p className="text-white font-black text-xs uppercase tracking-widest mb-1">Brak promptów</p>
+                  <a href={user ? stripeLink(STRIPE_STARTER_LINK, user.uid, user.email) : '#'}
+                    target="_blank" rel="noopener noreferrer"
+                    className="bg-amber-500 hover:bg-amber-400 text-black font-black text-[10px] uppercase tracking-widest px-4 py-2 rounded-xl transition-all mt-2">
+                    Kup Plan →
+                  </a>
+                </div>
+              )}
+            </div>
+            <button onClick={handleCopy}
+              className={`w-full py-3 font-black text-[10px] uppercase tracking-widest rounded-xl transition-all ${copied ? 'bg-emerald-500 text-black' : 'bg-amber-500 hover:bg-amber-400 text-black'}`}>
+              {copied ? '✔ Skopiowano!' : isPro ? 'Kopiuj (∞)' : isStarter ? 'Kopiuj (∞)' : isLoggedIn && tokens > 0 ? `Kopiuj (${tokens}/3 🎟)` : 'Kopiuj Prompt →'}
+            </button>
+          </div>
+        </div>
+
       </div>
     </div>
   );
 };
+
 
 // =========================================================================
 // CENNIK VIEW
