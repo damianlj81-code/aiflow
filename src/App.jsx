@@ -2221,8 +2221,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
   const [isStarter, setIsStarter] = useState(false);
   const [loadingTokens, setLoadingTokens] = useState(false);
   const [category, setCategory] = useState('kosmetyki');
-
-
+  const [customNote, setCustomNote] = useState('');
   const [values, setValues] = useState(() => defaultAdValues('kosmetyki'));
 
   useEffect(() => {
