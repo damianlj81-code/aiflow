@@ -1589,41 +1589,68 @@ const CennikView = ({ t, user, onLoginRequest }) => {
 };
 
 
+const LegalH = ({ children }) => <h2 style={{fontWeight:800,fontSize:'10px',textTransform:'uppercase',letterSpacing:'0.2em',color:'#f59e0b',marginBottom:'8px',marginTop:'28px'}}>{children}</h2>;
+const LegalP = ({ children }) => <p style={{fontSize:'14px',lineHeight:'1.75',marginBottom:'8px'}}>{children}</p>;
+const LegalBack = ({ setCurrentView, lang }) => <button onClick={() => setCurrentView('home')} className="text-[10px] font-bold uppercase tracking-widest text-amber-500 mb-8 flex items-center gap-2 hover:gap-3 transition-all">← {lang === 'EN' ? 'Back' : 'Powrót'}</button>;
+
 const ImpressumView = ({ setCurrentView, lang }) => (
   <div className="min-h-screen bg-white dark:bg-black p-6 md:p-16 font-sans transition-colors duration-500">
-    <div className="max-w-3xl mx-auto">
-      <button onClick={() => setCurrentView('home')} className="text-[10px] font-bold uppercase tracking-widest text-amber-500 mb-8 flex items-center gap-2 hover:gap-3 transition-all">← {lang === 'EN' ? 'Back' : 'Powrót'}</button>
+    <div className="max-w-3xl mx-auto text-slate-700 dark:text-slate-300">
+      <LegalBack setCurrentView={setCurrentView} lang={lang} />
       <h1 className="text-3xl font-extrabold uppercase tracking-tighter text-black dark:text-white mb-10 border-b border-black dark:border-[#222] pb-6">Impressum</h1>
-      <div className="space-y-6 text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
-        <div><h2 className="font-bold uppercase text-[10px] tracking-widest text-amber-600 dark:text-amber-500 mb-2">Angaben gemäß § 5 TMG</h2><p>DDC — Dienstleistungen Damian Chlad<br />Garteler Weg 38<br />27711 Osterholz-Scharmbeck<br />Deutschland</p></div>
-        <div><h2 className="font-bold uppercase text-[10px] tracking-widest text-amber-600 dark:text-amber-500 mb-2">Kontakt</h2><p>Telefon: +49 151 66396941<br />E-Mail: info@loveaiflow.com</p></div>
-      </div>
+      <LegalP>Angaben gemäß § 5 TMG (Telemediengesetz)</LegalP>
+      <LegalH>Anbieter</LegalH>
+      <LegalP><strong>DDC — Dienstleistungen Damian Chlad</strong><br/>Garteler Weg 38<br/>27711 Osterholz-Scharmbeck<br/>Deutschland</LegalP>
+      <LegalH>Kontakt</LegalH>
+      <LegalP>Telefon: +49 151 66396941<br/>E-Mail: info@loveaiflow.com<br/>Website: loveaiflow.com</LegalP>
+      <LegalH>Gewerbeanmeldung</LegalH>
+      <LegalP>Eingetragenes Gewerbe gemäß § 14 GewO. Zuständige Behörde: Landkreis Osterholz.</LegalP>
+      <LegalH>Umsatzsteuer</LegalH>
+      <LegalP>Gemäß § 19 UStG wird keine Umsatzsteuer berechnet (Kleinunternehmerregelung).</LegalP>
+      <LegalH>Streitschlichtung</LegalH>
+      <LegalP>Die EU-Kommission stellt eine Plattform zur Online-Streitbeilegung bereit: https://ec.europa.eu/consumers/odr. Wir sind nicht verpflichtet, an einem Schlichtungsverfahren teilzunehmen.</LegalP>
     </div>
   </div>
 );
 
 const DatenschutzView = ({ setCurrentView, lang }) => (
   <div className="min-h-screen bg-white dark:bg-black p-6 md:p-16 font-sans transition-colors duration-500">
-    <div className="max-w-3xl mx-auto">
-      <button onClick={() => setCurrentView('home')} className="text-[10px] font-bold uppercase tracking-widest text-amber-500 mb-8 flex items-center gap-2 hover:gap-3 transition-all">← {lang === 'EN' ? 'Back' : 'Powrót'}</button>
-      <h1 className="text-3xl font-extrabold uppercase tracking-tighter text-black dark:text-white mb-10 border-b border-black dark:border-[#222] pb-6">{lang === 'EN' ? 'Privacy Policy' : 'Datenschutzerklärung / Polityka Prywatności'}</h1>
-      <div className="space-y-8 text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
-        <div><h2 className="font-bold uppercase text-[10px] tracking-widest text-amber-600 dark:text-amber-500 mb-2">1. Administrator</h2><p>DDC — Dienstleistungen Damian Chlad, Garteler Weg 38, 27711 Osterholz-Scharmbeck<br />E-Mail: info@loveaiflow.com</p></div>
-        <div><h2 className="font-bold uppercase text-[10px] tracking-widest text-amber-600 dark:text-amber-500 mb-2">2. {lang === 'EN' ? 'Data We Collect' : 'Jakie dane zbieramy'}</h2><p>{lang === 'EN' ? 'We collect email addresses provided voluntarily via our newsletter form and technical data via cookies.' : 'Zbieramy adresy e-mail podawane dobrowolnie oraz dane techniczne poprzez pliki cookie.'}</p></div>
-      </div>
+    <div className="max-w-3xl mx-auto text-slate-700 dark:text-slate-300">
+      <LegalBack setCurrentView={setCurrentView} lang={lang} />
+      <h1 className="text-3xl font-extrabold uppercase tracking-tighter text-black dark:text-white mb-10 border-b border-black dark:border-[#222] pb-6">{lang === 'EN' ? 'Privacy Policy' : 'Polityka Prywatnosci / Datenschutz'}</h1>
+      <LegalH>1. {lang === 'EN' ? 'Controller' : 'Administrator'}</LegalH>
+      <LegalP>DDC — Dienstleistungen Damian Chlad, Garteler Weg 38, 27711 Osterholz-Scharmbeck. E-Mail: info@loveaiflow.com</LegalP>
+      <LegalH>2. {lang === 'EN' ? 'Data collected' : 'Zbierane dane'}</LegalH>
+      <LegalP>{lang === 'EN' ? 'We collect: email address (registration), Google login data (OAuth), payment data handled exclusively by Stripe, activity logs (Firebase Analytics).' : 'Zbieramy: adres e-mail (rejestracja), dane logowania Google (OAuth), dane platnosci obslugiwane wylacznie przez Stripe, logi aktywnosci (Firebase Analytics).'}</LegalP>
+      <LegalH>3. {lang === 'EN' ? 'Legal basis' : 'Podstawa prawna'}</LegalH>
+      <LegalP>{lang === 'EN' ? 'Data is processed to perform the contract (Art. 6(1)(b) GDPR) and for legitimate interests of the controller.' : 'Dane przetwarzamy na podstawie art. 6 ust. 1 lit. b RODO (wykonanie umowy) oraz uzasadnionego interesu administratora.'}</LegalP>
+      <LegalH>4. {lang === 'EN' ? 'Third parties' : 'Podmioty trzecie'}</LegalH>
+      <LegalP>{lang === 'EN' ? 'Firebase/Google (hosting, auth, database), Stripe (payments). All comply with GDPR.' : 'Firebase/Google (hosting, auth, baza danych), Stripe (platnosci). Wszyscy dzialaja zgodnie z RODO.'}</LegalP>
+      <LegalH>5. {lang === 'EN' ? 'Your rights' : 'Twoje prawa'}</LegalH>
+      <LegalP>{lang === 'EN' ? 'Access, rectification, erasure, restriction, portability, objection. Contact: info@loveaiflow.com' : 'Dostep, sprostowanie, usuniecie, ograniczenie, przenosnosc, sprzeciw. Kontakt: info@loveaiflow.com'}</LegalP>
+      <LegalH>6. {lang === 'EN' ? 'Supervisory authority' : 'Organ nadzorczy'}</LegalH>
+      <LegalP>{lang === 'EN' ? 'Der Landesbeauftragte fur den Datenschutz Niedersachsen (www.lfd.niedersachsen.de)' : 'Der Landesbeauftragte fur den Datenschutz Niedersachsen (www.lfd.niedersachsen.de)'}</LegalP>
     </div>
   </div>
 );
 
 const RegulaminView = ({ setCurrentView, lang }) => (
   <div className="min-h-screen bg-white dark:bg-black p-6 md:p-16 font-sans transition-colors duration-500">
-    <div className="max-w-3xl mx-auto">
-      <button onClick={() => setCurrentView('home')} className="text-[10px] font-bold uppercase tracking-widest text-amber-500 mb-8 flex items-center gap-2 hover:gap-3 transition-all">← {lang === 'EN' ? 'Back' : 'Powrót'}</button>
-      <h1 className="text-3xl font-extrabold uppercase tracking-tighter text-black dark:text-white mb-10 border-b border-black dark:border-[#222] pb-6">{lang === 'EN' ? 'Terms & Conditions' : 'Regulamin'}</h1>
-      <div className="space-y-8 text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
-        <div><h2 className="font-bold uppercase text-[10px] tracking-widest text-amber-600 dark:text-amber-500 mb-2">1. {lang === 'EN' ? 'Provider' : 'Usługodawca'}</h2><p>DDC — Dienstleistungen Damian Chlad, Garteler Weg 38, 27711 Osterholz-Scharmbeck. E-Mail: info@loveaiflow.com</p></div>
-        <div><h2 className="font-bold uppercase text-[10px] tracking-widest text-amber-600 dark:text-amber-500 mb-2">2. {lang === 'EN' ? 'Cancellation' : 'Rezygnacja'}</h2><p>{lang === 'EN' ? 'Cancel anytime by email: info@loveaiflow.com. Access continues until end of paid period.' : 'Rezygnacja w dowolnym momencie przez e-mail: info@loveaiflow.com.'}</p></div>
-      </div>
+    <div className="max-w-3xl mx-auto text-slate-700 dark:text-slate-300">
+      <LegalBack setCurrentView={setCurrentView} lang={lang} />
+      <h1 className="text-3xl font-extrabold uppercase tracking-tighter text-black dark:text-white mb-10 border-b border-black dark:border-[#222] pb-6">{lang === 'EN' ? 'Terms & Conditions' : 'Regulamin serwisu'}</h1>
+      <LegalH>1. {lang === 'EN' ? 'Provider' : 'Uslugodawca'}</LegalH>
+      <LegalP>DDC — Dienstleistungen Damian Chlad, Garteler Weg 38, 27711 Osterholz-Scharmbeck, Niemcy. E-Mail: info@loveaiflow.com</LegalP>
+      <LegalH>2. {lang === 'EN' ? 'Services' : 'Zakres uslug'}</LegalH>
+      <LegalP>{lang === 'EN' ? 'AI Flow Academy offers educational materials, AI prompt generators (Avatar Builder, Ad Builder), and community access. Full access requires registration and a Pro plan (29 PLN/month).' : 'AI Flow Academy oferuje materialy edukacyjne z zakresu AI, generatory promptow (Kreator Awatarow, Kreator Reklam) oraz spolecznosc. Pelny dostep wymaga rejestracji i planu Pro (29 PLN/miesiac).'}</LegalP>
+      <LegalH>3. {lang === 'EN' ? 'AI Tools disclaimer' : 'Zastrzezenia dot. narzedzi AI'}</LegalH>
+      <LegalP>{lang === 'EN' ? 'The prompt generators create text instructions for external AI image generators. AI Flow Academy does not guarantee specific visual results. Users are solely responsible for generated content and must comply with applicable laws and the terms of the chosen AI generator.' : 'Kreatory generuja prompty tekstowe do zewnetrznych generatorow obrazow AI. AI Flow Academy nie gwarantuje konkretnych efektow wizualnych. Uzytkownik korzysta z narzedzi na wlasna odpowiedzialnosc i musi przestrzegac obowiazujacego prawa oraz regulaminu wybranego generatora AI.'}</LegalP>
+      <LegalH>4. {lang === 'EN' ? 'Subscription' : 'Subskrypcja'}</LegalH>
+      <LegalP>{lang === 'EN' ? 'Pro plan: 29 PLN/month, billed via Stripe, auto-renewing. Cancel anytime by email: info@loveaiflow.com. Access continues until end of paid period.' : 'Plan Pro: 29 PLN/miesiac, platnosc przez Stripe, odnawia sie automatycznie. Rezygnacja w dowolnym momencie: info@loveaiflow.com. Dostep aktywny do konca oplaconego okresu.'}</LegalP>
+      <LegalH>5. {lang === 'EN' ? 'Withdrawal right (EU/DE)' : 'Prawo odstapienia (UE/DE)'}</LegalH>
+      <LegalP>{lang === 'EN' ? 'You may withdraw from the contract within 14 days (§ 312g BGB). This right expires upon commencement of digital services with your explicit consent. To withdraw: info@loveaiflow.com.' : 'Prawo odstapienia od umowy przysluguje w ciagu 14 dni (§ 312g BGB). Wygasa z chwila rozpoczecia korzystania z uslug cyfrowych za zgoda uzytkownika. Aby odstapic: info@loveaiflow.com.'}</LegalP>
+      <LegalH>6. {lang === 'EN' ? 'Governing law' : 'Prawo wlasciwe'}</LegalH>
+      <LegalP>{lang === 'EN' ? 'German law applies. Disputes shall be resolved by courts in Osterholz-Scharmbeck, Germany.' : 'Stosuje sie prawo niemieckie. Spory rozstrzygaja sady wlasciwe dla Osterholz-Scharmbeck, Niemcy.'}</LegalP>
     </div>
   </div>
 );
