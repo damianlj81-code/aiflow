@@ -1763,8 +1763,6 @@ const DisclaimerModal = ({ storageKey, onAccept }) => {
 
 const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
   const isLoggedIn = user && !user.isAnonymous;
-  const [disclaimerAccepted, setDisclaimerAccepted] = useState(() => localStorage.getItem('aiflow_disclaimer_avatar') === '1');
-  const handleAcceptDisclaimer = () => { localStorage.setItem('aiflow_disclaimer_avatar', '1'); setDisclaimerAccepted(true); };
   const [tokens, setTokens] = useState(null);
   const [isPro, setIsPro] = useState(false);
   const [isStarter, setIsStarter] = useState(false);
@@ -1887,7 +1885,6 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
 
   return (
     <div className="relative pb-20 bg-black transition-colors duration-700 min-h-screen font-sans">
-      {!disclaimerAccepted && <DisclaimerModal storageKey="aiflow_disclaimer_avatar" onAccept={handleAcceptDisclaimer} />}
       {/* Header */}
       <div className="px-4 pt-6 pb-4 max-w-[1800px] mx-auto">
         <div className="flex items-start justify-between flex-wrap gap-4 mb-5">
@@ -2213,8 +2210,6 @@ const buildAdPrompt = (catId, values) => {
 
 const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
   const isLoggedIn = user && !user.isAnonymous;
-  const [disclaimerAccepted, setDisclaimerAccepted] = useState(() => localStorage.getItem('aiflow_disclaimer_ad') === '1');
-  const handleAcceptDisclaimer = () => { localStorage.setItem('aiflow_disclaimer_ad', '1'); setDisclaimerAccepted(true); };
   const [copied, setCopied] = useState(false);
   const [tokens, setTokens] = useState(null);
   const [isPro, setIsPro] = useState(false);
@@ -2259,7 +2254,6 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
 
   return (
     <div className="relative pb-20 bg-black transition-colors duration-700 min-h-screen font-sans">
-      {!disclaimerAccepted && <DisclaimerModal storageKey="aiflow_disclaimer_ad" onAccept={handleAcceptDisclaimer} />}
       <div className="px-4 pt-6 pb-4 max-w-[1800px] mx-auto">
         <div className="flex items-start justify-between flex-wrap gap-4 mb-5">
           <div>
