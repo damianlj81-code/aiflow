@@ -263,6 +263,13 @@ const LoginModal = ({ onClose, lang }) => {
             {loading ? '...' : mode === 'login' ? (lang === 'EN' ? 'Sign In' : 'Zaloguj się') : (lang === 'EN' ? 'Create Account' : 'Utwórz konto')}
           </button>
         </form>
+        {mode === 'register' && (
+          <p className="text-center text-[10px] text-slate-500 mt-3 leading-relaxed px-2">
+            {lang === 'EN'
+              ? <>By creating an account you accept the <a href="/regulamin" target="_blank" className="text-amber-500 hover:underline font-bold">Terms & Conditions</a> and <a href="/datenschutz" target="_blank" className="text-amber-500 hover:underline font-bold">Privacy Policy</a>, including AI tools terms.</>
+              : <>Tworzac konto akceptujesz <a href="/regulamin" target="_blank" className="text-amber-500 hover:underline font-bold">Regulamin</a> oraz <a href="/datenschutz" target="_blank" className="text-amber-500 hover:underline font-bold">Polityke Prywatnosci</a>, w tym warunki korzystania z narzedzi AI.</>}
+          </p>
+        )}
         <p className="text-center text-[11px] text-slate-500 mt-4">
           {mode === 'login' ? (lang === 'EN' ? "Don't have an account? " : 'Nie masz konta? ') : (lang === 'EN' ? 'Already have an account? ' : 'Masz już konto? ')}
           <button onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); }} className="text-amber-500 font-bold hover:underline">
@@ -1045,6 +1052,9 @@ const DodatkiView = ({ t, onNavigate }) => {
   );
 };
 
+// =========================================================================
+// AVATAR BUILDER VIEW — Kreator Awatarow
+// =========================================================================
 const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
   const isLoggedIn = user && !user.isAnonymous;
   const [clicked, setClicked] = useState(false);
@@ -1052,6 +1062,7 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
   const [isPro, setIsPro] = useState(false);
   const [isStarter, setIsStarter] = useState(false);
   const [loadingTokens, setLoadingTokens] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (isLoggedIn && user?.uid) {
@@ -1063,9 +1074,7 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
         setLoadingTokens(false);
       }).catch(() => setLoadingTokens(false));
     } else {
-      setTokens(null);
-      setIsPro(false);
-      setIsStarter(false);
+      setTokens(null); setIsPro(false); setIsStarter(false);
     }
   }, [isLoggedIn, user?.uid]);
 
@@ -1078,141 +1087,209 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
       return () => { document.removeEventListener('contextmenu', noRight); document.removeEventListener('keydown', noF12); };
     }
   }, [isLoggedIn]);
-  const [copied, setCopied] = useState(false);
+
+  const canGenerate = isPro || isStarter || (tokens !== null && tokens > 0);
+
+  // --- Stan ---
   const [subject, setSubject] = useState('1girl, beautiful woman');
   const [bodyType, setBodyType] = useState('slim and toned body');
   const [breastSize, setBreastSize] = useState('medium breasts');
   const [lowerAnatomy, setLowerAnatomy] = useState('none');
   const [bodyHair, setBodyHair] = useState('none');
-  const [faceSelect, setFaceSelect] = useState('detailed symmetrical face, sharp features, natural skin');
-  const [hairLength, setHairLength] = useState('long');
-  const [hairColor, setHairColor] = useState('blonde');
   const [hairStyle, setHairStyle] = useState('elegant updo hair, wedding style, revealing ears and earrings');
-  const [shoes, setShoes] = useState('elegant high heels, stilettos');
+  const [hairColor, setHairColor] = useState('blonde');
+  const [hairLength, setHairLength] = useState('long');
+  const [faceSelect, setFaceSelect] = useState('detailed symmetrical face, sharp features, natural skin');
+  const [skinTone, setSkinTone] = useState('fair skin');
   const [topClothing, setTopClothing] = useState('casual white t-shirt');
   const [bottomClothing, setBottomClothing] = useState('blue denim jeans');
-  const [legwear, setLegwear] = useState('none');
-  const [bgSelect, setBgSelect] = useState('luxurious mansion interior, marble floors');
+  const [legwear, setLegwear] = useState('');
+  const [shoes, setShoes] = useState('elegant high heels, stilettos');
+  const [bgSelect, setBgSelect] = useState('professional studio, white background');
+  const [makeupStyle, setMakeupStyle] = useState('cat eyes, sharp winged eyeliner, subtle nude lips');
+  const [lipColor, setLipColor] = useState('nude');
+  const [jewelry, setJewelry] = useState('wearing luxury pearl drop earrings');
+  const [tattoo, setTattoo] = useState('none');
+  const [nails, setNails] = useState('none');
+  const [pose, setPose] = useState('confident standing pose');
+  const [photoStyle, setPhotoStyle] = useState('photorealistic');
 
-  const isMale = subject.includes("1boy") && !subject.includes("1girl");
+  const isMale = subject.includes('1boy') && !subject.includes('1girl');
 
-  const generatePrompt = () => {
-    const makeupEyes = isMale ? "" : "cat eyes, sharp winged eyeliner";
-    const jewelry = isMale ? "" : "wearing luxury pearl drop earrings";
-    const autoBra = (!isMale && breastSize === "large heavy breasts" && !topClothing.includes("bikini") && !topClothing.includes("dress")) ? "wearing proper bra" : "";
-    const parts = ["full body shot", subject, bodyType, isMale ? "" : breastSize, autoBra, lowerAnatomy !== "none" ? lowerAnatomy : "", bodyHair !== "none" ? bodyHair : "", faceSelect, "stunning detailed eyes", `${hairLength} ${hairColor} ${hairStyle}`, topClothing, bottomClothing, legwear !== "none" ? legwear : "", shoes, jewelry, makeupEyes, bgSelect, "photorealistic, 8k resolution", "masterpiece, high-end fashion photography, ultra-detailed, sharp focus, cinematic lighting", "editorial style, tasteful, professional model shoot, fully clothed unless swimwear"];
-    return parts.filter(p => p && p.trim() !== "").join(", ");
-  };
-
-  const handleCopy = async () => {
-    if (!isLoggedIn) { setClicked(true); return; }
-    if (!isPro && tokens !== null && tokens <= 0) return;
+  const generatePrompt = async () => {
+    if (!canGenerate) return;
+    if (!isPro && !isStarter && tokens !== null && tokens <= 0) return;
     const ok = await useToken(db, user.uid);
-    if (ok) {
-      navigator.clipboard.writeText(generatePrompt());
-      setCopied(true);
-      if (!isPro) setTokens(prev => Math.max(0, (prev || 0) - 1));
-      setTimeout(() => setCopied(false), 2000);
-    }
+    if (!ok) return;
+    setTokens(prev => (prev !== null ? prev - 1 : null));
+
+    const autoBra = (!isMale && breastSize === 'large heavy breasts' && !topClothing.includes('bikini') && !topClothing.includes('dress')) ? 'wearing proper bra' : '';
+    const makeupEyes = isMale ? '' : makeupStyle;
+    const lipPart = isMale ? '' : `${lipColor} lips`;
+    const jewelryPart = isMale ? '' : jewelry;
+    const tattPart = tattoo !== 'none' ? tattoo : '';
+    const nailPart = (!isMale && nails !== 'none') ? nails : '';
+
+    const parts = [
+      'full body shot',
+      subject,
+      bodyType,
+      !isMale ? breastSize : '',
+      autoBra,
+      lowerAnatomy !== 'none' ? lowerAnatomy : '',
+      bodyHair !== 'none' ? bodyHair : '',
+      skinTone,
+      faceSelect,
+      'stunning detailed eyes',
+      `${hairLength} ${hairColor} ${hairStyle}`,
+      makeupEyes,
+      lipPart,
+      topClothing,
+      bottomClothing,
+      legwear !== '' ? legwear : '',
+      shoes,
+      jewelryPart,
+      tattPart,
+      nailPart,
+      pose,
+      bgSelect,
+      photoStyle,
+      'masterpiece, high-end fashion photography, ultra-detailed, sharp focus, cinematic lighting',
+      'editorial style, tasteful, professional model shoot',
+    ].filter(Boolean).join(', ');
+
+    navigator.clipboard.writeText(parts);
+    setCopied(true);
+    setClicked(true);
+    setTimeout(() => setCopied(false), 2500);
   };
-  const sectionClass = "bg-white dark:bg-[#0A0A0A] border border-black/10 dark:border-[#222] p-5 rounded-2xl mb-6 transition-all duration-500";
-  const labelClass = "block text-[9px] uppercase tracking-widest text-slate-500 mb-1.5 font-bold";
-  const inputClass = "w-full bg-slate-100 dark:bg-[#121212] border border-black/10 dark:border-[#333] px-3 py-2 text-[13px] dark:text-white focus:border-amber-500 focus:outline-none transition-all rounded-lg appearance-none";
-  const headerClass = "text-xs font-bold tracking-widest text-black dark:text-amber-500 mb-5 flex items-center gap-2 border-b border-black/10 dark:border-[#222] pb-3 uppercase";
+
+  const labelClass = 'block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1.5';
+  const inputClass = 'w-full bg-[#111] border border-[#222] rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500 transition-colors appearance-none pr-8';
+  const sectionClass = 'bg-[#0a0a0a] border border-[#1a1a1a] rounded-2xl p-5 mb-4';
+  const headerClass = 'text-[10px] font-bold uppercase tracking-[0.2em] text-amber-500 mb-4 flex items-center gap-2';
+
+  const Sel = ({ label, value, set, opts }) => (
+    <div>
+      <label className={labelClass}>{label}</label>
+      <div className="relative">
+        <select value={value} onChange={e => set(e.target.value)} className={inputClass}>
+          {opts.map(([v,l]) => <option key={v} value={v}>{l}</option>)}
+        </select>
+        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="relative pb-20 p-4 md:p-8 bg-slate-50 dark:bg-black transition-colors duration-700 min-h-screen">
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-8 flex items-start justify-between flex-wrap gap-4">
-          <div>
-            <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-4"><Crown className="w-3 h-3"/>Prompt Studio — Edition Limitée</div>
-            <h1 className="text-3xl md:text-4xl font-black text-black dark:text-white uppercase tracking-tighter">{t.lang === 'EN' ? 'Avatar Builder' : 'Kreator Awatarów'}</h1>
+    <div className="min-h-screen bg-black font-sans pb-16">
+      <div className="max-w-5xl mx-auto px-4 pt-8">
+
+        {/* Header */}
+        <div className="mb-8 text-center">
+          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-4">
+            <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"/>
+            {t.lang==='EN' ? 'AI Avatar Generator' : 'Generator Awatarow AI'}
           </div>
-          {isLoggedIn && (
-            <div className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black ${isPro ? 'bg-amber-500/10 border border-amber-500/30 text-amber-500' : isStarter ? 'bg-blue-500/10 border border-blue-500/30 text-blue-400' : tokens > 0 ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-500' : 'bg-red-500/10 border border-red-500/30 text-red-500'}`}>
-              <span>{isPro ? '👑' : isStarter ? '⚡' : '🎟'}</span>
-              {loadingTokens ? '...' : isPro ? 'All-in-one — nielimitowany' : isStarter ? 'Starter — nielimitowany' : `${tokens}/3 ${t.lang === 'EN' ? 'demo prompts' : 'promptów demo'}`}
-            </div>
+          <h1 className="text-3xl md:text-5xl font-black text-white uppercase tracking-tighter mb-2">
+            {t.lang==='EN' ? 'Avatar Builder' : 'Kreator Awatarow'}<span className="text-amber-500">.</span>
+          </h1>
+          <p className="text-slate-500 text-sm">
+            {t.lang==='EN'
+              ? 'Build your character prompt for Midjourney, Stable Diffusion or any AI image generator.'
+              : 'Zbuduj prompt postaci do Midjourney, Stable Diffusion lub innego generatora AI.'}
+          </p>
+          {isLoggedIn && !isPro && !isStarter && tokens !== null && (
+            <p className="text-[10px] text-slate-600 mt-2 uppercase tracking-widest">
+              {t.lang==='EN' ? `${tokens} free generations left` : `Pozostalo ${tokens} darmowych generacji`}
+            </p>
           )}
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          <div className="lg:col-span-3 lg:order-1 order-2">
-            <div className={sectionClass}>
-              <h2 className={headerClass}><PersonStanding className="w-4 h-4"/> {t.lang==='EN'?'I. Physique & Anatomy':'I. Sylwetka & Anatomia'}</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
-                {[
-                  {label:t.lang==='EN'?'Subject':'Podmiot',value:subject,set:(v)=>{setSubject(v);const m=v.includes('1boy')&&!v.includes('1girl');if(m){setHairStyle('short textured hair, natural style');setBodyType('athletic, muscular body');setShoes('clean white sneakers');setBottomClothing('slim fit trousers');}else{setHairStyle('elegant updo hair, wedding style, revealing ears and earrings');setBodyType('slim and toned body');setShoes('elegant high heels, stilettos');setBottomClothing('blue denim jeans');}},opts:[['1girl, beautiful woman', t.lang==='EN'?'1 Woman':'1 Kobieta'],['1boy, handsome man', t.lang==='EN'?'1 Man':'1 Mężczyzna'],['2girls, beautiful women', t.lang==='EN'?'2 Women':'2 Kobiety'],['1boy and 1girl, couple', t.lang==='EN'?'Couple':'Para']]},
-                  {label:t.lang==='EN'?'Build':'Sylwetka',value:bodyType,set:setBodyType,opts:isMale?[['slim and toned body', t.lang==='EN'?'Slim':'Szczupła'],['athletic, muscular body', t.lang==='EN'?'Athletic':'Atletyczna'],['broad shoulders, strong physique', t.lang==='EN'?'Broad':'Szeroki']]:[['slim and toned body', t.lang==='EN'?'Slim':'Szczupła'],['curvy, hourglass figure', t.lang==='EN'?'Curvy':'Klepsydra'],['athletic, muscular body', t.lang==='EN'?'Athletic':'Atletyczna']]},
-                  ...(isMale?[]:[{label:t.lang==='EN'?'Bust':'Biust',value:breastSize,set:setBreastSize,opts:[['small breasts', t.lang==='EN'?'Small':'Mały'],['medium breasts', t.lang==='EN'?'Medium':'Średni'],['large heavy breasts', t.lang==='EN'?'Large':'Duży']]}]),
-                  {label:'Dół',value:lowerAnatomy,set:setLowerAnatomy,opts:[['none','Standard'],['noticeable crotch bulge','Bulge (M)'],['cameltoe','Cameltoe (F)']]},
-                  {label:t.lang==='EN'?'Body Hair':'Owłosienie',value:bodyHair,set:setBodyHair,opts:[['none', t.lang==='EN'?'Smooth':'Gładkie'],['light body hair', t.lang==='EN'?'Light':'Lekkie'],['hairy body', t.lang==='EN'?'Heavy':'Mocne']]}
-                ].map(f => (
-                  <div key={f.label}><label className={labelClass}>{f.label}</label><div className="relative"><select value={f.value} onChange={e => f.set(e.target.value)} className={inputClass}>{f.opts.map(([v,l]) => <option key={v} value={v}>{l}</option>)}</select><ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/></div></div>
-                ))}
-              </div>
-            </div>
-            <div className={sectionClass}>
-              <h2 className={headerClass}><User className="w-4 h-4"/> {t.lang==='EN'?'II. Face & Hair':'II. Twarz & Włosy'}</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                {[
-                  {label:t.lang==='EN'?'Hairstyle':'Fryzura',value:hairStyle,set:setHairStyle,opts:isMale?[['short textured hair, natural style', t.lang==='EN'?'Short natural':'Krótkie naturalne'],['slicked back hair, polished look', t.lang==='EN'?'Slicked back':'Zaczesane'],['messy bedhead hair, casual style', t.lang==='EN'?'Messy':'Rozczochrane'],['buzz cut, clean and sharp', t.lang==='EN'?'Buzz cut':'Krótko']]:[['elegant updo hair, wedding style, revealing ears and earrings', t.lang==='EN'?'Wedding updo':'Upięcie ślubne'],['high bun hair, sleek look', t.lang==='EN'?'High bun':'Wysoki kok'],['tied in a ponytail', t.lang==='EN'?'Ponytail':'Kucyk'],['loose wavy hair, natural flow', t.lang==='EN'?'Loose waves':'Luźne fale']]},
-                  {label:t.lang==='EN'?'Color':'Kolor',value:hairColor,set:setHairColor,opts:[['blonde', t.lang==='EN'?'Blonde':'Blond'],['brunette', t.lang==='EN'?'Brunette':'Brązowe'],['black', t.lang==='EN'?'Black':'Czarne'],['red', t.lang==='EN'?'Red':'Rude']]},
-                  {label:t.lang==='EN'?'Length':'Długość',value:hairLength,set:setHairLength,opts:isMale?[['short', t.lang==='EN'?'Short':'Krótkie'],['medium length', t.lang==='EN'?'Medium':'Średnie']]:[['short', t.lang==='EN'?'Short':'Krótkie'],['long', t.lang==='EN'?'Long':'Długie']]},
-                  {label:t.lang==='EN'?'Face':'Twarz',value:faceSelect,set:setFaceSelect,opts:isMale?[['detailed symmetrical face, sharp jawline, masculine features', t.lang==='EN'?'Sharp':'Wyrazista'],['handsome face, strong brow, stubble beard', t.lang==='EN'?'Stubble':'Zarost'],['clean shaven, fresh face, boy-next-door', t.lang==='EN'?'Clean':'Gładka']]:[['detailed symmetrical face, sharp features, natural skin', t.lang==='EN'?'Classic':'Klasyczna'],['cute face, freckles', t.lang==='EN'?'Freckles':'Piegi']]}
-                ].map(f => (
-                  <div key={f.label}><label className={labelClass}>{f.label}</label><div className="relative"><select value={f.value} onChange={e => f.set(e.target.value)} className={inputClass}>{f.opts.map(([v,l]) => <option key={v} value={v}>{l}</option>)}</select><ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/></div></div>
-                ))}
-              </div>
-            </div>
-            <div className={sectionClass}>
-              <h2 className={headerClass}><Shirt className="w-4 h-4"/> {t.lang==='EN'?'III. Clothing & Background':'III. Ubranie & Tło'}</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-                {[{label:t.lang==='EN'?'Top':'Góra',value:topClothing,set:setTopClothing,opts:[['casual white t-shirt','T-shirt'],['suit jacket, formal','Marynarka'],['bikini top','Bikini'],['cocktail dress, elegant','Sukienka']]},{label:t.lang==='EN'?'Bottom':'Dół',value:bottomClothing,set:setBottomClothing,opts:[['blue denim jeans',t.lang==='EN'?'Jeans':'Jeansy'],['mini skirt',t.lang==='EN'?'Mini skirt':'Mini'],['elegant trousers',t.lang==='EN'?'Trousers':'Spodnie'],['bare legs, no pants',t.lang==='EN'?'Bare legs':'Gołe nogi']]},{label:t.lang==='EN'?'Shoes':'Obuwie',value:shoes,set:setShoes,opts:[['elegant high heels, stilettos','Szpilki'],['modern sneakers','Sportowe'],['barefoot','Boso']]},{label:t.lang==='EN'?'Legwear':'Nogi',value:legwear,set:setLegwear,opts:[['',t.lang==='EN'?'None':'Brak'],['pantyhose',t.lang==='EN'?'Tights':'Rajstopy'],['stockings with lace',t.lang==='EN'?'Stockings':'Pończochy']]}].map(f => (
-                  <div key={f.label}><label className={labelClass}>{f.label}</label><div className="relative"><select value={f.value} onChange={e => f.set(e.target.value)} className={inputClass}>{f.opts.map(([v,l]) => <option key={v} value={v}>{l}</option>)}</select><ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/></div></div>
-                ))}
-              </div>
-              <div className="mt-4"><label className={labelClass}>Tło</label><div className="relative"><select value={bgSelect} onChange={e => setBgSelect(e.target.value)} className={inputClass}>{[['luxurious mansion interior, marble floors',t.lang==='EN'?'Mansion':'Rezydencja'],['modern bedroom, elegant interior, soft lighting',t.lang==='EN'?'Bedroom':'Sypialnia'],['modern bathroom, marble, luxury',t.lang==='EN'?'Bathroom':'Łazienka'],['modern living room, stylish interior',t.lang==='EN'?'Living Room':'Salon'],['modern kitchen, luxury design',t.lang==='EN'?'Kitchen':'Kuchnia'],['tropical beach, golden sand, ocean waves',t.lang==='EN'?'Beach':'Plaża'],['Venice canal at night, romantic lights',t.lang==='EN'?'Venice night':'Wenecja nocą'],['Paris street at night, Eiffel Tower, romantic',t.lang==='EN'?'Paris night':'Paryż nocą'],['Tokyo street, neon lights at night',t.lang==='EN'?'Tokyo night':'Tokio nocą'],['modern city street, neon lights at night',t.lang==='EN'?'City night':'Miasto nocą'],['professional studio, white background',t.lang==='EN'?'Studio':'Studio'],['forest, natural light, bokeh',t.lang==='EN'?'Forest':'Las']].map(([v,l]) => <option key={v} value={v}>{l}</option>)}</select><ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/></div></div>
+
+        {/* I. Sylwetka */}
+        <div className={sectionClass}>
+          <p className={headerClass}><PersonStanding className="w-4 h-4"/> {t.lang==='EN' ? 'I. Physique & Anatomy' : 'I. Sylwetka i Anatomia'}</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+            <Sel label={t.lang==='EN'?'Subject':'Postac'} value={subject} set={v => {
+              setSubject(v);
+              const m = v.includes('1boy') && !v.includes('1girl');
+              if(m){ setHairStyle('short textured hair, natural style'); setBodyType('athletic, muscular body'); setShoes('clean white sneakers'); setBottomClothing('slim fit trousers'); setMakeupStyle('none'); setJewelry('none'); }
+              else { setHairStyle('elegant updo hair, wedding style, revealing ears and earrings'); setBodyType('slim and toned body'); setShoes('elegant high heels, stilettos'); setBottomClothing('blue denim jeans'); setMakeupStyle('cat eyes, sharp winged eyeliner, subtle nude lips'); setJewelry('wearing luxury pearl drop earrings'); }
+            }} opts={[['1girl, beautiful woman',t.lang==='EN'?'1 Woman':'1 Kobieta'],['1boy, handsome man',t.lang==='EN'?'1 Man':'1 Mezczyzna'],['2girls, beautiful women',t.lang==='EN'?'2 Women':'2 Kobiety'],['1boy and 1girl, couple',t.lang==='EN'?'Couple':'Para']]}/>
+            <Sel label={t.lang==='EN'?'Build':'Sylwetka'} value={bodyType} set={setBodyType} opts={isMale?[['slim and toned body',t.lang==='EN'?'Slim':'Szczupla'],['athletic, muscular body',t.lang==='EN'?'Athletic':'Atletyczna'],['broad shoulders, strong physique',t.lang==='EN'?'Broad':'Szeroki'],['stocky, heavy build',t.lang==='EN'?'Stocky':'Krecpy']]:[['slim and toned body',t.lang==='EN'?'Slim':'Szczupla'],['curvy, hourglass figure',t.lang==='EN'?'Curvy':'Klepsydra'],['athletic, muscular body',t.lang==='EN'?'Athletic':'Atletyczna'],['petite, delicate frame',t.lang==='EN'?'Petite':'Drobna']]}/>
+            {!isMale && <Sel label={t.lang==='EN'?'Bust':'Biust'} value={breastSize} set={setBreastSize} opts={[['small breasts',t.lang==='EN'?'Small':'Maly'],['medium breasts',t.lang==='EN'?'Medium':'Sredni'],['large heavy breasts',t.lang==='EN'?'Large':'Duzy']]}/>}
+            <Sel label={t.lang==='EN'?'Skin Tone':'Karnacja'} value={skinTone} set={setSkinTone} opts={[['fair skin',t.lang==='EN'?'Fair':'Jasna'],['light skin',t.lang==='EN'?'Light':'Swietlista'],['medium skin, tan',t.lang==='EN'?'Tan':'Opalone'],['dark skin',t.lang==='EN'?'Dark':'Ciemna'],['ebony skin',t.lang==='EN'?'Ebony':'Hebanowa']]}/>
+            <Sel label={t.lang==='EN'?'Body Hair':'Owlosienie'} value={bodyHair} set={setBodyHair} opts={[['none',t.lang==='EN'?'Smooth':'Gładkie'],['light body hair',t.lang==='EN'?'Light':'Lekkie'],['hairy body',t.lang==='EN'?'Heavy':'Mocne']]}/>
+          </div>
+        </div>
+
+        {/* II. Twarz i Wlosy */}
+        <div className={sectionClass}>
+          <p className={headerClass}><User className="w-4 h-4"/> {t.lang==='EN' ? 'II. Face & Hair' : 'II. Twarz i Wlosy'}</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            <Sel label={t.lang==='EN'?'Hairstyle':'Fryzura'} value={hairStyle} set={setHairStyle} opts={isMale?[['short textured hair, natural style',t.lang==='EN'?'Short natural':'Krotkie naturalne'],['slicked back hair, polished look',t.lang==='EN'?'Slicked back':'Zaczesane'],['messy bedhead hair, casual style',t.lang==='EN'?'Messy':'Rozczochrane'],['buzz cut, clean and sharp',t.lang==='EN'?'Buzz cut':'Na jeza'],['long hair, flowing',t.lang==='EN'?'Long':'Dlugie']]:[['elegant updo hair, wedding style, revealing ears and earrings',t.lang==='EN'?'Wedding updo':'Upiecie slubne'],['high bun hair, sleek look',t.lang==='EN'?'High bun':'Wysoki kok'],['tied in a ponytail',t.lang==='EN'?'Ponytail':'Kucyk'],['loose wavy hair, natural flow',t.lang==='EN'?'Loose waves':'Luzne fale'],['straight silky hair, flowing down',t.lang==='EN'?'Straight silky':'Proste jedwabiste'],['voluminous curly hair',t.lang==='EN'?'Curly':'Krecone']]}/>
+            <Sel label={t.lang==='EN'?'Hair Color':'Kolor wlosow'} value={hairColor} set={setHairColor} opts={[['blonde',t.lang==='EN'?'Blonde':'Blond'],['brunette',t.lang==='EN'?'Brunette':'Brazowe'],['black',t.lang==='EN'?'Black':'Czarne'],['red',t.lang==='EN'?'Red':'Rude'],['platinum blonde',t.lang==='EN'?'Platinum':'Platynowe'],['silver',t.lang==='EN'?'Silver':'Srebrne'],['pink',t.lang==='EN'?'Pink':'Rozowe'],['auburn',t.lang==='EN'?'Auburn':'Kasztanowe']]}/>
+            <Sel label={t.lang==='EN'?'Hair Length':'Dlugosc'} value={hairLength} set={setHairLength} opts={isMale?[['short','Krotkie'],['medium length','Srednie']]:[['short','Krotkie'],['medium length','Srednie'],['long','Dlugie'],['very long, down to waist','Bardzo dlugie']]}/>
+            <Sel label={t.lang==='EN'?'Face Type':'Typ twarzy'} value={faceSelect} set={setFaceSelect} opts={isMale?[['detailed symmetrical face, sharp jawline, masculine features',t.lang==='EN'?'Sharp masculine':'Wyrazista meska'],['handsome face, strong brow, stubble beard',t.lang==='EN'?'Stubble':'Zarost'],['clean shaven, fresh face, boy-next-door',t.lang==='EN'?'Clean fresh':'Gladka swiezy'],['mature face, distinguished features',t.lang==='EN'?'Mature':'Dojrzala']]:[['detailed symmetrical face, sharp features, natural skin',t.lang==='EN'?'Classic':'Klasyczna'],['cute face, freckles, girl-next-door',t.lang==='EN'?'Freckles':'Piegi'],['model face, high cheekbones, editorial',t.lang==='EN'?'Model':'Modelki'],['mature elegant face, refined features',t.lang==='EN'?'Elegant mature':'Dojrzala elegancka']]}/>
+          </div>
+        </div>
+
+        {/* III. Makijaz i Akcesoria */}
+        {!isMale && (
+          <div className={sectionClass}>
+            <p className={headerClass}><span className="text-base">💄</span> {t.lang==='EN' ? 'III. Makeup & Accessories' : 'III. Makijaz i Akcesoria'}</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              <Sel label={t.lang==='EN'?'Eye Makeup':'Makijaz oczu'} value={makeupStyle} set={setMakeupStyle} opts={[['cat eyes, sharp winged eyeliner, subtle nude lips',t.lang==='EN'?'Cat eyes':'Kocie oczy'],['smoky eyes, heavy dark eyeshadow',t.lang==='EN'?'Smoky eyes':'Smoky eyes'],['natural makeup, no-makeup look, barely there',t.lang==='EN'?'Natural':'Naturalny'],['bold colorful eyeshadow, editorial makeup',t.lang==='EN'?'Bold editorial':'Odwazny editorial'],['classic red lip, minimal eye makeup',t.lang==='EN'?'Classic red lip':'Klasyczna czerwona'],['no makeup, bare skin',t.lang==='EN'?'No makeup':'Bez makijazu']]}/>
+              <Sel label={t.lang==='EN'?'Lip Color':'Kolor ust'} value={lipColor} set={setLipColor} opts={[['nude','Nude'],['red lips','Czerwone'],['pink lips','Rozowe'],['berry, dark lips','Burgund / Ciemne'],['glossy lips',t.lang==='EN'?'Glossy':'Brokatowe'],['no lipstick',t.lang==='EN'?'Bare':'Naturalne']]}/>
+              <Sel label={t.lang==='EN'?'Jewelry':'Bizuteria'} value={jewelry} set={setJewelry} opts={[['wearing luxury pearl drop earrings',t.lang==='EN'?'Pearl earrings':'Perłowe kolczyki'],['wearing diamond stud earrings',t.lang==='EN'?'Diamond studs':'Brylanty'],['wearing gold necklace, elegant',t.lang==='EN'?'Gold necklace':'Zloty naszyjnik'],['wearing diamond tennis bracelet',t.lang==='EN'?'Tennis bracelet':'Bransoletka'],['wearing chandelier earrings, crystal',t.lang==='EN'?'Chandelier earrings':'Zwisajace kolczyki'],['none',t.lang==='EN'?'None':'Brak']]}/>
+              <Sel label={t.lang==='EN'?'Nails':'Paznokcie'} value={nails} set={setNails} opts={[['none',t.lang==='EN'?'Natural':'Naturalne'],['long red acrylic nails',t.lang==='EN'?'Long red acrylics':'Dlugie czerwone akryl'],['french manicure, elegant',t.lang==='EN'?'French manicure':'Francuski'],['short nude nails, clean',t.lang==='EN'?'Short nude':'Krotkie nude'],['long nude acrylics, coffin shape',t.lang==='EN'?'Long nude coffin':'Dlugie nude trumna']]}/>
             </div>
           </div>
-          <div className="lg:col-span-1 lg:order-2 order-1">
-            <div className="sticky top-24">
-              <div className="relative bg-white dark:bg-[#0A0A0A] border border-black/10 dark:border-[#333] p-6 rounded-2xl">
-                <h2 className="text-[10px] font-bold tracking-widest mb-4 border-b border-black/10 dark:border-[#333] pb-2 text-black dark:text-amber-500 uppercase">Prompt</h2>
-                <div className="relative">
-                  <div className="bg-slate-100 dark:bg-[#121212] p-4 min-h-[200px] text-black dark:text-white font-mono text-[10px] leading-relaxed break-words border border-black/10 dark:border-[#222] mb-4 rounded-xl">
-                    <span className="text-amber-500 font-bold">{"> "}</span>{generatePrompt()}
-                  </div>
-                  {/* Lock overlay — niezalogowany, zawsze widoczny */}
-                  {!isLoggedIn && (
-                    <div className="absolute inset-0 mb-4 rounded-xl backdrop-blur-sm bg-black/70 flex flex-col items-center justify-center p-4 text-center cursor-pointer" onClick={onLoginRequest}>
-                      <div className="text-3xl mb-3">🔒</div>
-                      <p className="text-white font-black text-xs uppercase tracking-widest mb-1">{t.lang === 'EN' ? 'Log in to copy' : 'Zaloguj się aby skopiować'}</p>
-                      <p className="text-white/60 text-[10px] mb-3">{t.lang === 'EN' ? 'Free · 3 prompts included' : 'Bezpłatnie · 3 prompty gratis'}</p>
-                      <span className="bg-amber-500 text-black font-black text-[10px] uppercase tracking-widest px-4 py-2 rounded-xl">{t.lang === 'EN' ? 'Log In / Register' : 'Zaloguj / Zarejestruj'}</span>
-                    </div>
-                  )}
-                  {/* Lock overlay — zawsze gdy tokeny = 0 */}
-                  {isLoggedIn && !isPro && tokens !== null && tokens <= 0 && (
-                    <div className="absolute inset-0 mb-4 rounded-xl backdrop-blur-sm bg-black/70 flex flex-col items-center justify-center p-4 text-center">
-                      <div className="text-3xl mb-3">💳</div>
-                      <p className="text-white font-black text-xs uppercase tracking-widest mb-1">{t.lang === 'EN' ? 'No prompts left' : 'Brak promptów'}</p>
-                      <p className="text-white/60 text-[10px] mb-3">{t.lang === 'EN' ? 'Upgrade to Starter — 30 PLN/mo' : 'Kup Starter — 30 zł/mies.'}</p>
-                      <a href={user && !user.isAnonymous ? stripeLink(STRIPE_STARTER_LINK, user.uid, user.email) : '#'} onClick={e => { if (!user || user.isAnonymous) { e.preventDefault(); onLoginRequest && onLoginRequest(); }}} target="_blank" rel="noopener noreferrer" className="bg-amber-500 hover:bg-amber-400 text-black font-black text-[10px] uppercase tracking-widest px-4 py-2 rounded-xl transition-all">
-                        {t.lang === 'EN' ? 'Go Pro →' : 'Kup Pro →'}
-                      </a>
-                    </div>
-                  )}
-                </div>
-                <button
-                  onClick={handleCopy}
-                  className={`w-full py-3 font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all ${copied ? 'bg-emerald-500 text-black' : 'bg-black dark:bg-amber-500 text-white dark:text-black hover:bg-amber-500 hover:text-black'}`}
-                >
-                  {copied ? '✔ Skopiowano!' : isPro ? `${t.lang === 'EN' ? 'Copy Prompt' : 'Kopiuj Prompt'} (∞ All-in-one)` : isStarter ? `${t.lang === 'EN' ? 'Copy Prompt' : 'Kopiuj Prompt'} (∞ Starter)` : isLoggedIn && tokens > 0 ? `${t.lang === 'EN' ? 'Copy Prompt' : 'Kopiuj Prompt'} (${tokens}/3 🎟)` : t.lang === 'EN' ? 'Copy Prompt →' : 'Kopiuj Prompt →'}
-                </button>
+        )}
+
+        {/* IV. Ubranie i Tlo */}
+        <div className={sectionClass}>
+          <p className={headerClass}><Shirt className="w-4 h-4"/> {t.lang==='EN' ? 'IV. Clothing, Tattoo & Background' : 'IV. Ubranie, Tatuaz i Tlo'}</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            <Sel label={t.lang==='EN'?'Top':'Gora'} value={topClothing} set={setTopClothing} opts={isMale?[['casual white t-shirt','T-shirt'],['suit jacket, formal','Marynarka'],['open shirt, casual','Koszula'],['tank top, athletic','Bezrekawnik'],['luxury polo shirt','Polo']]:[['casual white t-shirt','T-shirt'],['suit jacket, formal','Marynarka'],['bikini top','Bikini'],['cocktail dress, elegant','Sukienka'],['off-shoulder top, elegant','Off-shoulder'],['crop top, casual','Crop top'],['luxury blouse, silk','Jedwabna bluzka']]}/>
+            <Sel label={t.lang==='EN'?'Bottom':'Dol'} value={bottomClothing} set={setBottomClothing} opts={isMale?[['slim fit trousers','Spodnie slim'],['jeans, casual denim','Jeansy'],['shorts, casual','Szorty'],['suit trousers, formal','Spodnie formalne']]:[['blue denim jeans',t.lang==='EN'?'Jeans':'Jeansy'],['mini skirt',t.lang==='EN'?'Mini skirt':'Mini'],['elegant trousers',t.lang==='EN'?'Trousers':'Spodnie'],['midi skirt, elegant',t.lang==='EN'?'Midi skirt':'Midi spodnica'],['shorts, casual',t.lang==='EN'?'Shorts':'Szorty'],['bare legs, no pants',t.lang==='EN'?'Bare legs':'Gole nogi']]}/>
+            <Sel label={t.lang==='EN'?'Shoes':'Obuwie'} value={shoes} set={setShoes} opts={isMale?[['clean white sneakers','Biale sneakersy'],['oxford leather shoes','Oxfordy'],['chelsea boots','Chelsea boots'],['barefoot','Boso']]:[['elegant high heels, stilettos','Szpilki'],['modern sneakers','Sportowe'],['ankle boots, elegant','Ankle boots'],['platform heels','Koturny'],['barefoot','Boso']]}/>
+            {!isMale && <Sel label={t.lang==='EN'?'Legwear':'Nogi'} value={legwear} set={setLegwear} opts={[['',t.lang==='EN'?'None':'Brak'],['pantyhose',t.lang==='EN'?'Tights':'Rajstopy'],['stockings with lace',t.lang==='EN'?'Stockings':'Ponczoch'],['fishnet stockings',t.lang==='EN'?'Fishnet':'Siateczka']]}/>}
+            <Sel label={t.lang==='EN'?'Tattoo':'Tatuaz'} value={tattoo} set={setTattoo} opts={[['none',t.lang==='EN'?'None':'Brak'],['small delicate tattoo on wrist',t.lang==='EN'?'Wrist tattoo':'Na nadgarstku'],['sleeve tattoo, arm',t.lang==='EN'?'Arm sleeve':'Rekaw'],['back tattoo, large',t.lang==='EN'?'Back tattoo':'Na plecach'],['neck tattoo, small',t.lang==='EN'?'Neck tattoo':'Na szyi'],['leg tattoo',t.lang==='EN'?'Leg tattoo':'Na nodze']]}/>
+            <Sel label={t.lang==='EN'?'Pose':'Poza'} value={pose} set={setPose} opts={[['confident standing pose',t.lang==='EN'?'Confident standing':'Pewna stojaca'],['sitting pose, elegant',t.lang==='EN'?'Sitting':'Siedzaca'],['dynamic walking pose',t.lang==='EN'?'Walking':'Krocząca'],['looking over shoulder pose',t.lang==='EN'?'Over shoulder':'Przez ramie'],['leaning against wall, casual',t.lang==='EN'?'Leaning':'Oparta o sciane'],['lying down, editorial',t.lang==='EN'?'Lying':'Lezaca']]}/>
+            <Sel label={t.lang==='EN'?'Photo Style':'Styl zdjecia'} value={photoStyle} set={setPhotoStyle} opts={[['photorealistic',t.lang==='EN'?'Photorealistic':'Fotorealistyczny'],['cinematic photography',t.lang==='EN'?'Cinematic':'Kinowy'],['editorial fashion photography',t.lang==='EN'?'Editorial fashion':'Editorial'],['oil painting, classic',t.lang==='EN'?'Oil painting':'Obraz olejny'],['anime style, detailed',t.lang==='EN'?'Anime':'Anime'],['3D render, hyperreal',t.lang==='EN'?'3D render':'Render 3D']]}/>
+            <div className="col-span-2 sm:col-span-1">
+              <label className={labelClass}>{t.lang==='EN'?'Background':'Tlo'}</label>
+              <div className="relative">
+                <select value={bgSelect} onChange={e => setBgSelect(e.target.value)} className={inputClass}>
+                  {[['professional studio, white background',t.lang==='EN'?'Studio white':'Studio biale'],['dark studio, black background',t.lang==='EN'?'Studio black':'Studio czarne'],['luxurious mansion interior, marble floors',t.lang==='EN'?'Mansion':'Rezydencja'],['modern bedroom, elegant interior, soft lighting',t.lang==='EN'?'Bedroom':'Sypialnia'],['tropical beach, golden sand, ocean waves',t.lang==='EN'?'Beach':'Plaz'],['Venice canal at night, romantic lights',t.lang==='EN'?'Venice':'Wenecja'],['Paris street at night, Eiffel Tower',t.lang==='EN'?'Paris':'Paryz'],['Tokyo street, neon lights at night',t.lang==='EN'?'Tokyo neon':'Tokio neon'],['forest, natural light, bokeh',t.lang==='EN'?'Forest':'Las'],['modern city rooftop, skyline',t.lang==='EN'?'Rooftop':'Dach w miescie']].map(([v,l]) => <option key={v} value={v}>{l}</option>)}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/>
               </div>
             </div>
           </div>
         </div>
+
+        {/* GENERATE BUTTON */}
+        <div className="flex flex-col items-center gap-3 mt-4">
+          {!isLoggedIn ? (
+            <button onClick={onLoginRequest} className="px-10 py-4 bg-amber-500 hover:bg-amber-400 text-black font-black uppercase tracking-widest text-sm rounded-2xl transition-all shadow-lg shadow-amber-500/20">
+              {t.lang==='EN' ? 'Log in to generate' : 'Zaloguj sie aby generowac'}
+            </button>
+          ) : !canGenerate ? (
+            <p className="text-slate-500 text-sm">{t.lang==='EN' ? 'No tokens left. Upgrade to Pro.' : 'Brak tokenow. Przejdz na Pro.'}</p>
+          ) : (
+            <button onClick={generatePrompt} className={`px-10 py-4 font-black uppercase tracking-widest text-sm rounded-2xl transition-all shadow-lg ${copied ? 'bg-green-500 text-white shadow-green-500/20' : 'bg-amber-500 hover:bg-amber-400 text-black shadow-amber-500/20'}`}>
+              {copied ? (t.lang==='EN' ? 'Copied! Paste in your AI generator' : 'Skopiowano! Wklej do generatora AI') : (t.lang==='EN' ? 'Generate & Copy Prompt' : 'Generuj i Kopiuj Prompt')}
+            </button>
+          )}
+          {isLoggedIn && !isPro && !isStarter && tokens !== null && (
+            <p className="text-[10px] text-slate-600 uppercase tracking-widest">
+              {t.lang==='EN' ? `${tokens} free generations remaining` : `Pozostalo ${tokens} darmowych generacji`}
+            </p>
+          )}
+        </div>
+
       </div>
     </div>
   );
