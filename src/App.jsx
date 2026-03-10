@@ -1261,7 +1261,7 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
   // Wspolne ustawienia
   const [pose, setPose] = useState('confident standing pose');
   const [bgSelect, setBgSelect] = useState('professional studio, white background');
-  const [photoStyle, setPhotoStyle] = useState('photorealistic');
+  const [photoStyle, setPhotoStyle] = useState('hyperrealistic photography, DSLR, 8K resolution, sharp focus, real skin texture');
 
   const handleCharChange = (idx, key, val) => {
     if (key === '__reset_f') {
@@ -1404,7 +1404,16 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
               <label className={labelClass}>{t.lang==='EN'?'Photo Style':'Styl'}</label>
               <div className="relative">
                 <select value={photoStyle} onChange={e => setPhotoStyle(e.target.value)} className={inputClass}>
-                  {[['photorealistic','Fotorealistyczny'],['cinematic photography','Kinowy'],['editorial fashion photography','Editorial'],['oil painting, classic','Obraz olejny'],['anime style, detailed','Anime'],['3D render, hyperreal','Render 3D']].map(([v,l]) => <option key={v} value={v}>{l}</option>)}
+                  {[
+                    ['hyperrealistic photography, DSLR, 8K resolution, sharp focus, real skin texture','Hyperrealistyczny (DSLR 8K)'],
+                    ['photorealistic, professional photography','Fotorealistyczny'],
+                    ['cinematic film still, movie quality, dramatic lighting','Kinowy (film still)'],
+                    ['editorial fashion photography, Vogue style','Editorial / Vogue'],
+                    ['digital fashion illustration, stylized, detailed artwork','Ilustracja cyfrowa'],
+                    ['anime style, highly detailed, studio ghibli quality','Anime'],
+                    ['3D render, octane render, hyperreal','Render 3D'],
+                    ['oil painting, classical art, museum quality','Obraz olejny'],
+                  ].map(([v,l]) => <option key={v} value={v}>{l}</option>)}
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/>
               </div>
