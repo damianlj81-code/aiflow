@@ -1636,8 +1636,20 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
     veo: ', photorealistic 4K video, professional product advertisement, cinematic quality',
   };
 
+  const PRODUCT_BLACKLIST = [
+    'dildo','vibrator','sex toy','masturbator','fleshlight','butt plug','anal','penis','vagina',
+    'gun','pistol','rifle','weapon','bomb','explosiv','grenade','cocaine','heroin','meth','drug',
+    'weed','marijuana','cannabis','porn','adult toy','erotic','nude','naked',
+  ];
+
+  const isProductBlocked = (name) => {
+    const lower = name.toLowerCase();
+    return PRODUCT_BLACKLIST.some(w => lower.includes(w));
+  };
+
   const generatePrompt = () => {
     if (!productName.trim()) return t.lang==='EN' ? 'Enter your product name above.' : 'Wpisz nazwe produktu powyzej.';
+    if (isProductBlocked(productName)) return '⛔ Ten produkt nie jest dozwolony w kreatorze reklam.';
 
     const parts = [
       SCENE_PROMPTS[scene],
@@ -1656,7 +1668,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
   const prompt = generatePrompt();
 
   const handleCopy = async () => {
-    if (!productName.trim()) return;
+    if (!productName.trim() || isProductBlocked(productName)) return;
     await navigator.clipboard.writeText(prompt);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -1812,8 +1824,8 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
                   <span className="text-[10px] text-slate-600 uppercase font-bold">{GENERATORS.find(g=>g.value===generator)?.label}</span>
                 </div>
 
-                <div className="bg-black rounded-xl p-4 mb-4 min-h-[200px] border border-[#222]">
-                  <p className={`text-xs leading-relaxed ${productName.trim() ? 'text-slate-300' : 'text-slate-600 italic'}`}>
+                <div className={`bg-black rounded-xl p-4 mb-4 min-h-[200px] border ${isProductBlocked(productName) ? 'border-red-800' : 'border-[#222]'}`}>
+                  <p className={`text-xs leading-relaxed ${isProductBlocked(productName) ? 'text-red-400' : productName.trim() ? 'text-slate-300' : 'text-slate-600 italic'}`}>
                     {prompt}
                   </p>
                 </div>
