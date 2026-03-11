@@ -1428,7 +1428,14 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
               {t.lang==='EN' ? 'Log in to generate' : 'Zaloguj sie aby generowac'}
             </button>
           ) : !canGenerate ? (
-            <p className="text-slate-500 text-sm">{t.lang==='EN' ? 'No tokens left.' : 'Brak tokenow. Przejdz na Pro.'}</p>
+            <div className="text-center">
+              <p className="text-slate-500 text-sm mb-3">{t.lang==='EN' ? 'No tokens left.' : 'Brak tokenow. Przejdz na plan Starter.'}</p>
+              <a href={`https://buy.stripe.com/14A28qcGJ56fdfq5rQ8bS05?client_reference_id=${user?.uid || ''}&prefilled_email=${encodeURIComponent(user?.email || '')}`}
+                target="_blank" rel="noopener noreferrer"
+                className="inline-block px-10 py-4 bg-amber-500 hover:bg-amber-400 text-black font-black uppercase tracking-widest text-sm rounded-2xl transition-all shadow-lg shadow-amber-500/20">
+                {t.lang==='EN' ? 'Get Starter — 30 PLN/mo' : 'Kup Starter — 30 PLN/mies'}
+              </a>
+            </div>
           ) : (
             <button onClick={generatePrompt} className={`px-10 py-4 font-black uppercase tracking-widest text-sm rounded-2xl transition-all shadow-lg ${copied ? 'bg-green-500 text-white shadow-green-500/20' : 'bg-amber-500 hover:bg-amber-400 text-black shadow-amber-500/20'}`}>
               {copied ? (t.lang==='EN' ? 'Copied! Paste in your AI generator' : 'Skopiowano! Wklej do generatora AI') : (t.lang==='EN' ? 'Generate & Copy Prompt' : 'Generuj i Kopiuj Prompt')}
@@ -1637,14 +1644,33 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
   };
 
   const PRODUCT_BLACKLIST = [
-    'dildo','vibrator','sex toy','masturbator','fleshlight','butt plug','anal','penis','vagina',
-    'gun','pistol','rifle','weapon','bomb','explosiv','grenade','cocaine','heroin','meth','drug',
-    'weed','marijuana','cannabis','porn','adult toy','erotic','nude','naked',
+    'dildo','dild0','dlido','dlldo','vibrator','vibrat0r','sex toy','masturbator',
+    'fleshlight','butt plug','anal','penis','p3nis','vagina','vag1na',
+    'gun','pistol','rifle','weapon','bomb','explosiv','grenade',
+    'cocaine','heroin','meth','drug','weed','marijuana','cannabis',
+    'porn','p0rn','adult toy','erotic','nude','naked',
   ];
 
+  // Levenshtein distance - blokuj tez literowki
+  const levenshtein = (a, b) => {
+    const m = a.length, n = b.length;
+    const dp = Array.from({length: m+1}, (_, i) => Array.from({length: n+1}, (_, j) => i===0?j:j===0?i:0));
+    for (let i=1;i<=m;i++) for (let j=1;j<=n;j++)
+      dp[i][j] = a[i-1]===b[j-1] ? dp[i-1][j-1] : 1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);
+    return dp[m][n];
+  };
+
   const isProductBlocked = (name) => {
-    const lower = name.toLowerCase();
-    return PRODUCT_BLACKLIST.some(w => lower.includes(w));
+    const lower = name.toLowerCase().trim();
+    // Sprawdz dokladne dopasowanie
+    if (PRODUCT_BLACKLIST.some(w => lower.includes(w))) return true;
+    // Sprawdz podobne slowa (max 1 literowka dla slow 5+ znakow)
+    const words = lower.split(/\s+/);
+    return words.some(word =>
+      word.length >= 4 && PRODUCT_BLACKLIST.some(blocked =>
+        blocked.length >= 4 && levenshtein(word, blocked) <= 1
+      )
+    );
   };
 
   const generatePrompt = () => {
@@ -1668,7 +1694,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
   const prompt = generatePrompt();
 
   const handleCopy = async () => {
-    if (!productName.trim() || isProductBlocked(productName)) return;
+    if (!productName.trim() || isProductBlocked(productName) || !canGenerate) return;
     await navigator.clipboard.writeText(prompt);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -1824,10 +1850,24 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
                   <span className="text-[10px] text-slate-600 uppercase font-bold">{GENERATORS.find(g=>g.value===generator)?.label}</span>
                 </div>
 
-                <div className={`bg-black rounded-xl p-4 mb-4 min-h-[200px] border ${isProductBlocked(productName) ? 'border-red-800' : 'border-[#222]'}`}>
-                  <p className={`text-xs leading-relaxed ${isProductBlocked(productName) ? 'text-red-400' : productName.trim() ? 'text-slate-300' : 'text-slate-600 italic'}`}>
-                    {prompt}
-                  </p>
+                <div className={`bg-black rounded-xl p-4 mb-4 min-h-[200px] border relative overflow-hidden ${isProductBlocked(productName) ? 'border-red-800' : 'border-[#222]'}`}>
+                  {!canGenerate && isLoggedIn ? (
+                    <>
+                      <p className="text-xs leading-relaxed text-slate-600 select-none pointer-events-none" style={{filter:'blur(4px)'}}>
+                        {'Cinematic product advertisement. The product emerges from darkness surrounded by particle effects and dramatic lighting. Camera slowly orbits 360 degrees. Golden hour warm tones. Ultra slow motion capture. Professional commercial grade quality. 4K resolution masterpiece.'}
+                      </p>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm rounded-xl">
+                        <span className="text-2xl mb-2">🔒</span>
+                        <p className="text-xs text-slate-400 font-bold uppercase tracking-widest text-center px-4">
+                          {t.lang==='EN' ? 'Unlock to see your prompt' : 'Odblokuj aby zobaczyc prompt'}
+                        </p>
+                      </div>
+                    </>
+                  ) : (
+                    <p className={`text-xs leading-relaxed ${isProductBlocked(productName) ? 'text-red-400' : productName.trim() ? 'text-slate-300' : 'text-slate-600 italic'}`}>
+                      {canGenerate ? prompt : ''}
+                    </p>
+                  )}
                 </div>
 
                 {!isLoggedIn ? (
@@ -1836,8 +1876,13 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
                     {t.lang==='EN' ? 'Log in to copy' : 'Zaloguj sie aby skopiowac'}
                   </button>
                 ) : !canGenerate ? (
-                  <div className="text-center py-3 text-xs text-slate-500">
-                    {t.lang==='EN' ? 'No tokens left. Upgrade to Pro.' : 'Brak tokenow. Przejdz na Pro.'}
+                  <div className="text-center py-2">
+                    <p className="text-xs text-slate-500 mb-3">{t.lang==='EN' ? 'No tokens left.' : 'Brak tokenow. Przejdz na plan Starter.'}</p>
+                    <a href={`https://buy.stripe.com/14A28qcGJ56fdfq5rQ8bS05?client_reference_id=${user?.uid || ''}&prefilled_email=${encodeURIComponent(user?.email || '')}`}
+                      target="_blank" rel="noopener noreferrer"
+                      className="block w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-black text-sm uppercase tracking-wider text-center transition-colors">
+                      {t.lang==='EN' ? 'Get Starter — 30 PLN/mo' : 'Kup Starter — 30 PLN/mies'}
+                    </a>
                   </div>
                 ) : (
                   <button onClick={handleCopy}
