@@ -1353,7 +1353,7 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
             <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"/>
             {t.lang==='EN' ? 'AI Avatar Generator' : 'Generator Awatarow AI'}
           </div>
-          <h1 className="text-3xl md:text-5xl font-black text-white uppercase tracking-tighter mb-2">
+          <h1 className="text-3xl md:text-5xl font-black text-black dark:text-white uppercase tracking-tighter mb-2">
             {t.lang==='EN' ? 'Avatar Builder' : 'Kreator Awatarow'}<span className="text-amber-500">.</span>
           </h1>
           <p className="text-slate-500 text-sm mb-4">
@@ -1715,7 +1715,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
             <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"/>
             {t.lang==='EN' ? 'AI Product Ad Generator' : 'Generator Reklam Produktowych AI'}
           </div>
-          <h1 className="text-3xl md:text-5xl font-black text-white uppercase tracking-tighter mb-2">
+          <h1 className="text-3xl md:text-5xl font-black text-black dark:text-white uppercase tracking-tighter mb-2">
             {t.lang==='EN' ? 'Product Ad' : 'Kreator Reklam'}<span className="text-amber-500">.</span>
           </h1>
           <p className="text-slate-500 text-sm">
@@ -1740,7 +1740,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
                   value={productName}
                   onChange={e => setProductName(e.target.value)}
                   placeholder={t.lang==='EN' ? 'e.g. black leather stiletto heels, model X2' : 'np. czarne szpilki skorzane model X2, perfumy Noir...'}
-                  className="w-full bg-[#111] border border-[#222] rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-amber-500 transition-colors"
+                  className="w-full bg-slate-100 dark:bg-[#111] border border-black/10 dark:border-[#222] rounded-xl px-4 py-3 text-sm text-black dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:border-amber-500 transition-colors"
                 />
               </div>
               <div>
@@ -1748,7 +1748,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {GENERATORS.map(g => (
                     <button key={g.value} onClick={() => setGenerator(g.value)}
-                      className={`py-2.5 px-3 rounded-xl text-xs font-bold uppercase tracking-wider border transition-all ${generator === g.value ? 'bg-amber-500 border-amber-500 text-black' : 'bg-[#111] border-[#222] text-slate-400 hover:border-amber-500/50'}`}>
+                      className={`py-2.5 px-3 rounded-xl text-xs font-bold uppercase tracking-wider border transition-all ${generator === g.value ? 'bg-amber-500 border-amber-500 text-black' : 'bg-slate-200 dark:bg-[#111] border-black/10 dark:border-[#222] text-slate-600 dark:text-slate-400 hover:border-amber-500/50'}`}>
                       {g.label}
                     </button>
                   ))}
@@ -1762,7 +1762,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {SCENES.map(s => (
                   <button key={s.value} onClick={() => setScene(s.value)}
-                    className={`text-left p-3 rounded-xl border transition-all ${scene === s.value ? 'bg-amber-500/10 border-amber-500 text-white' : 'bg-[#111] border-[#222] text-slate-400 hover:border-amber-500/30'}`}>
+                    className={`text-left p-3 rounded-xl border transition-all ${scene === s.value ? 'bg-amber-500/10 border-amber-500 text-white' : 'bg-slate-100 dark:bg-[#111] border-black/10 dark:border-[#222] text-slate-600 dark:text-slate-400 hover:border-amber-500/30'}`}>
                     <div className="text-xs font-bold uppercase tracking-wider mb-0.5">{s.label}</div>
                     <div className="text-[10px] text-slate-500">{s.desc}</div>
                   </button>
@@ -1842,7 +1842,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
           {/* RIGHT — Prompt output */}
           <div className="lg:col-span-1">
             <div className="sticky top-20">
-              <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-2xl p-5">
+              <div className="bg-white dark:bg-[#0a0a0a] border border-black/10 dark:border-[#1a1a1a] rounded-2xl p-5">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-500">
                     {t.lang==='EN' ? 'Your Prompt' : 'Twoj Prompt'}
@@ -1850,7 +1850,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
                   <span className="text-[10px] text-slate-600 uppercase font-bold">{GENERATORS.find(g=>g.value===generator)?.label}</span>
                 </div>
 
-                <div className={`bg-black rounded-xl p-4 mb-4 min-h-[200px] border relative overflow-hidden ${isProductBlocked(productName) ? 'border-red-800' : 'border-[#222]'}`}>
+                <div className={`bg-slate-50 dark:bg-black rounded-xl p-4 mb-4 min-h-[200px] border relative overflow-hidden ${isProductBlocked(productName) ? 'border-red-800' : 'border-[#222]'}`}>
                   {!canGenerate && isLoggedIn ? (
                     <>
                       <p className="text-xs leading-relaxed text-slate-600 select-none pointer-events-none" style={{filter:'blur(4px)'}}>
@@ -1898,7 +1898,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
                 )}
 
                 {/* Hint */}
-                <div className="mt-4 p-3 bg-[#111] rounded-xl border border-[#1a1a1a]">
+                <div className="mt-4 p-3 bg-slate-100 dark:bg-[#111] rounded-xl border border-black/10 dark:border-[#1a1a1a]">
                   <p className="text-[10px] text-slate-500 leading-relaxed">
                     {t.lang==='EN'
                       ? 'Tip: Upload your product photo to Kling or Runway, then paste this prompt as the motion/style description.'
@@ -2164,11 +2164,11 @@ const AdminView = ({ setCurrentView, lang, user }) => {
     setTimeout(() => setSaved(false), 2000);
   };
 
-  const inputCls = "w-full bg-[#111] border border-white/10 rounded-xl px-3 py-2 text-white text-xs focus:border-amber-500 focus:outline-none transition-colors";
+  const inputCls = "w-full bg-slate-100 dark:bg-[#111] border border-black/10 dark:border-white/10 rounded-xl px-3 py-2 text-black dark:text-white text-xs focus:border-amber-500 focus:outline-none transition-colors";
   const labelCls = "block text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1";
 
   return (
-    <div className="min-h-screen bg-black font-sans px-4 py-12">
+    <div className="min-h-screen bg-white dark:bg-black font-sans px-4 py-12">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-10">
           <div>
