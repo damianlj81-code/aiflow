@@ -1107,7 +1107,7 @@ const CharacterCard = ({ char, idx, onChange, t }) => {
   const set = (key) => (val) => onChange(idx, key, val);
 
   const labelClass = 'block text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1';
-  const inputClass = 'w-full bg-[#111] border border-[#1a1a1a] rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-amber-500 transition-colors appearance-none pr-6';
+  const inputClass = 'w-full bg-slate-100 dark:bg-[#111] border border-black/10 dark:border-[#1a1a1a] rounded-lg px-2.5 py-2 text-xs text-black dark:text-white focus:outline-none focus:border-amber-500 transition-colors appearance-none pr-6';
 
   const Sel = ({ k, opts }) => (
     <div className="relative">
@@ -1122,7 +1122,7 @@ const CharacterCard = ({ char, idx, onChange, t }) => {
   const labels = ['Postac 1','Postac 2','Postac 3','Postac 4'];
 
   return (
-    <div className={`bg-[#0a0a0a] border ${colors[idx]} rounded-2xl p-4`}>
+    <div className={`bg-white dark:bg-[#0a0a0a] border ${colors[idx]} rounded-2xl p-4`}>
       <div className="flex items-center justify-between mb-4">
         <span className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-500">{labels[idx]}</span>
         <div className="flex gap-2">
@@ -1338,13 +1338,13 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
     setTimeout(() => setCopied(false), 2500);
   };
 
-  const sectionClass = 'bg-[#0a0a0a] border border-[#1a1a1a] rounded-2xl p-5 mb-4';
+  const sectionClass = 'bg-white dark:bg-[#0a0a0a] border border-black/10 dark:border-[#1a1a1a] rounded-2xl p-5 mb-4';
   const headerClass = 'text-[10px] font-bold uppercase tracking-[0.2em] text-amber-500 mb-4 flex items-center gap-2';
   const labelClass = 'block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1.5';
-  const inputClass = 'w-full bg-[#111] border border-[#222] rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500 transition-colors appearance-none pr-8';
+  const inputClass = 'w-full bg-slate-100 dark:bg-[#111] border border-black/10 dark:border-[#222] rounded-xl px-3 py-2.5 text-sm text-black dark:text-white focus:outline-none focus:border-amber-500 transition-colors appearance-none pr-8';
 
   return (
-    <div className="min-h-screen bg-black font-sans pb-16">
+    <div className="min-h-screen bg-white dark:bg-black font-sans pb-16">
       <div className="max-w-6xl mx-auto px-4 pt-8">
 
         {/* Header */}
@@ -1361,7 +1361,7 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
           </p>
 
           {/* Liczba postaci */}
-          <div className="inline-flex items-center gap-1 bg-[#0a0a0a] border border-[#222] rounded-2xl p-1">
+          <div className="inline-flex items-center gap-1 bg-slate-100 dark:bg-[#0a0a0a] border border-black/10 dark:border-[#222] rounded-2xl p-1">
             {[1,2,3,4].map(n => (
               <button key={n} onClick={() => setCharCount(n)}
                 className={`px-5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${charCount === n ? 'bg-amber-500 text-black' : 'text-slate-500 hover:text-white'}`}>
@@ -1701,12 +1701,12 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
   };
 
   const labelClass = 'block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1.5';
-  const inputClass = 'w-full bg-[#111] border border-[#222] rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500 transition-colors appearance-none pr-8';
-  const sectionClass = 'bg-[#0a0a0a] border border-[#1a1a1a] rounded-2xl p-5 mb-4';
+  const inputClass = 'w-full bg-slate-100 dark:bg-[#111] border border-black/10 dark:border-[#222] rounded-xl px-3 py-2.5 text-sm text-black dark:text-white focus:outline-none focus:border-amber-500 transition-colors appearance-none pr-8';
+  const sectionClass = 'bg-white dark:bg-[#0a0a0a] border border-black/10 dark:border-[#1a1a1a] rounded-2xl p-5 mb-4';
   const headerClass = 'text-[10px] font-bold uppercase tracking-[0.2em] text-amber-500 mb-4 flex items-center gap-2';
 
   return (
-    <div className="min-h-screen bg-black font-sans pb-16">
+    <div className="min-h-screen bg-white dark:bg-black font-sans pb-16">
       <div className="max-w-5xl mx-auto px-4 pt-8">
 
         {/* Header */}
