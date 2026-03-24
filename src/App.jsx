@@ -1932,7 +1932,6 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
 // LIFESTYLE BUILDER VIEW — Kreator Lifestyle AI
 // =========================================================================
 const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
-  const { db } = useFirebase();
   const [copied, setCopied] = useState(false);
   const isLoggedIn = !!user;
   const isPro = user?.pro || user?.plan === 'pro';
@@ -1944,7 +1943,7 @@ const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
       const unsub = onSnapshot(ref, snap => { const d = snap.data(); setTokens(d?.tokens ?? 0); });
       return unsub;
     }
-  }, [user, db]);
+  }, [user]);
 
   const canGenerate = isPro || isStarter || (tokens !== null && tokens > 0);
 
