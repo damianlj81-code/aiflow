@@ -1933,19 +1933,34 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
 // =========================================================================
 const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
   const [copied, setCopied] = useState(false);
-  const isLoggedIn = !!user;
-  const isPro = user?.pro || user?.plan === 'pro';
-  const isStarter = user?.plan === 'starter';
+  const [isPro, setIsPro] = useState(false);
+  const [isStarter, setIsStarter] = useState(false);
   const [tokens, setTokens] = useState(null);
+  const [loadingTokens, setLoadingTokens] = useState(true);
+  const isLoggedIn = !!user;
   useEffect(() => {
-    if (user?.uid && db) {
-      const ref = doc(db, 'artifacts/aiflow_academy/public/data/tokens', user.uid);
-      const unsub = onSnapshot(ref, snap => { const d = snap.data(); setTokens(d?.tokens ?? 0); });
-      return unsub;
+    if (user?.uid) {
+      getTokenData(db, user.uid).then(({ tokens, isPro, isStarter }) => {
+        setTokens(tokens); setIsPro(isPro); setIsStarter(isStarter); setLoadingTokens(false);
+      });
     }
   }, [user]);
-
   const canGenerate = isPro || isStarter || (tokens !== null && tokens > 0);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   const [weekMode, setWeekMode] = useState(false);
   const [place, setPlace]       = useState('luxury yacht');
