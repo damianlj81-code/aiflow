@@ -741,6 +741,17 @@ const AplikacjeView = ({ t, user, onLoginRequest, onCreatorChange }) => {
       glow: 'rgba(168,85,247,0.3)',
       badge: t.lang === 'EN' ? 'AD STUDIO' : 'STUDIO REKLAM',
     },
+    {
+      id: 'lifestyle-builder',
+      icon: '🛥️',
+      title: t.lang === 'EN' ? 'Lifestyle Builder' : 'Kreator Lifestyle',
+      subtitle: t.lang === 'EN' ? 'Luxury Lifestyle Prompt Generator' : 'Generator Promptów Lifestyle AI',
+      desc: t.lang === 'EN' ? 'Create luxury lifestyle prompts — yacht, jet, penthouse.' : 'Twórz prompty lifestyle — jacht, jet, penthouse.',
+      color: 'from-cyan-500/20 via-teal-500/10 to-emerald-500/20',
+      border: 'border-cyan-500/30',
+      glow: 'rgba(6,182,212,0.3)',
+      badge: t.lang === 'EN' ? 'LIFESTYLE STUDIO' : 'STUDIO LIFESTYLE',
+    },
   ];
 
   const currentIdx = activeApp ? apps.findIndex(a => a.id === activeApp) : -1;
@@ -790,6 +801,7 @@ const AplikacjeView = ({ t, user, onLoginRequest, onCreatorChange }) => {
         {/* Creator content */}
         {activeApp === 'avatar-builder' && <AvatarBuilderView t={t} user={user} onLoginRequest={onLoginRequest} />}
         {activeApp === 'ad-builder' && <ProductAdBuilderView t={t} user={user} onLoginRequest={onLoginRequest} />}
+        {activeApp === 'lifestyle-builder' && <LifestyleBuilderView t={t} user={user} onLoginRequest={onLoginRequest} />}
 
         {/* BACK BUTTON — fixed top left, always visible */}
         <div className="fixed top-20 left-4 z-50">
@@ -1917,6 +1929,208 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
 
 
 // =========================================================================
+// LIFESTYLE BUILDER VIEW — Kreator Lifestyle AI
+// =========================================================================
+const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
+  const { db } = useFirebase();
+  const [copied, setCopied] = useState(false);
+  const isLoggedIn = !!user;
+  const isPro = user?.pro || user?.plan === 'pro';
+  const isStarter = user?.plan === 'starter';
+  const [tokens, setTokens] = useState(null);
+  useEffect(() => {
+    if (user?.uid && db) {
+      const ref = doc(db, 'artifacts/aiflow_academy/public/data/tokens', user.uid);
+      const unsub = onSnapshot(ref, snap => { const d = snap.data(); setTokens(d?.tokens ?? 0); });
+      return unsub;
+    }
+  }, [user, db]);
+
+  const canGenerate = isPro || isStarter || (tokens !== null && tokens > 0);
+
+  const [weekMode, setWeekMode] = useState(false);
+  const [place, setPlace]       = useState('luxury yacht');
+  const [country, setCountry]   = useState('Monaco');
+  const [time, setTime]         = useState('golden sunset');
+  const [weather, setWeather]   = useState('clear sky');
+  const [activity, setActivity] = useState('standing confidently');
+  const [outfit, setOutfit]     = useState('luxury suit');
+  const [mood, setMood]         = useState('luxury calm');
+  const [status, setStatus]     = useState('young millionaire');
+  const [camera, setCamera]     = useState('cinematic wide shot');
+
+  const sectionClass = 'bg-white dark:bg-[#0a0a0a] border border-black/10 dark:border-[#1a1a1a] rounded-2xl p-5 mb-4';
+  const headerClass  = 'text-[10px] font-bold uppercase tracking-[0.2em] text-amber-500 mb-4 flex items-center gap-2';
+  const labelClass   = 'block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1.5';
+  const inputClass   = 'w-full bg-slate-100 dark:bg-[#111] border border-black/10 dark:border-[#222] rounded-xl px-3 py-2.5 text-sm text-black dark:text-white focus:outline-none focus:border-amber-500 transition-colors appearance-none pr-8';
+
+  const Sel = ({ label, value, set, opts }) => (
+    <div>
+      <label className={labelClass}>{label}</label>
+      <div className="relative">
+        <select value={value} onChange={e => set(e.target.value)} className={inputClass}>
+          {opts.map(([v,l]) => <option key={v} value={v}>{l}</option>)}
+        </select>
+        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/>
+      </div>
+    </div>
+  );
+
+  const buildPrompt = () =>
+    `Ultra realistic cinematic scene of a ${status} on a ${place} at ${country}. Time: ${time}, weather: ${weather}. The person is ${activity}. Wearing ${outfit}. Mood: ${mood}. Luxury lifestyle photography, depth of field, sharp focus, 4K, dramatic lighting. Camera: ${camera}. editorial style, tasteful, professional model shoot.`;
+
+  const buildWeek = () => [
+    `Day 1: Arriving in ${country} by helicopter, ${place}, ${time}.`,
+    `Day 2: Morning coffee on ${place} deck, ${weather}.`,
+    `Day 3: Adventure near cliffs, ${camera}.`,
+    `Day 4: Luxury night party with city lights, ${mood}.`,
+    `Day 5: Solo sunset reflection, ${outfit}.`,
+    `Day 6: Business call on laptop with ocean view, ${status}.`,
+    `Day 7: Elegant walk in marina leaving ${place}.`,
+  ].join('\n');
+
+  const generatePrompt = async () => {
+    if (!isLoggedIn) { onLoginRequest(); return; }
+    if (!canGenerate) return;
+    const ok = await useToken(db, user.uid);
+    if (!ok) return;
+    const text = weekMode ? buildWeek() : buildPrompt();
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  };
+
+  return (
+    <div className="min-h-screen bg-white dark:bg-black font-sans pb-16">
+      <div className="max-w-6xl mx-auto px-4 pt-8">
+
+        {/* Header */}
+        <div className="mb-8 text-center">
+          <div className="inline-flex items-center gap-2 bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-4">
+            <span className="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-pulse"/>
+            {t.lang==='EN' ? 'Lifestyle AI Generator' : 'Generator Lifestyle AI'}
+          </div>
+          <h1 className="text-3xl md:text-5xl font-black text-black dark:text-white uppercase tracking-tighter mb-2">
+            {t.lang==='EN' ? 'Lifestyle Builder' : 'Kreator Lifestyle'}<span className="text-amber-500">.</span>
+          </h1>
+          <p className="text-slate-500 text-sm mb-4">
+            {t.lang==='EN' ? 'Luxury lifestyle prompts — single shot or full week plan.' : 'Prompty lifestyle — pojedyncze zdjęcie lub plan na cały tydzień.'}
+          </p>
+
+          {/* Tryb */}
+          <div className="inline-flex items-center gap-1 bg-slate-100 dark:bg-[#0a0a0a] border border-black/10 dark:border-[#222] rounded-2xl p-1">
+            {[false, true].map(w => (
+              <button key={String(w)} onClick={() => setWeekMode(w)}
+                className={`px-5 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${weekMode === w ? 'bg-amber-500 text-black' : 'text-slate-500 hover:text-black dark:hover:text-white'}`}>
+                {w ? (t.lang==='EN' ? '📅 Week Plan' : '📅 Plan Tygodnia') : (t.lang==='EN' ? '📸 Single Shot' : '📸 Pojedynczy')}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Sekcje opcji */}
+        <div className="max-w-3xl mx-auto">
+          <div className={sectionClass}>
+            <p className={headerClass}><span className="text-base">🌍</span> {t.lang==='EN' ? 'Location & Time' : 'Lokalizacja i Czas'}</p>
+            <div className="grid grid-cols-2 gap-3">
+              <Sel label={t.lang==='EN'?'Place':'Miejsce'} value={place} set={setPlace} opts={[
+                ['luxury yacht','Luxury Yacht'],['private jet','Private Jet'],['penthouse','Penthouse'],
+                ['beach villa','Beach Villa'],['mountain resort','Mountain Resort'],['night city rooftop','City Rooftop'],
+                ['exclusive restaurant','Restauracja'],['private island','Prywatna wyspa'],['Formula 1 paddock','F1 Paddock'],
+              ]}/>
+              <Sel label={t.lang==='EN'?'Country':'Kraj'} value={country} set={setCountry} opts={[
+                ['Monaco','Monaco'],['Italian coast','Włochy'],['Dubai','Dubai'],['Bali','Bali'],
+                ['Maldives','Malediwy'],['Swiss Alps','Alpy'],['Saint-Tropez','Saint-Tropez'],
+                ['Santorini Greece','Santoryn'],['Tokyo Japan','Tokio'],['Paris France','Paryż'],
+              ]}/>
+              <Sel label={t.lang==='EN'?'Time of Day':'Pora Dnia'} value={time} set={setTime} opts={[
+                ['sunrise','Wschód słońca'],['morning','Poranek'],['golden sunset','Złoty zachód'],
+                ['blue hour','Blue hour'],['night','Noc'],['magic hour','Magic hour'],
+              ]}/>
+              <Sel label={t.lang==='EN'?'Weather':'Pogoda'} value={weather} set={setWeather} opts={[
+                ['clear sky','Bezchmurne niebo'],['light wind','Lekki wiatr'],['dramatic clouds','Dramatyczne chmury'],
+                ['tropical humidity','Tropikalna wilgoć'],['soft fog','Delikatna mgła'],['golden haze','Złota poświata'],
+              ]}/>
+            </div>
+          </div>
+
+          <div className={sectionClass}>
+            <p className={headerClass}><span className="text-base">🎭</span> {t.lang==='EN' ? 'Character & Style' : 'Postać i Styl'}</p>
+            <div className="grid grid-cols-2 gap-3">
+              <Sel label={t.lang==='EN'?'Status':'Status'} value={status} set={setStatus} opts={[
+                ['young millionaire','Młody milioner'],['global influencer','Global influencer'],
+                ['mafia boss','Mafia boss'],['tech entrepreneur','Tech entrepreneur'],
+                ['travel icon','Travel icon'],['luxury lifestyle creator','Lifestyle creator'],
+                ['CEO in vacation mode','CEO na wakacjach'],['mysterious stranger','Tajemniczy nieznajomy'],
+              ]}/>
+              <Sel label={t.lang==='EN'?'Activity':'Aktywność'} value={activity} set={setActivity} opts={[
+                ['standing confidently','Stoi pewnie'],['drinking whiskey','Pije whiskey'],
+                ['working on laptop','Pracuje na laptopie'],['walking slowly','Idzie powoli'],
+                ['steering yacht','Steruje jachtem'],['relaxing in sun','Relaksuje się'],
+                ['making a phone call','Rozmawia przez telefon'],['watching the horizon','Patrzy w horyzont'],
+                ['celebrating with champagne','Świętuje szampanem'],
+              ]}/>
+              <Sel label={t.lang==='EN'?'Outfit':'Strój'} value={outfit} set={setOutfit} opts={[
+                ['white linen shirt','Biała lniana koszula'],['luxury suit','Luksusowy garnitur'],
+                ['summer casual outfit','Casual letni'],['elegant black outfit','Elegancki czarny'],
+                ['swimwear','Strój kąpielowy'],['designer streetwear','Designer streetwear'],
+                ['tuxedo','Tuxedo'],['business casual','Business casual'],
+              ]}/>
+              <Sel label={t.lang==='EN'?'Mood':'Nastrój'} value={mood} set={setMood} opts={[
+                ['luxury calm','Luksusowy spokój'],['dominant power','Dominująca siła'],
+                ['freedom','Wolność'],['mysterious vibe','Tajemnicza aura'],
+                ['romantic atmosphere','Romantyczna atmosfera'],['winner energy','Energia zwycięzcy'],
+                ['untouchable confidence','Niezachwiana pewność'],['melancholic sophistication','Melancholijna elegancja'],
+              ]}/>
+            </div>
+          </div>
+
+          <div className={sectionClass}>
+            <p className={headerClass}><span className="text-base">🎥</span> {t.lang==='EN' ? 'Camera' : 'Kamera'}</p>
+            <div className="grid grid-cols-2 gap-3">
+              <Sel label={t.lang==='EN'?'Camera Shot':'Ujęcie'} value={camera} set={setCamera} opts={[
+                ['cinematic wide shot','Cinematic wide'],['close portrait','Close portrait'],
+                ['low angle power shot','Low angle power'],['aerial drone view','Aerial drone'],
+                ['over shoulder shot','Over shoulder'],['dutch angle','Dutch angle'],
+                ['tracking shot','Tracking shot'],['extreme close up face','Extreme close up'],
+              ]}/>
+            </div>
+          </div>
+
+          {/* Generuj */}
+          <div className="flex flex-col items-center gap-3 mt-4">
+            {!isLoggedIn ? (
+              <button onClick={onLoginRequest} className="px-10 py-4 bg-amber-500 hover:bg-amber-400 text-black font-black uppercase tracking-widest text-sm rounded-2xl transition-all">
+                {t.lang==='EN' ? 'Log in to generate' : 'Zaloguj się aby generować'}
+              </button>
+            ) : !canGenerate ? (
+              <div className="text-center">
+                <p className="text-slate-500 text-sm mb-3">{t.lang==='EN' ? 'No tokens left.' : 'Brak tokenów. Przejdź na plan Starter.'}</p>
+                <a href={`https://buy.stripe.com/14A28qcGJ56fdfq5rQ8bS05?client_reference_id=${user?.uid || ''}&prefilled_email=${encodeURIComponent(user?.email || '')}`}
+                  target="_blank" rel="noopener noreferrer"
+                  className="inline-block px-10 py-4 bg-amber-500 hover:bg-amber-400 text-black font-black uppercase tracking-widest text-sm rounded-2xl transition-all shadow-lg shadow-amber-500/20">
+                  {t.lang==='EN' ? 'Get Starter — 30 PLN/mo' : 'Kup Starter — 30 PLN/mies'}
+                </a>
+              </div>
+            ) : (
+              <button onClick={generatePrompt} className={`px-10 py-4 font-black uppercase tracking-widest text-sm rounded-2xl transition-all shadow-lg ${copied ? 'bg-green-500 text-white shadow-green-500/20' : 'bg-amber-500 hover:bg-amber-400 text-black shadow-amber-500/20'}`}>
+                {copied ? (t.lang==='EN' ? 'Copied! Paste in your AI generator' : 'Skopiowano! Wklej do generatora AI') : (t.lang==='EN' ? 'Generate & Copy Prompt' : 'Generuj i Kopiuj Prompt')}
+              </button>
+            )}
+            {isLoggedIn && !isPro && !isStarter && tokens !== null && (
+              <p className="text-[10px] text-slate-600 uppercase tracking-widest">
+                {t.lang==='EN' ? `${tokens} free generations remaining` : `Pozostało ${tokens} darmowych generacji`}
+              </p>
+            )}
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// =========================================================================
 // CENNIK VIEW
 // =========================================================================
 const CennikView = ({ t, user, onLoginRequest }) => {
@@ -2534,6 +2748,7 @@ export default function App() {
           {currentView === 'prompt-builder' && <AplikacjeView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
           {currentView === 'avatar-builder' && <AvatarBuilderView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
           {currentView === 'ad-builder' && <ProductAdBuilderView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
+          {currentView === 'lifestyle-builder' && <LifestyleBuilderView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
           {currentView === 'admin' && user?.email === ADMIN_EMAIL && <AdminView setCurrentView={setCurrentView} lang={lang} user={user} />}
           {currentView === 'impressum' && <ImpressumView setCurrentView={setCurrentView} lang={lang} />}
           {currentView === 'datenschutz' && <DatenschutzView setCurrentView={setCurrentView} lang={lang} />}
