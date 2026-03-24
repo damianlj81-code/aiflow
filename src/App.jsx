@@ -1963,6 +1963,7 @@ const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
 
 
   const [weekMode, setWeekMode] = useState(false);
+  const [facePrompt, setFacePrompt] = useState('');
   const [place, setPlace]       = useState('luxury yacht');
   const [country, setCountry]   = useState('Monaco');
   const [time, setTime]         = useState('golden sunset');
@@ -1990,8 +1991,11 @@ const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
     </div>
   );
 
-  const buildPrompt = () =>
-    `Ultra realistic cinematic scene of a ${status} on a ${place} at ${country}. Time: ${time}, weather: ${weather}. The person is ${activity}. Wearing ${outfit}. Mood: ${mood}. Luxury lifestyle photography, depth of field, sharp focus, 4K, dramatic lighting. Camera: ${camera}. editorial style, tasteful, professional model shoot.`;
+  const buildPrompt = () => {
+    const face = facePrompt.trim();
+    const base = `Ultra realistic cinematic scene of a ${status} on a ${place} at ${country}. Time: ${time}, weather: ${weather}. The person is ${activity}. Wearing ${outfit}. Mood: ${mood}. Luxury lifestyle photography, depth of field, sharp focus, 4K, dramatic lighting. Camera: ${camera}. editorial style, tasteful, professional model shoot.`;
+    return face ? `${face}, ${base}` : base;
+  };
 
   const buildWeek = () => [
     `Day 1: Arriving in ${country} by helicopter, ${place}, ${time}.`,
@@ -2045,6 +2049,17 @@ const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
         {/* Sekcje opcji */}
         <div className="max-w-3xl mx-auto">
           <div className={sectionClass}>
+            <p className={headerClass}><span className="text-base">👤</span> {t.lang==='EN' ? 'Face / Character (optional)' : 'Twarz / Postać (opcjonalnie)'}</p>
+            <textarea
+              value={facePrompt}
+              onChange={e => setFacePrompt(e.target.value)}
+              placeholder={t.lang==='EN' ? 'Paste your avatar face prompt here (from Avatar Builder)...' : 'Wklej tutaj prompt twarzy z Kreatora Awatarów...'}
+              rows={3}
+              className="w-full bg-slate-100 dark:bg-[#111] border border-black/10 dark:border-[#222] rounded-xl px-3 py-2.5 text-sm text-black dark:text-white placeholder-slate-400 focus:outline-none focus:border-amber-500 transition-colors resize-none font-mono"
+            />
+            <p className="text-[10px] text-slate-400 mt-1.5">💡 {t.lang==='EN' ? 'Leave empty to generate without face — or paste from Avatar Builder for a complete scene' : 'Zostaw puste jeśli chcesz bez twarzy — lub wklej z Kreatora Awatarów dla pełnej sceny'}</p>
+          </div>
+          <div className={sectionClass}>
             <p className={headerClass}><span className="text-base">🌍</span> {t.lang==='EN' ? 'Location & Time' : 'Lokalizacja i Czas'}</p>
             <div className="grid grid-cols-2 gap-3">
               <Sel label={t.lang==='EN'?'Place':'Miejsce'} value={place} set={setPlace} opts={[
@@ -2072,7 +2087,7 @@ const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
             <p className={headerClass}><span className="text-base">🎭</span> {t.lang==='EN' ? 'Character & Style' : 'Postać i Styl'}</p>
             <div className="grid grid-cols-2 gap-3">
               <Sel label={t.lang==='EN'?'Status':'Status'} value={status} set={setStatus} opts={[
-                ['young millionaire','Młody milioner'],['global influencer','Global influencer'],
+                ['young millionaire','Młody milioner'],['Hollywood A-list celebrity','Gwiazda Hollywood'],['global influencer','Global influencer'],['music superstar on tour','Supergwiazda muzyki'],['retired champion athlete','Mistrz sportu'],
                 ['mafia boss','Mafia boss'],['tech entrepreneur','Tech entrepreneur'],
                 ['travel icon','Travel icon'],['luxury lifestyle creator','Lifestyle creator'],
                 ['CEO in vacation mode','CEO na wakacjach'],['mysterious stranger','Tajemniczy nieznajomy'],
@@ -2087,7 +2102,7 @@ const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
               <Sel label={t.lang==='EN'?'Outfit':'Strój'} value={outfit} set={setOutfit} opts={[
                 ['white linen shirt','Biała lniana koszula'],['luxury suit','Luksusowy garnitur'],
                 ['summer casual outfit','Casual letni'],['elegant black outfit','Elegancki czarny'],
-                ['swimwear','Strój kąpielowy'],['designer streetwear','Designer streetwear'],
+                ['skimpy bikini, barely there','Skąpe bikini'],['shiny mini dress, metallic','Błyszcząca mini'],['swimwear','Strój kąpielowy'],['designer streetwear','Designer streetwear'],
                 ['tuxedo','Tuxedo'],['business casual','Business casual'],
               ]}/>
               <Sel label={t.lang==='EN'?'Mood':'Nastrój'} value={mood} set={setMood} opts={[
