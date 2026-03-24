@@ -2102,7 +2102,7 @@ const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
               <Sel label={t.lang==='EN'?'Outfit':'Strój'} value={outfit} set={setOutfit} opts={[
                 ['white linen shirt','Biała lniana koszula'],['luxury suit','Luksusowy garnitur'],
                 ['summer casual outfit','Casual letni'],['elegant black outfit','Elegancki czarny'],
-                ['skimpy bikini, barely there','Skąpe bikini'],['shiny mini dress, metallic','Błyszcząca mini'],['swimwear','Strój kąpielowy'],['designer streetwear','Designer streetwear'],
+                ['minimal triangle bikini, beach fashion','Skąpe bikini'],['metallic shiny mini dress, elegant fashion','Błyszcząca mini'],['swimwear','Strój kąpielowy'],['designer streetwear','Designer streetwear'],
                 ['tuxedo','Tuxedo'],['business casual','Business casual'],
               ]}/>
               <Sel label={t.lang==='EN'?'Mood':'Nastrój'} value={mood} set={setMood} opts={[
