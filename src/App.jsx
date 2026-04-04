@@ -1968,11 +1968,22 @@ const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
   const [country, setCountry]   = useState('Monaco');
   const [time, setTime]         = useState('golden sunset');
   const [weather, setWeather]   = useState('clear sky');
-  const [activity, setActivity] = useState('standing confidently');
-  const [outfit, setOutfit]     = useState('luxury suit');
-  const [mood, setMood]         = useState('luxury calm');
-  const [status, setStatus]     = useState('young millionaire');
   const [camera, setCamera]     = useState('cinematic wide shot');
+
+  // Postac 1
+  const [gender1, setGender1]   = useState('male');
+  const [activity1, setActivity1] = useState('standing confidently');
+  const [outfit1, setOutfit1]   = useState('luxury suit');
+  const [mood1, setMood1]       = useState('luxury calm');
+  const [status1, setStatus1]   = useState('young millionaire');
+
+  // Postac 2 (para)
+  const [pairMode, setPairMode] = useState(false);
+  const [gender2, setGender2]   = useState('female');
+  const [activity2, setActivity2] = useState('relaxing in sun');
+  const [outfit2, setOutfit2]   = useState('minimal triangle bikini, beach fashion');
+  const [mood2, setMood2]       = useState('romantic atmosphere');
+  const [status2, setStatus2]   = useState('Hollywood A-list celebrity');
 
   const sectionClass = 'bg-white dark:bg-[#0a0a0a] border border-black/10 dark:border-[#1a1a1a] rounded-2xl p-5 mb-4';
   const headerClass  = 'text-[10px] font-bold uppercase tracking-[0.2em] text-amber-500 mb-4 flex items-center gap-2';
@@ -1991,21 +2002,47 @@ const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
     </div>
   );
 
+  const OPTS_MALE = {
+    activity: [['standing confidently','Stoi pewnie'],['drinking whiskey','Pije whiskey'],['working on laptop','Pracuje na laptopie'],['walking slowly','Idzie powoli'],['steering yacht','Steruje jachtem'],['making a phone call','Rozmawia przez telefon'],['watching the horizon','Patrzy w horyzont'],['celebrating with champagne','Świętuje szampanem']],
+    outfit: [['luxury suit','Luksusowy garnitur'],['white linen shirt','Biała lniana koszula'],['summer casual outfit','Casual letni'],['elegant black outfit','Elegancki czarny'],['designer streetwear','Designer streetwear'],['tuxedo','Tuxedo'],['business casual','Business casual'],['swimwear, beach shorts','Szorty kąpielowe']],
+  };
+  const OPTS_FEMALE = {
+    activity: [['relaxing in sun','Relaksuje się'],['standing confidently','Stoi pewnie'],['walking slowly','Idzie powoli'],['celebrating with champagne','Świętuje szampanem'],['watching the horizon','Patrzy w horyzont'],['lying on deck, sunbathing','Opala się'],['dancing elegantly','Tańczy']],
+    outfit: [['minimal triangle bikini, beach fashion','Skąpe bikini'],['metallic shiny mini dress, elegant fashion','Błyszcząca mini'],['luxury suit','Luksusowy garnitur'],['elegant black dress','Czarna sukienka'],['summer casual outfit','Casual letni'],['swimwear','Strój kąpielowy'],['white linen dress','Biała sukienka'],['business casual','Business casual']],
+  };
+  const STATUS_OPTS = [['young millionaire','Młody milioner'],['Hollywood A-list celebrity','Gwiazda Hollywood'],['global influencer','Global influencer'],['music superstar on tour','Supergwiazda muzyki'],['retired champion athlete','Mistrz sportu'],['mafia boss','Mafia boss'],['tech entrepreneur','Tech entrepreneur'],['travel icon','Travel icon'],['CEO in vacation mode','CEO na wakacjach'],['mysterious stranger','Tajemniczy nieznajomy']];
+  const MOOD_OPTS = [['luxury calm','Luksusowy spokój'],['dominant power','Dominująca siła'],['freedom','Wolność'],['mysterious vibe','Tajemnicza aura'],['romantic atmosphere','Romantyczna atmosfera'],['winner energy','Energia zwycięzcy'],['untouchable confidence','Niezachwiana pewność'],['melancholic sophistication','Melancholijna elegancja']];
+
+  const buildChar = (gender, status, activity, outfit, mood) => {
+    const g = gender === 'male' ? 'man' : 'woman';
+    return `${status} ${g}, ${activity}, wearing ${outfit}, ${mood} mood`;
+  };
+
   const buildPrompt = () => {
     const face = facePrompt.trim();
-    const base = `Ultra realistic cinematic scene of a ${status} on a ${place} at ${country}. Time: ${time}, weather: ${weather}. The person is ${activity}. Wearing ${outfit}. Mood: ${mood}. Luxury lifestyle photography, depth of field, sharp focus, 4K, dramatic lighting. Camera: ${camera}. editorial style, tasteful, professional model shoot.`;
+    const char1 = buildChar(gender1, status1, activity1, outfit1, mood1);
+    const char2 = pairMode ? buildChar(gender2, status2, activity2, outfit2, mood2) : null;
+    const scene = pairMode
+      ? `${char1} and ${char2}`
+      : char1;
+    const base = `Ultra realistic cinematic scene, ${scene}, on a ${place} at ${country}. Time: ${time}, weather: ${weather}. Luxury lifestyle photography, depth of field, sharp focus, 4K, dramatic lighting. Camera: ${camera}. editorial style, tasteful, professional model shoot.`;
     return face ? `${face}, ${base}` : base;
   };
 
-  const buildWeek = () => [
-    `Day 1: Arriving in ${country} by helicopter, ${place}, ${time}.`,
-    `Day 2: Morning coffee on ${place} deck, ${weather}.`,
-    `Day 3: Adventure near cliffs, ${camera}.`,
-    `Day 4: Luxury night party with city lights, ${mood}.`,
-    `Day 5: Solo sunset reflection, ${outfit}.`,
-    `Day 6: Business call on laptop with ocean view, ${status}.`,
-    `Day 7: Elegant walk in marina leaving ${place}.`,
-  ].join('\n');
+  const buildWeek = () => {
+    const char1 = buildChar(gender1, status1, activity1, outfit1, mood1);
+    const char2 = pairMode ? buildChar(gender2, status2, activity2, outfit2, mood2) : null;
+    const who = pairMode ? `${char1} and ${char2}` : char1;
+    return [
+      `Day 1: ${who} arriving in ${country} by helicopter, ${place}, ${time}.`,
+      `Day 2: Morning coffee on ${place} deck, ${weather}, ${mood1} mood.`,
+      `Day 3: Adventure near cliffs, ${camera}.`,
+      `Day 4: Luxury night party with city lights.`,
+      `Day 5: Solo sunset reflection, ${outfit1}.`,
+      `Day 6: Business call on laptop with ocean view.`,
+      `Day 7: Elegant walk leaving ${place}, ${country}.`,
+    ].join('\n');
+  };
 
   const generatePrompt = async () => {
     if (!isLoggedIn) { onLoginRequest(); return; }
@@ -2084,34 +2121,56 @@ const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
           </div>
 
           <div className={sectionClass}>
-            <p className={headerClass}><span className="text-base">🎭</span> {t.lang==='EN' ? 'Character & Style' : 'Postać i Styl'}</p>
-            <div className="grid grid-cols-2 gap-3">
-              <Sel label={t.lang==='EN'?'Status':'Status'} value={status} set={setStatus} opts={[
-                ['young millionaire','Młody milioner'],['Hollywood A-list celebrity','Gwiazda Hollywood'],['global influencer','Global influencer'],['music superstar on tour','Supergwiazda muzyki'],['retired champion athlete','Mistrz sportu'],
-                ['mafia boss','Mafia boss'],['tech entrepreneur','Tech entrepreneur'],
-                ['travel icon','Travel icon'],['luxury lifestyle creator','Lifestyle creator'],
-                ['CEO in vacation mode','CEO na wakacjach'],['mysterious stranger','Tajemniczy nieznajomy'],
-              ]}/>
-              <Sel label={t.lang==='EN'?'Activity':'Aktywność'} value={activity} set={setActivity} opts={[
-                ['standing confidently','Stoi pewnie'],['drinking whiskey','Pije whiskey'],
-                ['working on laptop','Pracuje na laptopie'],['walking slowly','Idzie powoli'],
-                ['steering yacht','Steruje jachtem'],['relaxing in sun','Relaksuje się'],
-                ['making a phone call','Rozmawia przez telefon'],['watching the horizon','Patrzy w horyzont'],
-                ['celebrating with champagne','Świętuje szampanem'],
-              ]}/>
-              <Sel label={t.lang==='EN'?'Outfit':'Strój'} value={outfit} set={setOutfit} opts={[
-                ['white linen shirt','Biała lniana koszula'],['luxury suit','Luksusowy garnitur'],
-                ['summer casual outfit','Casual letni'],['elegant black outfit','Elegancki czarny'],
-                ['minimal triangle bikini, beach fashion','Skąpe bikini'],['metallic shiny mini dress, elegant fashion','Błyszcząca mini'],['swimwear','Strój kąpielowy'],['designer streetwear','Designer streetwear'],
-                ['tuxedo','Tuxedo'],['business casual','Business casual'],
-              ]}/>
-              <Sel label={t.lang==='EN'?'Mood':'Nastrój'} value={mood} set={setMood} opts={[
-                ['luxury calm','Luksusowy spokój'],['dominant power','Dominująca siła'],
-                ['freedom','Wolność'],['mysterious vibe','Tajemnicza aura'],
-                ['romantic atmosphere','Romantyczna atmosfera'],['winner energy','Energia zwycięzcy'],
-                ['untouchable confidence','Niezachwiana pewność'],['melancholic sophistication','Melancholijna elegancja'],
-              ]}/>
+            <div className="flex items-center justify-between mb-4">
+              <p className={headerClass} style={{marginBottom:0}}><span className="text-base">🎭</span> {t.lang==='EN' ? 'Character & Style' : 'Postać i Styl'}</p>
+              {/* Para toggle */}
+              <button onClick={() => setPairMode(p => !p)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all border ${pairMode ? 'bg-amber-500 border-amber-500 text-black' : 'border-black/10 dark:border-[#333] text-slate-500 hover:border-amber-500/50'}`}>
+                {pairMode ? '👫 Para' : '👤 1 osoba'}
+              </button>
             </div>
+
+            {/* POSTAC 1 */}
+            <div className="mb-4">
+              {pairMode && <p className="text-[9px] font-black uppercase tracking-widest text-amber-500 mb-2">Osoba 1</p>}
+              {/* Plec 1 */}
+              <div className="flex gap-2 mb-3">
+                {[['male','👨 Mężczyzna'],['female','👩 Kobieta']].map(([v,l]) => (
+                  <button key={v} onClick={() => { setGender1(v); setOutfit1(v==='male' ? 'luxury suit' : 'minimal triangle bikini, beach fashion'); setActivity1(v==='male' ? 'standing confidently' : 'relaxing in sun'); }}
+                    className={`flex-1 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all border ${gender1===v ? 'bg-amber-500 border-amber-500 text-black' : 'border-black/10 dark:border-[#333] text-slate-500 hover:border-amber-500/50'}`}>
+                    {l}
+                  </button>
+                ))}
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <Sel label="Status" value={status1} set={setStatus1} opts={STATUS_OPTS}/>
+                <Sel label={t.lang==='EN'?'Activity':'Aktywność'} value={activity1} set={setActivity1} opts={gender1==='male' ? OPTS_MALE.activity : OPTS_FEMALE.activity}/>
+                <Sel label={t.lang==='EN'?'Outfit':'Strój'} value={outfit1} set={setOutfit1} opts={gender1==='male' ? OPTS_MALE.outfit : OPTS_FEMALE.outfit}/>
+                <Sel label={t.lang==='EN'?'Mood':'Nastrój'} value={mood1} set={setMood1} opts={MOOD_OPTS}/>
+              </div>
+            </div>
+
+            {/* POSTAC 2 — tylko w trybie para */}
+            {pairMode && (
+              <div className="border-t border-black/5 dark:border-white/5 pt-4">
+                <p className="text-[9px] font-black uppercase tracking-widest text-cyan-500 mb-2">Osoba 2</p>
+                {/* Plec 2 */}
+                <div className="flex gap-2 mb-3">
+                  {[['male','👨 Mężczyzna'],['female','👩 Kobieta']].map(([v,l]) => (
+                    <button key={v} onClick={() => { setGender2(v); setOutfit2(v==='male' ? 'luxury suit' : 'minimal triangle bikini, beach fashion'); setActivity2(v==='male' ? 'standing confidently' : 'relaxing in sun'); }}
+                      className={`flex-1 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all border ${gender2===v ? 'bg-cyan-500 border-cyan-500 text-black' : 'border-black/10 dark:border-[#333] text-slate-500 hover:border-cyan-500/50'}`}>
+                      {l}
+                    </button>
+                  ))}
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Sel label="Status" value={status2} set={setStatus2} opts={STATUS_OPTS}/>
+                  <Sel label={t.lang==='EN'?'Activity':'Aktywność'} value={activity2} set={setActivity2} opts={gender2==='male' ? OPTS_MALE.activity : OPTS_FEMALE.activity}/>
+                  <Sel label={t.lang==='EN'?'Outfit':'Strój'} value={outfit2} set={setOutfit2} opts={gender2==='male' ? OPTS_MALE.outfit : OPTS_FEMALE.outfit}/>
+                  <Sel label={t.lang==='EN'?'Mood':'Nastrój'} value={mood2} set={setMood2} opts={MOOD_OPTS}/>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className={sectionClass}>
@@ -2125,6 +2184,21 @@ const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
               ]}/>
             </div>
           </div>
+
+          {/* Podgląd planu tygodnia */}
+          {weekMode && (
+            <div className={sectionClass}>
+              <p className={headerClass}><span className="text-base">📅</span> Podgląd planu tygodnia</p>
+              <div className="space-y-2">
+                {buildWeek().split('\n').map((day, i) => (
+                  <div key={i} className="flex gap-3 items-start">
+                    <span className="text-amber-500 font-black text-xs w-12 flex-shrink-0 pt-0.5">Dzień {i+1}</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{day.replace(`Day ${i+1}: `,'')}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Generuj */}
           <div className="flex flex-col items-center gap-3 mt-4">
