@@ -1407,7 +1407,7 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
               <label className={labelClass}>{t.lang==='EN'?'Background':'Tlo'}</label>
               <div className="relative">
                 <select value={bgSelect} onChange={e => setBgSelect(e.target.value)} className={inputClass}>
-                  {[['professional studio, white background','Studio biale'],['dark studio, black background','Studio czarne'],['luxurious mansion interior, marble floors','Rezydencja'],['modern bedroom, elegant interior, soft lighting','Sypialnia'],['tropical beach, golden sand, ocean waves','Plaz'],['Venice canal at night, romantic lights','Wenecja'],['Paris street at night, Eiffel Tower','Paryz'],['Tokyo street, neon lights at night','Tokio neon'],['forest, natural light, bokeh','Las'],['modern city rooftop, skyline','Dach']].map(([v,l]) => <option key={v} value={v}>{l}</option>)}
+                  {[['professional studio, white background','Studio biale'],['dark studio, black background','Studio czarne'],['luxurious mansion interior, marble floors','Rezydencja'],['modern bedroom, elegant interior, soft lighting','Sypialnia'],['tropical beach, golden sand, ocean waves','Plaża'],['Venice canal at night, romantic lights','Wenecja'],['Paris street at night, Eiffel Tower','Paryż'],['Tokyo street, neon lights at night','Tokio neon'],['forest, natural light, bokeh','Las'],['modern city rooftop, skyline','Dach']].map(([v,l]) => <option key={v} value={v}>{l}</option>)}
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/>
               </div>
@@ -2193,7 +2193,7 @@ const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
                 {buildWeek().split('\n').map((day, i) => (
                   <div key={i} className="flex gap-3 items-start">
                     <span className="text-amber-500 font-black text-xs w-12 flex-shrink-0 pt-0.5">Dzień {i+1}</span>
-                    <span className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{day.replace(`Day ${i+1}: `,'')}</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{day.replace("Day " + (i+1) + ": ", "")}</span>
                   </div>
                 ))}
               </div>
