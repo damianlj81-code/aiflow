@@ -2003,14 +2003,15 @@ const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
   );
 
   const OPTS_MALE = {
-    activity: [['standing confidently','Stoi pewnie'],['drinking whiskey','Pije whiskey'],['working on laptop','Pracuje na laptopie'],['walking slowly','Idzie powoli'],['steering yacht','Steruje jachtem'],['making a phone call','Rozmawia przez telefon'],['watching the horizon','Patrzy w horyzont'],['celebrating with champagne','Świętuje szampanem']],
-    outfit: [['luxury suit','Luksusowy garnitur'],['white linen shirt','Biała lniana koszula'],['summer casual outfit','Casual letni'],['elegant black outfit','Elegancki czarny'],['designer streetwear','Designer streetwear'],['tuxedo','Tuxedo'],['business casual','Business casual'],['swimwear, beach shorts','Szorty kąpielowe']],
+    activity: [['standing confidently','Stoi pewnie'],['drinking whiskey','Pije whiskey'],['working on laptop','Pracuje na laptopie'],['walking slowly','Idzie powoli'],['steering yacht','Steruje jachtem'],['making a phone call','Rozmawia przez telefon'],['watching the horizon','Patrzy w horyzont'],['celebrating with champagne','Świętuje szampanem'],['sitting relaxed','Siedzi zrelaksowany']],
+    outfit: [['luxury suit','Luksusowy garnitur'],['white linen shirt, open collar','Lniana koszula'],['summer casual outfit','Letni casual'],['elegant all-black outfit','Elegancki czarny'],['designer streetwear','Streetwear premium'],['black tuxedo','Smoking'],['business casual outfit','Biznesowy casual'],['swim shorts, beach style','Szorty plażowe']],
   };
   const OPTS_FEMALE = {
-    activity: [['relaxing in sun','Relaksuje się'],['standing confidently','Stoi pewnie'],['walking slowly','Idzie powoli'],['celebrating with champagne','Świętuje szampanem'],['watching the horizon','Patrzy w horyzont'],['lying on deck, sunbathing','Opala się'],['dancing elegantly','Tańczy']],
-    outfit: [['minimal triangle bikini, beach fashion','Skąpe bikini'],['metallic shiny mini dress, elegant fashion','Błyszcząca mini'],['luxury suit','Luksusowy garnitur'],['elegant black dress','Czarna sukienka'],['summer casual outfit','Casual letni'],['swimwear','Strój kąpielowy'],['white linen dress','Biała sukienka'],['business casual','Business casual']],
+    activity: [['relaxing in sun','Relaksuje się'],['standing confidently','Stoi pewnie'],['walking slowly','Idzie powoli'],['celebrating with champagne','Świętuje szampanem'],['watching the horizon','Patrzy w horyzont'],['lying on deck, sunbathing','Opala się na pokładzie'],['dancing elegantly','Tańczy elegancko'],['drinking cocktail','Pije koktajl'],['posing for camera','Pozuje do zdjęcia']],
+    outfit: [['minimal triangle bikini, beach fashion','Skąpe bikini'],['metallic shiny mini dress, elegant fashion','Błyszcząca mini'],['luxury designer suit','Luksusowy garnitur'],['elegant black evening dress','Czarna wieczorowa'],['summer white linen dress','Biała lniana sukienka'],['one piece swimsuit, elegant','Kostium kąpielowy'],['chic casual summer outfit','Letni chic'],['business casual elegant','Biznesowy elegancki']],
   };
-  const STATUS_OPTS = [['young millionaire','Młody milioner'],['Hollywood A-list celebrity','Gwiazda Hollywood'],['global influencer','Global influencer'],['music superstar on tour','Supergwiazda muzyki'],['retired champion athlete','Mistrz sportu'],['mafia boss','Mafia boss'],['tech entrepreneur','Tech entrepreneur'],['travel icon','Travel icon'],['CEO in vacation mode','CEO na wakacjach'],['mysterious stranger','Tajemniczy nieznajomy']];
+  const STATUS_OPTS_M = [['young millionaire','Młody milioner'],['Hollywood A-list celebrity','Gwiazdor Hollywood'],['global influencer','Globalny influencer'],['music superstar on tour','Supergwiazda muzyki'],['retired champion athlete','Mistrz sportu'],['mafia boss','Szef mafii'],['tech entrepreneur','Przedsiębiorca tech'],['travel icon','Ikona podróży'],['CEO in vacation mode','CEO na wakacjach'],['mysterious stranger','Tajemniczy nieznajomy']];
+  const STATUS_OPTS_F = [['young millionaire','Młoda milionerka'],['Hollywood A-list celebrity','Gwiazda Hollywood'],['global influencer','Globalna influencerka'],['music superstar on tour','Supergwiazda muzyki'],['retired champion athlete','Mistrzyni sportu'],['mafia boss','Królowa mafii'],['tech entrepreneur','Przedsiębiorczyni tech'],['travel icon','Ikona podróży'],['CEO in vacation mode','CEO na wakacjach'],['mysterious stranger','Tajemnicza nieznajoma']];
   const MOOD_OPTS = [['luxury calm','Luksusowy spokój'],['dominant power','Dominująca siła'],['freedom','Wolność'],['mysterious vibe','Tajemnicza aura'],['romantic atmosphere','Romantyczna atmosfera'],['winner energy','Energia zwycięzcy'],['untouchable confidence','Niezachwiana pewność'],['melancholic sophistication','Melancholijna elegancja']];
 
   const buildChar = (gender, status, activity, outfit, mood) => {
@@ -2143,7 +2144,7 @@ const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
                 ))}
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <Sel label="Status" value={status1} set={setStatus1} opts={STATUS_OPTS}/>
+                <Sel label="Status" value={status1} set={setStatus1} opts={gender1==='male' ? STATUS_OPTS_M : STATUS_OPTS_F}/>
                 <Sel label={t.lang==='EN'?'Activity':'Aktywność'} value={activity1} set={setActivity1} opts={gender1==='male' ? OPTS_MALE.activity : OPTS_FEMALE.activity}/>
                 <Sel label={t.lang==='EN'?'Outfit':'Strój'} value={outfit1} set={setOutfit1} opts={gender1==='male' ? OPTS_MALE.outfit : OPTS_FEMALE.outfit}/>
                 <Sel label={t.lang==='EN'?'Mood':'Nastrój'} value={mood1} set={setMood1} opts={MOOD_OPTS}/>
@@ -2164,7 +2165,7 @@ const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
                   ))}
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <Sel label="Status" value={status2} set={setStatus2} opts={STATUS_OPTS}/>
+                  <Sel label="Status" value={status2} set={setStatus2} opts={gender2==='male' ? STATUS_OPTS_M : STATUS_OPTS_F}/>
                   <Sel label={t.lang==='EN'?'Activity':'Aktywność'} value={activity2} set={setActivity2} opts={gender2==='male' ? OPTS_MALE.activity : OPTS_FEMALE.activity}/>
                   <Sel label={t.lang==='EN'?'Outfit':'Strój'} value={outfit2} set={setOutfit2} opts={gender2==='male' ? OPTS_MALE.outfit : OPTS_FEMALE.outfit}/>
                   <Sel label={t.lang==='EN'?'Mood':'Nastrój'} value={mood2} set={setMood2} opts={MOOD_OPTS}/>
