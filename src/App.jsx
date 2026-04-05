@@ -2178,10 +2178,10 @@ const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
             <p className={headerClass}><span className="text-base">🎥</span> {t.lang==='EN' ? 'Camera' : 'Kamera'}</p>
             <div className="grid grid-cols-2 gap-3">
               <Sel label={t.lang==='EN'?'Camera Shot':'Ujęcie'} value={camera} set={setCamera} opts={[
-                ['cinematic wide shot','Cinematic wide'],['close portrait','Close portrait'],
-                ['low angle power shot','Low angle power'],['aerial drone view','Aerial drone'],
-                ['over shoulder shot','Over shoulder'],['dutch angle','Dutch angle'],
-                ['tracking shot','Tracking shot'],['extreme close up face','Extreme close up'],
+                ['cinematic wide shot',t.lang==='EN'?'Cinematic wide':'Szerokie kinowe'],['close portrait',t.lang==='EN'?'Close portrait':'Portret z bliska'],
+                ['low angle power shot',t.lang==='EN'?'Low angle power':'Ujęcie z dołu'],['aerial drone view',t.lang==='EN'?'Aerial drone':'Dron z góry'],
+                ['over shoulder shot',t.lang==='EN'?'Over shoulder':'Przez ramię'],['dutch angle',t.lang==='EN'?'Dutch angle':'Skośne ujęcie'],
+                ['tracking shot',t.lang==='EN'?'Tracking shot':'Śledzące'],['extreme close up face',t.lang==='EN'?'Extreme close up':'Zbliżenie twarzy'],
               ]}/>
             </div>
           </div>
