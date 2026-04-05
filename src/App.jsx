@@ -752,6 +752,17 @@ const AplikacjeView = ({ t, user, onLoginRequest, onCreatorChange }) => {
       glow: 'rgba(6,182,212,0.3)',
       badge: t.lang === 'EN' ? 'LIFESTYLE STUDIO' : 'STUDIO LIFESTYLE',
     },
+    {
+      id: 'film-builder',
+      icon: '🎬',
+      title: t.lang === 'EN' ? 'Film Builder' : 'Kreator Filmów',
+      subtitle: t.lang === 'EN' ? 'AI Film Prompt Generator' : 'Generator Promptów Filmowych AI',
+      desc: t.lang === 'EN' ? 'Create 3-frame renovation prompts — ruin to modern. For VEO 3, Kling AI, Runway.' : 'Twórz prompty renowacji — ruina do nowoczesnego. Dla VEO 3, Kling AI, Runway.',
+      color: 'from-orange-500/20 via-red-500/10 to-yellow-500/20',
+      border: 'border-orange-500/30',
+      glow: 'rgba(249,115,22,0.3)',
+      badge: t.lang === 'EN' ? 'FILM STUDIO' : 'STUDIO FILMÓW',
+    },
   ];
 
   const currentIdx = activeApp ? apps.findIndex(a => a.id === activeApp) : -1;
@@ -802,6 +813,7 @@ const AplikacjeView = ({ t, user, onLoginRequest, onCreatorChange }) => {
         {activeApp === 'avatar-builder' && <AvatarBuilderView t={t} user={user} onLoginRequest={onLoginRequest} />}
         {activeApp === 'ad-builder' && <ProductAdBuilderView t={t} user={user} onLoginRequest={onLoginRequest} />}
         {activeApp === 'lifestyle-builder' && <LifestyleBuilderView t={t} user={user} onLoginRequest={onLoginRequest} />}
+        {activeApp === 'film-builder' && <FilmBuilderView t={t} user={user} onLoginRequest={onLoginRequest} />}
 
         {/* BACK BUTTON — fixed top left, always visible */}
         <div className="fixed top-20 left-4 z-50">
@@ -2304,6 +2316,215 @@ const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
 };
 
 // =========================================================================
+// =========================================================================
+// FILM BUILDER VIEW — Kreator Filmów AI (3 klatki renowacji)
+// =========================================================================
+const FilmBuilderView = ({ t, user, onLoginRequest }) => {
+  const [copied, setCopied] = useState(null); // null | 1 | 2 | 3
+  const [isPro, setIsPro] = useState(false);
+  const [isStarter, setIsStarter] = useState(false);
+  const [tokens, setTokens] = useState(null);
+  const isLoggedIn = !!user;
+  useEffect(() => {
+    if (user?.uid) {
+      getTokenData(db, user.uid).then(({ tokens, isPro, isStarter }) => {
+        setTokens(tokens); setIsPro(isPro); setIsStarter(isStarter);
+      });
+    }
+  }, [user]);
+  const canGenerate = isPro || isStarter || (tokens !== null && tokens > 0);
+
+  const [buildingType, setBuildingType] = useState('single family house');
+  const [archStyle, setArchStyle]       = useState('modern minimalist');
+  const [location, setLocation]         = useState('suburban area');
+  const [timeOfDay, setTimeOfDay]       = useState('golden hour');
+  const [camera, setCamera]             = useState('wide establishing shot');
+  const [generator, setGenerator]       = useState('VEO 3');
+
+  const sectionClass = 'bg-white dark:bg-[#0a0a0a] border border-black/10 dark:border-[#1a1a1a] rounded-2xl p-5 mb-4';
+  const headerClass  = 'text-[10px] font-bold uppercase tracking-[0.2em] text-amber-500 mb-4 flex items-center gap-2';
+  const labelClass   = 'block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1.5';
+  const inputClass   = 'w-full bg-slate-100 dark:bg-[#111] border border-black/10 dark:border-[#222] rounded-xl px-3 py-2.5 text-sm text-black dark:text-white focus:outline-none focus:border-amber-500 transition-colors appearance-none pr-8';
+
+  const Sel = ({ label, value, set, opts }) => (
+    <div>
+      <label className={labelClass}>{label}</label>
+      <div className="relative">
+        <select value={value} onChange={e => set(e.target.value)} className={inputClass}>
+          {opts.map(([v,l]) => <option key={v} value={v}>{l}</option>)}
+        </select>
+        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/>
+      </div>
+    </div>
+  );
+
+  const BASE = `${buildingType}, ${location}, ${timeOfDay} lighting, ${camera}, same angle same composition, photorealistic, 8K, cinematic`;
+
+  const prompts = {
+    1: `Abandoned ruined ${BASE}. Crumbling walls, broken windows, overgrown vegetation, peeling paint, structural decay, neglected facade, weathered materials, dramatic deterioration.`,
+    2: `Same ${BASE}. Mid-renovation construction site, scaffolding covering half the building, workers visible, mix of old decay and new materials, construction machinery, half-demolished walls revealing new structure, transition state between old and new.`,
+    3: `Fully renovated modern ${archStyle} ${BASE}. Brand new facade, fresh materials, landscaped garden, clean lines, new windows, perfect condition, architectural excellence, luxury finish.`,
+  };
+
+  const handleCopy = async (frame) => {
+    if (!isLoggedIn) { onLoginRequest(); return; }
+    if (!canGenerate) return;
+    const ok = await useToken(db, user.uid);
+    if (!ok) return;
+    await navigator.clipboard.writeText(prompts[frame]);
+    setCopied(frame);
+    setTimeout(() => setCopied(null), 2500);
+  };
+
+  const FRAME_COLORS = {
+    1: { bg: 'bg-red-500/10 border-red-500/30', btn: 'bg-red-500 hover:bg-red-400', label: 'text-red-400', icon: '🏚️' },
+    2: { bg: 'bg-orange-500/10 border-orange-500/30', btn: 'bg-orange-500 hover:bg-orange-400', label: 'text-orange-400', icon: '🏗️' },
+    3: { bg: 'bg-green-500/10 border-green-500/30', btn: 'bg-green-500 hover:bg-green-400', label: 'text-green-400', icon: '🏡' },
+  };
+
+  const FRAME_LABELS = {
+    1: t.lang === 'EN' ? 'Frame 1 — Ruin' : 'Klatka 1 — Ruina',
+    2: t.lang === 'EN' ? 'Frame 2 — In Progress' : 'Klatka 2 — W trakcie',
+    3: t.lang === 'EN' ? 'Frame 3 — Renovated' : 'Klatka 3 — Po renowacji',
+  };
+
+  const FILM_HINT = t.lang === 'EN'
+    ? 'Generate animation 1→2, then 2→3 and merge into one film.'
+    : 'Generuj animację 1→2, następnie 2→3 i połącz w jeden film.';
+
+  return (
+    <div className="min-h-screen bg-white dark:bg-black font-sans pb-16">
+      <div className="max-w-4xl mx-auto px-4 pt-8">
+
+        {/* Header */}
+        <div className="mb-8 text-center">
+          <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/30 text-orange-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-4">
+            <span className="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse"/>
+            {t.lang === 'EN' ? 'AI Film Generator' : 'Generator Filmów AI'}
+          </div>
+          <h1 className="text-3xl md:text-5xl font-black text-black dark:text-white uppercase tracking-tighter mb-2">
+            {t.lang === 'EN' ? 'Film Builder' : 'Kreator Filmów'}<span className="text-amber-500">.</span>
+          </h1>
+          <p className="text-slate-500 text-sm mb-2">
+            {t.lang === 'EN' ? 'Ruin → In progress → Renovated. 3 frames, 2 animations, 1 viral film.' : 'Ruina → W trakcie → Gotowy. 3 klatki, 2 animacje, 1 wiralowy film.'}
+          </p>
+          <p className="text-[10px] text-amber-500/60 uppercase tracking-widest">{FILM_HINT}</p>
+        </div>
+
+        {/* Opcje */}
+        <div className="max-w-3xl mx-auto">
+          <div className={sectionClass}>
+            <p className={headerClass}><span className="text-base">🏗️</span> {t.lang === 'EN' ? 'Building & Location' : 'Budynek i Lokacja'}</p>
+            <div className="grid grid-cols-2 gap-3">
+              <Sel label={t.lang === 'EN' ? 'Building Type' : 'Typ budynku'} value={buildingType} set={setBuildingType} opts={[
+                ['single family house', t.lang === 'EN' ? 'Family House' : 'Dom jednorodzinny'],
+                ['apartment building', t.lang === 'EN' ? 'Apartment Block' : 'Kamienica'],
+                ['beachfront villa', t.lang === 'EN' ? 'Beach Villa' : 'Willa plażowa'],
+                ['industrial warehouse', t.lang === 'EN' ? 'Warehouse' : 'Magazyn/Fabryka'],
+                ['historic townhouse', t.lang === 'EN' ? 'Townhouse' : 'Kamienica historyczna'],
+                ['commercial building', t.lang === 'EN' ? 'Commercial' : 'Budynek komercyjny'],
+                ['country farmhouse', t.lang === 'EN' ? 'Farmhouse' : 'Wiejski dom'],
+              ]}/>
+              <Sel label={t.lang === 'EN' ? 'Architecture Style' : 'Styl po renowacji'} value={archStyle} set={setArchStyle} opts={[
+                ['modern minimalist', t.lang === 'EN' ? 'Modern Minimalist' : 'Nowoczesny minimalizm'],
+                ['luxury contemporary', t.lang === 'EN' ? 'Luxury Contemporary' : 'Luksusowy współczesny'],
+                ['scandinavian', t.lang === 'EN' ? 'Scandinavian' : 'Skandynawski'],
+                ['mediterranean', t.lang === 'EN' ? 'Mediterranean' : 'Śródziemnomorski'],
+                ['industrial loft', t.lang === 'EN' ? 'Industrial Loft' : 'Industrialny loft'],
+                ['art deco', t.lang === 'EN' ? 'Art Deco' : 'Art Deco'],
+                ['eco sustainable', t.lang === 'EN' ? 'Eco Sustainable' : 'Eko / Zielony'],
+              ]}/>
+              <Sel label={t.lang === 'EN' ? 'Location' : 'Lokacja'} value={location} set={setLocation} opts={[
+                ['suburban area', t.lang === 'EN' ? 'Suburbs' : 'Przedmieścia'],
+                ['city center', t.lang === 'EN' ? 'City Center' : 'Centrum miasta'],
+                ['beachfront', t.lang === 'EN' ? 'Beachfront' : 'Przy plaży'],
+                ['mountain area', t.lang === 'EN' ? 'Mountains' : 'W górach'],
+                ['countryside', t.lang === 'EN' ? 'Countryside' : 'Wieś'],
+                ['mediterranean coast', t.lang === 'EN' ? 'Mediterranean' : 'Wybrzeże śródziemnomorskie'],
+              ]}/>
+              <Sel label={t.lang === 'EN' ? 'Time of Day' : 'Pora dnia'} value={timeOfDay} set={setTimeOfDay} opts={[
+                ['golden hour', t.lang === 'EN' ? 'Golden Hour' : 'Złota godzina'],
+                ['blue hour dusk', t.lang === 'EN' ? 'Blue Hour' : 'Blue hour'],
+                ['bright midday', t.lang === 'EN' ? 'Midday' : 'Południe'],
+                ['overcast day', t.lang === 'EN' ? 'Overcast' : 'Pochmurny dzień'],
+                ['dramatic sunset', t.lang === 'EN' ? 'Sunset' : 'Zachód słońca'],
+              ]}/>
+            </div>
+          </div>
+
+          <div className={sectionClass}>
+            <p className={headerClass}><span className="text-base">🎥</span> {t.lang === 'EN' ? 'Camera & Generator' : 'Kamera i Generator'}</p>
+            <div className="grid grid-cols-2 gap-3">
+              <Sel label={t.lang === 'EN' ? 'Camera Angle' : 'Ujęcie'} value={camera} set={setCamera} opts={[
+                ['wide establishing shot', t.lang === 'EN' ? 'Wide establishing' : 'Szerokie ogólne'],
+                ['front elevation view', t.lang === 'EN' ? 'Front view' : 'Widok z frontu'],
+                ['low angle dramatic', t.lang === 'EN' ? 'Low angle' : 'Ujęcie z dołu'],
+                ['aerial drone view', t.lang === 'EN' ? 'Aerial drone' : 'Dron z góry'],
+                ['45 degree angle', t.lang === 'EN' ? '45° angle' : 'Pod kątem 45°'],
+              ]}/>
+              <Sel label={t.lang === 'EN' ? 'AI Generator' : 'Generator AI'} value={generator} set={setGenerator} opts={[
+                ['VEO 3', 'VEO 3'],
+                ['Kling AI', 'Kling AI'],
+                ['Runway Gen-4', 'Runway Gen-4'],
+                ['Midjourney', 'Midjourney'],
+              ]}/>
+            </div>
+          </div>
+
+          {/* 3 KLATKI */}
+          <div className="space-y-3 mb-6">
+            {[1, 2, 3].map(frame => {
+              const fc = FRAME_COLORS[frame];
+              const isCopied = copied === frame;
+              return (
+                <div key={frame} className={`border rounded-2xl p-4 ${fc.bg}`}>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl">{fc.icon}</span>
+                      <span className={`text-[10px] font-black uppercase tracking-widest ${fc.label}`}>{FRAME_LABELS[frame]}</span>
+                    </div>
+                    <span className="text-[9px] text-slate-500 uppercase tracking-wider">{generator}</span>
+                  </div>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed mb-3 font-mono line-clamp-3">
+                    {prompts[frame]}
+                  </p>
+                  {!isLoggedIn ? (
+                    <button onClick={onLoginRequest} className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-black text-xs uppercase tracking-wider transition-all">
+                      {t.lang === 'EN' ? 'Log in to copy' : 'Zaloguj się aby skopiować'}
+                    </button>
+                  ) : !canGenerate ? (
+                    <a href={`https://buy.stripe.com/14A28qcGJ56fdfq5rQ8bS05?client_reference_id=${user?.uid || ''}`}
+                      target="_blank" rel="noopener noreferrer"
+                      className="block w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-black text-xs uppercase tracking-wider transition-all text-center">
+                      {t.lang === 'EN' ? 'Get Starter — 30 PLN/mo' : 'Kup Starter — 30 PLN/mies'}
+                    </a>
+                  ) : (
+                    <button onClick={() => handleCopy(frame)}
+                      className={`w-full py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all text-white ${isCopied ? 'bg-green-500' : fc.btn}`}>
+                      {isCopied ? '✓ Skopiowano!' : (t.lang === 'EN' ? `Copy Frame ${frame}` : `Kopiuj Klatkę ${frame}`)}
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Wskazówka */}
+          <div className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4 text-center">
+            <p className="text-[10px] text-amber-500/70 uppercase tracking-widest font-bold mb-1">💡 {t.lang === 'EN' ? 'How to use' : 'Jak użyć'}</p>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              {t.lang === 'EN'
+                ? 'Copy Frame 1 & 2 → generate animation in ' + generator + ' → then Frame 2 & 3 → merge both videos = viral renovation film!'
+                : 'Skopiuj Klatkę 1 i 2 → wygeneruj animację w ' + generator + ' → potem Klatkę 2 i 3 → połącz oba filmy = wiralowy film renowacji!'}
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // CENNIK VIEW
 // =========================================================================
 const CennikView = ({ t, user, onLoginRequest }) => {
@@ -2922,6 +3143,7 @@ export default function App() {
           {currentView === 'avatar-builder' && <AvatarBuilderView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
           {currentView === 'ad-builder' && <ProductAdBuilderView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
           {currentView === 'lifestyle-builder' && <LifestyleBuilderView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
+          {currentView === 'film-builder' && <FilmBuilderView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
           {currentView === 'admin' && user?.email === ADMIN_EMAIL && <AdminView setCurrentView={setCurrentView} lang={lang} user={user} />}
           {currentView === 'impressum' && <ImpressumView setCurrentView={setCurrentView} lang={lang} />}
           {currentView === 'datenschutz' && <DatenschutzView setCurrentView={setCurrentView} lang={lang} />}
