@@ -2003,16 +2003,85 @@ const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
   );
 
   const OPTS_MALE = {
-    activity: [['standing confidently','Stoi pewnie'],['drinking whiskey','Pije whiskey'],['working on laptop','Pracuje na laptopie'],['walking slowly','Idzie powoli'],['steering yacht','Steruje jachtem'],['making a phone call','Rozmawia przez telefon'],['watching the horizon','Patrzy w horyzont'],['celebrating with champagne','Świętuje szampanem'],['sitting relaxed','Siedzi zrelaksowany']],
-    outfit: [['luxury suit','Luksusowy garnitur'],['white linen shirt, open collar','Lniana koszula'],['summer casual outfit','Letni casual'],['elegant all-black outfit','Elegancki czarny'],['designer streetwear','Streetwear premium'],['black tuxedo','Smoking'],['business casual outfit','Biznesowy casual'],['swim shorts, beach style','Szorty plażowe']],
+    activity: [
+      ['standing confidently', t.lang==='EN'?'Standing confidently':'Stoi pewnie'],
+      ['drinking whiskey', t.lang==='EN'?'Drinking whiskey':'Pije whiskey'],
+      ['working on laptop', t.lang==='EN'?'Working on laptop':'Pracuje na laptopie'],
+      ['walking slowly', t.lang==='EN'?'Walking':'Idzie powoli'],
+      ['steering yacht', t.lang==='EN'?'Steering yacht':'Steruje jachtem'],
+      ['making a phone call', t.lang==='EN'?'On the phone':'Rozmawia przez telefon'],
+      ['watching the horizon', t.lang==='EN'?'Watching horizon':'Patrzy w horyzont'],
+      ['celebrating with champagne', t.lang==='EN'?'Celebrating':'Świętuje szampanem'],
+      ['sitting relaxed', t.lang==='EN'?'Relaxing':'Siedzi zrelaksowany'],
+    ],
+    outfit: [
+      ['luxury suit', t.lang==='EN'?'Luxury suit':'Luksusowy garnitur'],
+      ['white linen shirt, open collar', t.lang==='EN'?'Linen shirt':'Lniana koszula'],
+      ['summer casual outfit', t.lang==='EN'?'Summer casual':'Letni casual'],
+      ['elegant all-black outfit', t.lang==='EN'?'All black':'Elegancki czarny'],
+      ['designer streetwear', t.lang==='EN'?'Streetwear':'Streetwear premium'],
+      ['black tuxedo', t.lang==='EN'?'Tuxedo':'Smoking'],
+      ['business casual outfit', t.lang==='EN'?'Business casual':'Biznesowy casual'],
+      ['swim shorts, beach style', t.lang==='EN'?'Beach shorts':'Szorty plażowe'],
+    ],
   };
   const OPTS_FEMALE = {
-    activity: [['relaxing in sun','Relaksuje się'],['standing confidently','Stoi pewnie'],['walking slowly','Idzie powoli'],['celebrating with champagne','Świętuje szampanem'],['watching the horizon','Patrzy w horyzont'],['lying on deck, sunbathing','Opala się na pokładzie'],['dancing elegantly','Tańczy elegancko'],['drinking cocktail','Pije koktajl'],['posing for camera','Pozuje do zdjęcia']],
-    outfit: [['minimal triangle bikini, beach fashion','Skąpe bikini'],['metallic shiny mini dress, elegant fashion','Błyszcząca mini'],['luxury designer suit','Luksusowy garnitur'],['elegant black evening dress','Czarna wieczorowa'],['summer white linen dress','Biała lniana sukienka'],['one piece swimsuit, elegant','Kostium kąpielowy'],['chic casual summer outfit','Letni chic'],['business casual elegant','Biznesowy elegancki']],
+    activity: [
+      ['relaxing in sun', t.lang==='EN'?'Relaxing in sun':'Relaksuje się'],
+      ['standing confidently', t.lang==='EN'?'Standing confidently':'Stoi pewnie'],
+      ['walking slowly', t.lang==='EN'?'Walking':'Idzie powoli'],
+      ['celebrating with champagne', t.lang==='EN'?'Celebrating':'Świętuje szampanem'],
+      ['watching the horizon', t.lang==='EN'?'Watching horizon':'Patrzy w horyzont'],
+      ['lying on deck, sunbathing', t.lang==='EN'?'Sunbathing':'Opala się na pokładzie'],
+      ['dancing elegantly', t.lang==='EN'?'Dancing':'Tańczy elegancko'],
+      ['drinking cocktail', t.lang==='EN'?'Drinking cocktail':'Pije koktajl'],
+      ['posing for camera', t.lang==='EN'?'Posing':'Pozuje do zdjęcia'],
+    ],
+    outfit: [
+      ['minimal triangle bikini, beach fashion', t.lang==='EN'?'Bikini':'Skąpe bikini'],
+      ['metallic shiny mini dress, elegant fashion', t.lang==='EN'?'Shiny mini':'Błyszcząca mini'],
+      ['luxury designer suit', t.lang==='EN'?'Luxury suit':'Luksusowy garnitur'],
+      ['elegant black evening dress', t.lang==='EN'?'Black evening dress':'Czarna wieczorowa'],
+      ['summer white linen dress', t.lang==='EN'?'White linen dress':'Biała lniana sukienka'],
+      ['one piece swimsuit, elegant', t.lang==='EN'?'Swimsuit':'Kostium kąpielowy'],
+      ['chic casual summer outfit', t.lang==='EN'?'Summer chic':'Letni chic'],
+      ['business casual elegant', t.lang==='EN'?'Business casual':'Biznesowy elegancki'],
+    ],
   };
-  const STATUS_OPTS_M = [['young millionaire','Młody milioner'],['Hollywood A-list celebrity','Gwiazdor Hollywood'],['global influencer','Globalny influencer'],['music superstar on tour','Supergwiazda muzyki'],['retired champion athlete','Mistrz sportu'],['mafia boss','Szef mafii'],['tech entrepreneur','Szef korpo'],['travel icon','Ikona podróży'],['CEO in vacation mode','Szef na urlopie'],['mysterious stranger','Tajemniczy nieznajomy']];
-  const STATUS_OPTS_F = [['young millionaire','Młoda milionerka'],['Hollywood A-list celebrity','Gwiazda Hollywood'],['global influencer','Globalna influencerka'],['music superstar on tour','Supergwiazda muzyki'],['retired champion athlete','Mistrzyni sportu'],['mafia boss','Szefowa mafii'],['tech entrepreneur','Szefowa korpo'],['travel icon','Ikona podróży'],['CEO in vacation mode','Szef na urlopie'],['mysterious stranger','Tajemnicza nieznajoma']];
-  const MOOD_OPTS = [['luxury calm','Luksusowy spokój'],['dominant power','Dominująca siła'],['freedom','Wolność'],['mysterious vibe','Tajemnicza aura'],['romantic atmosphere','Romantyczna atmosfera'],['winner energy','Energia zwycięzcy'],['untouchable confidence','Niezachwiana pewność'],['melancholic sophistication','Melancholijna elegancja']];
+  const STATUS_OPTS_M = [
+    ['young millionaire', t.lang==='EN'?'Young Millionaire':'Młody milioner'],
+    ['Hollywood A-list celebrity', t.lang==='EN'?'Hollywood Celebrity':'Gwiazdor Hollywood'],
+    ['global influencer', t.lang==='EN'?'Global Influencer':'Globalny influencer'],
+    ['music superstar on tour', t.lang==='EN'?'Music Superstar':'Supergwiazda muzyki'],
+    ['retired champion athlete', t.lang==='EN'?'Champion Athlete':'Mistrz sportu'],
+    ['mafia boss', t.lang==='EN'?'Mafia Boss':'Szef mafii'],
+    ['tech entrepreneur', t.lang==='EN'?'Tech Entrepreneur':'Szef korpo'],
+    ['travel icon', t.lang==='EN'?'Travel Icon':'Ikona podróży'],
+    ['CEO in vacation mode', t.lang==='EN'?'CEO on Vacation':'Szef na urlopie'],
+    ['mysterious stranger', t.lang==='EN'?'Mysterious Stranger':'Tajemniczy nieznajomy'],
+  ];
+  const STATUS_OPTS_F = [
+    ['young millionaire', t.lang==='EN'?'Young Millionaire':'Młoda milionerka'],
+    ['Hollywood A-list celebrity', t.lang==='EN'?'Hollywood Celebrity':'Gwiazda Hollywood'],
+    ['global influencer', t.lang==='EN'?'Global Influencer':'Globalna influencerka'],
+    ['music superstar on tour', t.lang==='EN'?'Music Superstar':'Supergwiazda muzyki'],
+    ['retired champion athlete', t.lang==='EN'?'Champion Athlete':'Mistrzyni sportu'],
+    ['mafia boss', t.lang==='EN'?'Mafia Boss':'Szefowa mafii'],
+    ['tech entrepreneur', t.lang==='EN'?'Tech Entrepreneur':'Szefowa korpo'],
+    ['travel icon', t.lang==='EN'?'Travel Icon':'Ikona podróży'],
+    ['CEO in vacation mode', t.lang==='EN'?'CEO on Vacation':'Szefowa na urlopie'],
+    ['mysterious stranger', t.lang==='EN'?'Mysterious Stranger':'Tajemnicza nieznajoma'],
+  ];
+  const MOOD_OPTS = [
+    ['luxury calm', t.lang==='EN'?'Luxury Calm':'Luksusowy spokój'],
+    ['dominant power', t.lang==='EN'?'Dominant Power':'Dominująca siła'],
+    ['freedom', t.lang==='EN'?'Freedom':'Wolność'],
+    ['mysterious vibe', t.lang==='EN'?'Mysterious Vibe':'Tajemnicza aura'],
+    ['romantic atmosphere', t.lang==='EN'?'Romantic':'Romantyczna atmosfera'],
+    ['winner energy', t.lang==='EN'?'Winner Energy':'Energia zwycięzcy'],
+    ['untouchable confidence', t.lang==='EN'?'Confidence':'Niezachwiana pewność'],
+    ['melancholic sophistication', t.lang==='EN'?'Melancholic':'Melancholijna elegancja'],
+  ];
 
   const buildChar = (gender, status, activity, outfit, mood) => {
     const g = gender === 'male' ? 'man' : 'woman';
