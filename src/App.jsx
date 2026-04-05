@@ -2509,13 +2509,106 @@ const FilmBuilderView = ({ t, user, onLoginRequest }) => {
             })}
           </div>
 
+          {/* PROMPTY ANIMACJI */}
+          <div className="mb-4">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-500/30 to-transparent"/>
+              <p className="text-[10px] font-black uppercase tracking-widest text-amber-500">🎬 {t.lang === 'EN' ? 'Animation Prompts' : 'Prompty Animacji'}</p>
+              <div className="h-px flex-1 bg-gradient-to-r from-amber-500/30 via-transparent to-transparent"/>
+            </div>
+            <p className="text-[10px] text-slate-500 text-center mb-4 leading-relaxed">
+              {t.lang === 'EN'
+                ? 'Paste image 1 + image 2 + animation prompt into ' + generator + ' to generate smooth transition.'
+                : 'Wklej zdjęcie 1 + zdjęcie 2 + prompt animacji do ' + generator + ' aby wygenerować płynne przejście.'}
+            </p>
+
+            {/* Animacja 1→2 */}
+            {[
+              {
+                from: 1, to: 2,
+                icon: '🏚️→🏗️',
+                label: t.lang === 'EN' ? 'Animation 1→2 (Ruin → Construction)' : 'Animacja 1→2 (Ruina → Budowa)',
+                color: 'border-orange-500/30 bg-orange-500/5',
+                labelColor: 'text-orange-400',
+                btnColor: 'bg-orange-500 hover:bg-orange-400',
+                prompt: `Smooth cinematic time-lapse transition. Start: abandoned ruined ${buildingType} with crumbling walls, broken windows, overgrown vegetation. End: same building as active ${archStyle} construction site with scaffolding, workers, fresh materials arriving. Same ${camera}, same angle, same composition throughout. Slow dramatic camera movement forward. Realistic construction activity, dust, movement. ${timeOfDay} lighting. Photorealistic, 8K, cinematic quality. Generated for ${generator}.`,
+              },
+              {
+                from: 2, to: 3,
+                icon: '🏗️→🏡',
+                label: t.lang === 'EN' ? 'Animation 2→3 (Construction → Finished)' : 'Animacja 2→3 (Budowa → Gotowy)',
+                color: 'border-green-500/30 bg-green-500/5',
+                labelColor: 'text-green-400',
+                btnColor: 'bg-green-500 hover:bg-green-400',
+                prompt: `Smooth cinematic time-lapse transition. Start: active ${archStyle} construction site with scaffolding, workers, building materials. End: same building fully renovated — brand new ${archStyle} ${buildingType}, perfect facade, landscaped garden, clean modern finish. Scaffolding disappearing, final reveal moment. Same ${camera}, same angle, same composition throughout. ${timeOfDay} lighting, dramatic final reveal. Photorealistic, 8K, cinematic quality. Generated for ${generator}.`,
+              }
+            ].map(anim => {
+              const key = `anim-${anim.from}-${anim.to}`;
+              const isCopied = copied === key;
+              return (
+                <div key={key} className={`border rounded-2xl p-4 mb-3 ${anim.color}`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">{anim.icon}</span>
+                      <span className={`text-[10px] font-black uppercase tracking-widest ${anim.labelColor}`}>{anim.label}</span>
+                    </div>
+                  </div>
+
+                  {/* Instrukcja */}
+                  <div className="flex items-center gap-2 mb-3 bg-black/10 dark:bg-white/5 rounded-xl px-3 py-2">
+                    <div className="flex items-center gap-1.5 text-[9px] text-slate-500">
+                      <span className="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center font-black text-[8px] text-slate-600 dark:text-slate-300">1</span>
+                      {t.lang === 'EN' ? 'Upload Frame' : 'Wgraj Klatkę'} {anim.from}
+                    </div>
+                    <span className="text-slate-400">+</span>
+                    <div className="flex items-center gap-1.5 text-[9px] text-slate-500">
+                      <span className="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center font-black text-[8px] text-slate-600 dark:text-slate-300">2</span>
+                      {t.lang === 'EN' ? 'Upload Frame' : 'Wgraj Klatkę'} {anim.to}
+                    </div>
+                    <span className="text-slate-400">+</span>
+                    <div className="flex items-center gap-1.5 text-[9px] text-slate-500">
+                      <span className="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center font-black text-[8px] text-slate-600 dark:text-slate-300">3</span>
+                      {t.lang === 'EN' ? 'Paste prompt' : 'Wklej prompt'}
+                    </div>
+                  </div>
+
+                  <p className="text-[9px] text-slate-500 dark:text-slate-400 leading-relaxed mb-3 font-mono line-clamp-3">
+                    {anim.prompt}
+                  </p>
+
+                  {!isLoggedIn ? (
+                    <button onClick={onLoginRequest} className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-black text-xs uppercase tracking-wider transition-all">
+                      {t.lang === 'EN' ? 'Log in to copy' : 'Zaloguj się aby skopiować'}
+                    </button>
+                  ) : !canGenerate ? (
+                    <a href={`https://buy.stripe.com/14A28qcGJ56fdfq5rQ8bS05?client_reference_id=${user?.uid || ''}`}
+                      target="_blank" rel="noopener noreferrer"
+                      className="block w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-black text-xs uppercase tracking-wider transition-all text-center">
+                      {t.lang === 'EN' ? 'Get Starter — 30 PLN/mo' : 'Kup Starter — 30 PLN/mies'}
+                    </a>
+                  ) : (
+                    <button onClick={async () => {
+                      const ok = await useToken(db, user.uid);
+                      if (!ok) return;
+                      await navigator.clipboard.writeText(anim.prompt);
+                      setCopied(key);
+                      setTimeout(() => setCopied(null), 2500);
+                    }} className={`w-full py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all text-white ${isCopied ? 'bg-green-500' : anim.btnColor}`}>
+                      {isCopied ? '✓ Skopiowano!' : (t.lang === 'EN' ? `Copy Animation ${anim.from}→${anim.to}` : `Kopiuj Animację ${anim.from}→${anim.to}`)}
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
           {/* Wskazówka */}
           <div className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4 text-center">
-            <p className="text-[10px] text-amber-500/70 uppercase tracking-widest font-bold mb-1">💡 {t.lang === 'EN' ? 'How to use' : 'Jak użyć'}</p>
+            <p className="text-[10px] text-amber-500/70 uppercase tracking-widest font-bold mb-1">💡 {t.lang === 'EN' ? 'Final step' : 'Ostatni krok'}</p>
             <p className="text-xs text-slate-500 leading-relaxed">
               {t.lang === 'EN'
-                ? 'Copy Frame 1 & 2 → generate animation in ' + generator + ' → then Frame 2 & 3 → merge both videos = viral renovation film!'
-                : 'Skopiuj Klatkę 1 i 2 → wygeneruj animację w ' + generator + ' → potem Klatkę 2 i 3 → połącz oba filmy = wiralowy film renowacji!'}
+                ? 'Merge both animations in CapCut / Premiere → viral renovation film ready! 🎬'
+                : 'Połącz obie animacje w CapCut / Premiere → wiralowy film renowacji gotowy! 🎬'}
             </p>
           </div>
 
