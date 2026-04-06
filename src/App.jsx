@@ -2320,7 +2320,9 @@ const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
 // FILM BUILDER VIEW — Kreator Filmów AI (3 klatki renowacji)
 // =========================================================================
 const FilmBuilderView = ({ t, user, onLoginRequest }) => {
-  const [copied, setCopied] = useState(null); // null | 1 | 2 | 3
+  const [copied, setCopied] = useState(null);
+  const [loadingFrame, setLoadingFrame] = useState(null);
+  const WORKER_URL = 'https://aiflow-film-prompt.47y85nfm6p.workers.dev';
   const [isPro, setIsPro] = useState(false);
   const [isStarter, setIsStarter] = useState(false);
   const [tokens, setTokens] = useState(null);
@@ -2369,11 +2371,27 @@ const FilmBuilderView = ({ t, user, onLoginRequest }) => {
   const handleCopy = async (frame) => {
     if (!isLoggedIn) { onLoginRequest(); return; }
     if (!canGenerate) return;
-    const ok = await useToken(db, user.uid);
-    if (!ok) return;
-    await navigator.clipboard.writeText(prompts[frame]);
-    setCopied(frame);
-    setTimeout(() => setCopied(null), 2500);
+    setLoadingFrame(frame);
+    try {
+      const response = await fetch(`${WORKER_URL}/generate-film-prompt`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ buildingType, archStyle, location, timeOfDay, camera, generator, frame }),
+      });
+      const data = await response.json();
+      if (data.prompt) {
+        const ok = await useToken(db, user.uid);
+        if (ok) {
+          await navigator.clipboard.writeText(data.prompt);
+          setCopied(frame);
+          setTimeout(() => setCopied(null), 2500);
+        }
+      }
+    } catch (err) {
+      console.error('Worker error:', err);
+    } finally {
+      setLoadingFrame(null);
+    }
   };
 
   const FRAME_COLORS = {
@@ -2466,7 +2484,7 @@ const FilmBuilderView = ({ t, user, onLoginRequest }) => {
                 ['VEO 3', 'VEO 3'],
                 ['Kling AI', 'Kling AI'],
                 ['Runway Gen-4', 'Runway Gen-4'],
-                ['Midjourney', 'Midjourney'],
+                ['Luma Dream Machine', 'Luma Dream Machine'],
               ]}/>
             </div>
           </div>
@@ -2499,9 +2517,9 @@ const FilmBuilderView = ({ t, user, onLoginRequest }) => {
                       {t.lang === 'EN' ? 'Get Starter — 30 PLN/mo' : 'Kup Starter — 30 PLN/mies'}
                     </a>
                   ) : (
-                    <button onClick={() => handleCopy(frame)}
-                      className={`w-full py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all text-white ${isCopied ? 'bg-green-500' : fc.btn}`}>
-                      {isCopied ? '✓ Skopiowano!' : (t.lang === 'EN' ? `Copy Frame ${frame}` : `Kopiuj Klatkę ${frame}`)}
+                    <button onClick={() => handleCopy(frame)} disabled={loadingFrame === frame}
+                      className={`w-full py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all text-white ${loadingFrame === frame ? 'bg-slate-500 cursor-wait' : isCopied ? 'bg-green-500' : fc.btn}`}>
+                      {loadingFrame === frame ? '⏳ Gemini generuje...' : isCopied ? '✓ Skopiowano!' : (t.lang === 'EN' ? `Generate Frame ${frame}` : `Generuj Klatkę ${frame}`)}
                     </button>
                   )}
                 </div>
@@ -2531,7 +2549,7 @@ const FilmBuilderView = ({ t, user, onLoginRequest }) => {
                 color: 'border-orange-500/30 bg-orange-500/5',
                 labelColor: 'text-orange-400',
                 btnColor: 'bg-orange-500 hover:bg-orange-400',
-                prompt: `Smooth cinematic time-lapse transition. Start: abandoned ruined ${buildingType} with crumbling walls, broken windows, overgrown vegetation. End: same building as active ${archStyle} construction site with scaffolding, workers, fresh materials arriving. Same ${camera}, same angle, same composition throughout. Slow dramatic camera movement forward. Realistic construction activity, dust, movement. ${timeOfDay} lighting. Photorealistic, 8K, cinematic quality. Generated for ${generator}.`,
+                prompt: `Timelapse, exact same object from image 1 to image 2, workers arriving and beginning renovation, setting up scaffolding and equipment, realistic construction activity, dust in the air, same exact camera angle and composition, smooth cinematic transition, golden hour lighting`,
               },
               {
                 from: 2, to: 3,
@@ -2540,7 +2558,7 @@ const FilmBuilderView = ({ t, user, onLoginRequest }) => {
                 color: 'border-green-500/30 bg-green-500/5',
                 labelColor: 'text-green-400',
                 btnColor: 'bg-green-500 hover:bg-green-400',
-                prompt: `Smooth cinematic time-lapse transition. Start: active ${archStyle} construction site with scaffolding, workers, building materials. End: same building fully renovated — brand new ${archStyle} ${buildingType}, perfect facade, landscaped garden, clean modern finish. Scaffolding disappearing, final reveal moment. Same ${camera}, same angle, same composition throughout. ${timeOfDay} lighting, dramatic final reveal. Photorealistic, 8K, cinematic quality. Generated for ${generator}.`,
+                prompt: `Timelapse, exact same object from image 2 to image 3, workers completing renovation, removing scaffolding, cleaning the area, final landscaping touches, same exact camera angle and composition, smooth cinematic transition, golden hour lighting`,
               }
             ].map(anim => {
               const key = `anim-${anim.from}-${anim.to}`;
