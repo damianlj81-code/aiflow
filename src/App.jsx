@@ -2322,6 +2322,7 @@ const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
 const FilmBuilderView = ({ t, user, onLoginRequest }) => {
   const [copied, setCopied] = useState(null);
   const [loadingFrame, setLoadingFrame] = useState(null);
+  const [animPrompts, setAnimPrompts] = useState({ anim12: null, anim23: null });
   const WORKER_URL = 'https://aiflow-film-prompt.47y85nfm6p.workers.dev';
   const [isPro, setIsPro] = useState(false);
   const [isStarter, setIsStarter] = useState(false);
@@ -2368,30 +2369,56 @@ const FilmBuilderView = ({ t, user, onLoginRequest }) => {
     3: `Fully renovated modern ${archStyle} ${BASE}. Brand new facade, fresh materials, landscaped garden, clean lines, new windows, perfect condition, architectural excellence, luxury finish.`,
   };
 
+  // Kopiowanie statycznych promptów klatek
   const handleCopy = async (frame) => {
     if (!isLoggedIn) { onLoginRequest(); return; }
     if (!canGenerate) return;
-    setLoadingFrame(frame);
+    const ok = await useToken(db, user.uid);
+    if (!ok) return;
+    await navigator.clipboard.writeText(prompts[frame]);
+    setCopied(frame);
+    setTimeout(() => setCopied(null), 2500);
+  };
+
+  // Generowanie obu promptów animacji przez Gemini naraz
+  const handleGenerateAnims = async () => {
+    if (!isLoggedIn) { onLoginRequest(); return; }
+    if (!canGenerate) return;
+    setLoadingFrame('anims');
+    setAnimPrompts({ anim12: null, anim23: null });
     try {
-      const response = await fetch(`${WORKER_URL}/generate-film-prompt`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ buildingType, archStyle, location, timeOfDay, camera, generator, frame }),
-      });
-      const data = await response.json();
-      if (data.prompt) {
-        const ok = await useToken(db, user.uid);
-        if (ok) {
-          await navigator.clipboard.writeText(data.prompt);
-          setCopied(frame);
-          setTimeout(() => setCopied(null), 2500);
-        }
+      const [r1, r2] = await Promise.all([
+        fetch(`${WORKER_URL}/generate-film-prompt`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ buildingType, archStyle, location, timeOfDay, camera, generator, frame: 'anim12' }),
+        }),
+        fetch(`${WORKER_URL}/generate-film-prompt`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ buildingType, archStyle, location, timeOfDay, camera, generator, frame: 'anim23' }),
+        }),
+      ]);
+      const [d1, d2] = await Promise.all([r1.json(), r2.json()]);
+      // Zużywamy 1 token za oba prompty
+      const ok = await useToken(db, user.uid);
+      if (ok) {
+        setAnimPrompts({ anim12: d1.prompt || '', anim23: d2.prompt || '' });
       }
     } catch (err) {
       console.error('Worker error:', err);
     } finally {
       setLoadingFrame(null);
     }
+  };
+
+  // Kopiowanie wygenerowanego promptu animacji
+  const handleCopyAnim = async (key) => {
+    const text = animPrompts[key];
+    if (!text) return;
+    await navigator.clipboard.writeText(text);
+    setCopied(key);
+    setTimeout(() => setCopied(null), 2500);
   };
 
   const FRAME_COLORS = {
@@ -2517,9 +2544,9 @@ const FilmBuilderView = ({ t, user, onLoginRequest }) => {
                       {t.lang === 'EN' ? 'Get Starter — 30 PLN/mo' : 'Kup Starter — 30 PLN/mies'}
                     </a>
                   ) : (
-                    <button onClick={() => handleCopy(frame)} disabled={loadingFrame === frame}
-                      className={`w-full py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all text-white ${loadingFrame === frame ? 'bg-slate-500 cursor-wait' : isCopied ? 'bg-green-500' : fc.btn}`}>
-                      {loadingFrame === frame ? '⏳ Gemini generuje...' : isCopied ? '✓ Skopiowano!' : (t.lang === 'EN' ? `Generate Frame ${frame}` : `Generuj Klatkę ${frame}`)}
+                    <button onClick={() => handleCopy(frame)}
+                      className={`w-full py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all text-white ${isCopied ? 'bg-green-500' : fc.btn}`}>
+                      {isCopied ? '✓ Skopiowano!' : (t.lang === 'EN' ? `Copy Frame ${frame}` : `Kopiuj Klatkę ${frame}`)}
                     </button>
                   )}
                 </div>
@@ -2536,88 +2563,85 @@ const FilmBuilderView = ({ t, user, onLoginRequest }) => {
             </div>
             <p className="text-[10px] text-slate-500 text-center mb-4 leading-relaxed">
               {t.lang === 'EN'
-                ? 'Paste image 1 + image 2 + animation prompt into ' + generator + ' to generate smooth transition.'
-                : 'Wklej zdjęcie 1 + zdjęcie 2 + prompt animacji do ' + generator + ' aby wygenerować płynne przejście.'}
+                ? 'Generate both animation prompts with AI, then copy each one into ' + generator + '.'
+                : 'Wygeneruj oba prompty animacji przez AI, następnie skopiuj każdy do ' + generator + '.'}
             </p>
 
-            {/* Animacja 1→2 */}
-            {[
-              {
-                from: 1, to: 2,
-                icon: '🏚️→🏗️',
-                label: t.lang === 'EN' ? 'Animation 1→2 (Ruin → Construction)' : 'Animacja 1→2 (Ruina → Budowa)',
-                color: 'border-orange-500/30 bg-orange-500/5',
-                labelColor: 'text-orange-400',
-                btnColor: 'bg-orange-500 hover:bg-orange-400',
-                prompt: `Timelapse, exact same object from image 1 to image 2, workers arriving and beginning renovation, setting up scaffolding and equipment, realistic construction activity, dust in the air, same exact camera angle and composition, smooth cinematic transition, golden hour lighting`,
-              },
-              {
-                from: 2, to: 3,
-                icon: '🏗️→🏡',
-                label: t.lang === 'EN' ? 'Animation 2→3 (Construction → Finished)' : 'Animacja 2→3 (Budowa → Gotowy)',
-                color: 'border-green-500/30 bg-green-500/5',
-                labelColor: 'text-green-400',
-                btnColor: 'bg-green-500 hover:bg-green-400',
-                prompt: `Timelapse, exact same object from image 2 to image 3, workers completing renovation, removing scaffolding, cleaning the area, final landscaping touches, same exact camera angle and composition, smooth cinematic transition, golden hour lighting`,
-              }
-            ].map(anim => {
-              const key = `anim-${anim.from}-${anim.to}`;
-              const isCopied = copied === key;
-              return (
-                <div key={key} className={`border rounded-2xl p-4 mb-3 ${anim.color}`}>
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">{anim.icon}</span>
-                      <span className={`text-[10px] font-black uppercase tracking-widest ${anim.labelColor}`}>{anim.label}</span>
-                    </div>
-                  </div>
+            {/* PRZYCISK GENERUJ OBA */}
+            <div className="mb-4">
+              {!isLoggedIn ? (
+                <button onClick={onLoginRequest} className="w-full py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-black font-black text-sm uppercase tracking-wider transition-all">
+                  {t.lang === 'EN' ? 'Log in to generate' : 'Zaloguj się aby generować'}
+                </button>
+              ) : !canGenerate ? (
+                <a href={`https://buy.stripe.com/14A28qcGJ56fdfq5rQ8bS05?client_reference_id=${user?.uid || ''}`}
+                  target="_blank" rel="noopener noreferrer"
+                  className="block w-full py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-black font-black text-sm uppercase tracking-wider transition-all text-center">
+                  {t.lang === 'EN' ? 'Get Starter — 30 PLN/mo' : 'Kup Starter — 30 PLN/mies'}
+                </a>
+              ) : (
+                <button onClick={handleGenerateAnims} disabled={loadingFrame === 'anims'}
+                  className={`w-full py-3 rounded-2xl font-black text-sm uppercase tracking-wider transition-all shadow-lg ${loadingFrame === 'anims' ? 'bg-slate-500 cursor-wait text-white' : 'bg-amber-500 hover:bg-amber-400 text-black shadow-amber-500/20'}`}>
+                  {loadingFrame === 'anims' ? '⏳ Gemini generuje prompty animacji...' : (t.lang === 'EN' ? '✦ Generate Animation Prompts' : '✦ Generuj Prompty Animacji')}
+                </button>
+              )}
+            </div>
 
-                  {/* Instrukcja */}
-                  <div className="flex items-center gap-2 mb-3 bg-black/10 dark:bg-white/5 rounded-xl px-3 py-2">
+            {/* KARTA ANIMACJA 1→2 */}
+            <div className="border border-orange-500/30 bg-orange-500/5 rounded-2xl p-4 mb-3">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-lg">🏚️→🏗️</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-orange-400">
+                  {t.lang === 'EN' ? 'Animation 1→2 (Ruin → Construction)' : 'Animacja 1→2 (Ruina → Budowa)'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 mb-3 bg-black/10 dark:bg-white/5 rounded-xl px-3 py-2">
+                {['1','2'].map((n,i) => (
+                  <React.Fragment key={n}>
+                    {i > 0 && <span className="text-slate-400 text-xs">+</span>}
                     <div className="flex items-center gap-1.5 text-[9px] text-slate-500">
-                      <span className="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center font-black text-[8px] text-slate-600 dark:text-slate-300">1</span>
-                      {t.lang === 'EN' ? 'Upload Frame' : 'Wgraj Klatkę'} {anim.from}
+                      <span className="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center font-black text-[8px] text-slate-600 dark:text-slate-300">{n}</span>
+                      {t.lang === 'EN' ? 'Frame' : 'Klatka'} {n}
                     </div>
-                    <span className="text-slate-400">+</span>
-                    <div className="flex items-center gap-1.5 text-[9px] text-slate-500">
-                      <span className="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center font-black text-[8px] text-slate-600 dark:text-slate-300">2</span>
-                      {t.lang === 'EN' ? 'Upload Frame' : 'Wgraj Klatkę'} {anim.to}
-                    </div>
-                    <span className="text-slate-400">+</span>
-                    <div className="flex items-center gap-1.5 text-[9px] text-slate-500">
-                      <span className="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center font-black text-[8px] text-slate-600 dark:text-slate-300">3</span>
-                      {t.lang === 'EN' ? 'Paste prompt' : 'Wklej prompt'}
-                    </div>
-                  </div>
+                  </React.Fragment>
+                ))}
+              </div>
+              <p className="text-[9px] text-slate-500 dark:text-slate-400 leading-relaxed mb-3 font-mono min-h-[40px]">
+                {animPrompts.anim12 || (t.lang === 'EN' ? 'Click "Generate" above to create prompt...' : 'Kliknij "Generuj" powyżej aby stworzyć prompt...')}
+              </p>
+              <button onClick={() => handleCopyAnim('anim12')} disabled={!animPrompts.anim12}
+                className={`w-full py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all text-white ${copied === 'anim12' ? 'bg-green-500' : animPrompts.anim12 ? 'bg-orange-500 hover:bg-orange-400' : 'bg-slate-600 cursor-not-allowed opacity-50'}`}>
+                {copied === 'anim12' ? '✓ Skopiowano!' : (t.lang === 'EN' ? 'Copy Animation 1→2' : 'Kopiuj Animację 1→2')}
+              </button>
+            </div>
 
-                  <p className="text-[9px] text-slate-500 dark:text-slate-400 leading-relaxed mb-3 font-mono line-clamp-3">
-                    {anim.prompt}
-                  </p>
-
-                  {!isLoggedIn ? (
-                    <button onClick={onLoginRequest} className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-black text-xs uppercase tracking-wider transition-all">
-                      {t.lang === 'EN' ? 'Log in to copy' : 'Zaloguj się aby skopiować'}
-                    </button>
-                  ) : !canGenerate ? (
-                    <a href={`https://buy.stripe.com/14A28qcGJ56fdfq5rQ8bS05?client_reference_id=${user?.uid || ''}`}
-                      target="_blank" rel="noopener noreferrer"
-                      className="block w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-black text-xs uppercase tracking-wider transition-all text-center">
-                      {t.lang === 'EN' ? 'Get Starter — 30 PLN/mo' : 'Kup Starter — 30 PLN/mies'}
-                    </a>
-                  ) : (
-                    <button onClick={async () => {
-                      const ok = await useToken(db, user.uid);
-                      if (!ok) return;
-                      await navigator.clipboard.writeText(anim.prompt);
-                      setCopied(key);
-                      setTimeout(() => setCopied(null), 2500);
-                    }} className={`w-full py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all text-white ${isCopied ? 'bg-green-500' : anim.btnColor}`}>
-                      {isCopied ? '✓ Skopiowano!' : (t.lang === 'EN' ? `Copy Animation ${anim.from}→${anim.to}` : `Kopiuj Animację ${anim.from}→${anim.to}`)}
-                    </button>
-                  )}
-                </div>
-              );
-            })}
+            {/* KARTA ANIMACJA 2→3 */}
+            <div className="border border-green-500/30 bg-green-500/5 rounded-2xl p-4 mb-3">
+              <div className="flex items-center gap-2 mb-2">
+                <span className="text-lg">🏗️→🏡</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-green-400">
+                  {t.lang === 'EN' ? 'Animation 2→3 (Construction → Finished)' : 'Animacja 2→3 (Budowa → Gotowy)'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 mb-3 bg-black/10 dark:bg-white/5 rounded-xl px-3 py-2">
+                {['2','3'].map((n,i) => (
+                  <React.Fragment key={n}>
+                    {i > 0 && <span className="text-slate-400 text-xs">+</span>}
+                    <div className="flex items-center gap-1.5 text-[9px] text-slate-500">
+                      <span className="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center font-black text-[8px] text-slate-600 dark:text-slate-300">{n}</span>
+                      {t.lang === 'EN' ? 'Frame' : 'Klatka'} {n}
+                    </div>
+                  </React.Fragment>
+                ))}
+              </div>
+              <p className="text-[9px] text-slate-500 dark:text-slate-400 leading-relaxed mb-3 font-mono min-h-[40px]">
+                {animPrompts.anim23 || (t.lang === 'EN' ? 'Click "Generate" above to create prompt...' : 'Kliknij "Generuj" powyżej aby stworzyć prompt...')}
+              </p>
+              <button onClick={() => handleCopyAnim('anim23')} disabled={!animPrompts.anim23}
+                className={`w-full py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all text-white ${copied === 'anim23' ? 'bg-green-500' : animPrompts.anim23 ? 'bg-green-500 hover:bg-green-400' : 'bg-slate-600 cursor-not-allowed opacity-50'}`}>
+                {copied === 'anim23' ? '✓ Skopiowano!' : (t.lang === 'EN' ? 'Copy Animation 2→3' : 'Kopiuj Animację 2→3')}
+              </button>
+            </div>
           </div>
 
           {/* Wskazówka */}
