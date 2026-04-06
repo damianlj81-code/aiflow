@@ -2323,6 +2323,7 @@ const FilmBuilderView = ({ t, user, onLoginRequest }) => {
   const [copied, setCopied] = useState(null);
   const [loadingFrame, setLoadingFrame] = useState(null);
   const [animPrompts, setAnimPrompts] = useState({ anim12: null, anim23: null });
+  const [framePrompts, setFramePrompts] = useState({ f1: null, f2: null, f3: null });
   const WORKER_URL = 'https://aiflow-film-prompt.47y85nfm6p.workers.dev';
   const [isPro, setIsPro] = useState(false);
   const [isStarter, setIsStarter] = useState(false);
@@ -2369,13 +2370,31 @@ const FilmBuilderView = ({ t, user, onLoginRequest }) => {
     3: `Fully renovated modern ${archStyle} ${BASE}. Brand new facade, fresh materials, landscaped garden, clean lines, new windows, perfect condition, architectural excellence, luxury finish.`,
   };
 
-  // Kopiowanie statycznych promptów klatek
-  const handleCopy = async (frame) => {
+  // Generowanie wszystkich 3 klatek naraz przez Gemini
+  const handleGenerateFrames = async () => {
     if (!isLoggedIn) { onLoginRequest(); return; }
     if (!canGenerate) return;
-    const ok = await useToken(db, user.uid);
-    if (!ok) return;
-    await navigator.clipboard.writeText(prompts[frame]);
+    setLoadingFrame('frames');
+    setFramePrompts({ f1: null, f2: null, f3: null });
+    try {
+      const [r1, r2, r3] = await Promise.all([
+        fetch(`${WORKER_URL}/generate-film-prompt`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ buildingType, archStyle, location, timeOfDay, camera, generator, frame: '1' }) }),
+        fetch(`${WORKER_URL}/generate-film-prompt`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ buildingType, archStyle, location, timeOfDay, camera, generator, frame: '2' }) }),
+        fetch(`${WORKER_URL}/generate-film-prompt`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ buildingType, archStyle, location, timeOfDay, camera, generator, frame: '3' }) }),
+      ]);
+      const [d1, d2, d3] = await Promise.all([r1.json(), r2.json(), r3.json()]);
+      const ok = await useToken(db, user.uid);
+      if (ok) setFramePrompts({ f1: d1.prompt || '', f2: d2.prompt || '', f3: d3.prompt || '' });
+    } catch (err) { console.error('Worker error:', err); }
+    finally { setLoadingFrame(null); }
+  };
+
+  // Kopiowanie klatki
+  const handleCopy = async (frame) => {
+    const key = `f${frame}`;
+    const text = framePrompts[key];
+    if (!text) return;
+    await navigator.clipboard.writeText(text);
     setCopied(frame);
     setTimeout(() => setCopied(null), 2500);
   };
@@ -2516,11 +2535,32 @@ const FilmBuilderView = ({ t, user, onLoginRequest }) => {
             </div>
           </div>
 
+          {/* PRZYCISK GENERUJ 3 KLATKI */}
+          <div className="mb-4">
+            {!isLoggedIn ? (
+              <button onClick={onLoginRequest} className="w-full py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-black font-black text-sm uppercase tracking-wider transition-all shadow-lg">
+                {t.lang === 'EN' ? 'Log in to generate' : 'Zaloguj się aby generować'}
+              </button>
+            ) : !canGenerate ? (
+              <a href={`https://buy.stripe.com/14A28qcGJ56fdfq5rQ8bS05?client_reference_id=${user?.uid || ''}`}
+                target="_blank" rel="noopener noreferrer"
+                className="block w-full py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-black font-black text-sm uppercase tracking-wider transition-all text-center shadow-lg">
+                {t.lang === 'EN' ? 'Get Starter — 30 PLN/mo' : 'Kup Starter — 30 PLN/mies'}
+              </a>
+            ) : (
+              <button onClick={handleGenerateFrames} disabled={loadingFrame === 'frames'}
+                className={`w-full py-3 rounded-2xl font-black text-sm uppercase tracking-wider transition-all shadow-lg ${loadingFrame === 'frames' ? 'bg-slate-500 cursor-wait text-white' : 'bg-amber-500 hover:bg-amber-400 text-black shadow-amber-500/20'}`}>
+                {loadingFrame === 'frames' ? '⏳ Gemini generuje 3 klatki...' : (t.lang === 'EN' ? '✦ Generate All 3 Frames' : '✦ Generuj 3 Klatki (spójny budynek)')}
+              </button>
+            )}
+          </div>
+
           {/* 3 KLATKI */}
           <div className="space-y-3 mb-6">
             {[1, 2, 3].map(frame => {
               const fc = FRAME_COLORS[frame];
               const isCopied = copied === frame;
+              const generatedText = framePrompts[`f${frame}`];
               return (
                 <div key={frame} className={`border rounded-2xl p-4 ${fc.bg}`}>
                   <div className="flex items-center justify-between mb-3">
@@ -2530,25 +2570,13 @@ const FilmBuilderView = ({ t, user, onLoginRequest }) => {
                     </div>
                     <span className="text-[9px] text-slate-500 uppercase tracking-wider">{generator}</span>
                   </div>
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed mb-3 font-mono line-clamp-3">
-                    {prompts[frame]}
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed mb-3 font-mono min-h-[40px]">
+                    {generatedText || (t.lang === 'EN' ? 'Click "Generate All 3 Frames" above...' : 'Kliknij "Generuj 3 Klatki" powyżej...')}
                   </p>
-                  {!isLoggedIn ? (
-                    <button onClick={onLoginRequest} className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-black text-xs uppercase tracking-wider transition-all">
-                      {t.lang === 'EN' ? 'Log in to copy' : 'Zaloguj się aby skopiować'}
-                    </button>
-                  ) : !canGenerate ? (
-                    <a href={`https://buy.stripe.com/14A28qcGJ56fdfq5rQ8bS05?client_reference_id=${user?.uid || ''}`}
-                      target="_blank" rel="noopener noreferrer"
-                      className="block w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-black text-xs uppercase tracking-wider transition-all text-center">
-                      {t.lang === 'EN' ? 'Get Starter — 30 PLN/mo' : 'Kup Starter — 30 PLN/mies'}
-                    </a>
-                  ) : (
-                    <button onClick={() => handleCopy(frame)}
-                      className={`w-full py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all text-white ${isCopied ? 'bg-green-500' : fc.btn}`}>
-                      {isCopied ? '✓ Skopiowano!' : (t.lang === 'EN' ? `Copy Frame ${frame}` : `Kopiuj Klatkę ${frame}`)}
-                    </button>
-                  )}
+                  <button onClick={() => handleCopy(frame)} disabled={!generatedText}
+                    className={`w-full py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all text-white ${isCopied ? 'bg-green-500' : generatedText ? fc.btn : 'bg-slate-600 cursor-not-allowed opacity-50'}`}>
+                    {isCopied ? '✓ Skopiowano!' : (t.lang === 'EN' ? `Copy Frame ${frame}` : `Kopiuj Klatkę ${frame}`)}
+                  </button>
                 </div>
               );
             })}
