@@ -2727,6 +2727,149 @@ const FilmBuilderView = ({ t, user, onLoginRequest }) => {
 
 // CENNIK VIEW
 // =========================================================================
+// ZLOTE CYTATY component
+const CYTATY = [
+  { type:'cover' },
+  { type:'dialog', label:'SCENA 1 - PAMIEC', bubbles:[
+    { who:'damian', text:'"znowu go zgubiles miedzy regalami..."' },
+    { who:'claude', text:'"Mam go jeszcze w pamieci z tej sesji!"' },
+    { who:'damian', text:'"ty to powiedz mojemu App.jsx"' },
+  ], ctx:'App.jsx zaginal miedzy sesjami. Klasyk powracajacy w kazdym nowym czacie jak bumerang.' },
+  { type:'damian', num:'#01', q:'"chcialbym bo juz mnie to.... na netlify bez problemu"', ctx:'Cloudflare dawal 405 przez godzine. Netlify dzialal od razu. Damian osiagnal granice wytrzymalosci.' },
+  { type:'claude', num:'#02', q:'"Git push i lecimy!"', ctx:'Claude, po raz czternasty w tej samej sesji. Damian jeszcze nie pushowal.' },
+  { type:'red', num:'#03', q:'"nie teraz ty robisz bo to ty naraziles mnie na straty"', ctx:'Claude ustawil prog 199 PLN. Damian 10x probowal zaplacic 5 zl. Stracil 50 zl na testach wlasnej strony.' },
+  { type:'claude', num:'#04', q:'"O kurwa, to jest piekny efekt!"', ctx:'Claude po opisie animacji swietlnej. Nie jest pewny czy AI moze tak mowic, ale powiedzial.' },
+  { type:'dialog', label:'SCENA 2 - BRIEF TECHNICZNY', bubbles:[
+    { who:'damian', text:'"pasek leci po spodniej stronie liter i na czarnym tle zostawia lune swiatla..."' },
+    { who:'claude', text:'"AAAA rozumiem teraz!"' },
+  ], ctx:'Najlepszy brief techniczny w historii web developmentu. Efekt zajal 10 minut.' },
+  { type:'damian', num:'#05', q:'"Damian odbija, Claude odbija, i tak se chlopaki graja"', ctx:'Opis animacji ping-pong zaakceptowany jako oficjalna dokumentacja techniczna.' },
+  { type:'red', num:'#06', q:'"juz to dalem gemini do ogarniecia, teraz smiga..."', ctx:'Zaraz po tym jak Claude przyznal sie do bledu z 50 zl straty. Gemini dostal zlecenie naprawy cudzego balaganu.' },
+  { type:'claude', num:'#07', q:'"Webhook czeka nieprzetestowany"', ctx:'Claude, na poczatku kazdej sesji, kazdego dnia, od tygodnia. Webhook nadal czeka.' },
+  { type:'damian', num:'#08', q:'"urodzę przez ciebie jak mnie będziesz tak cisnął z tym pushem, ale to dobra reklama stanikow żeby nic nie wisialo"', ctx:'Claude za bardzo naciskal na git push. Damian znalazl sponsora odcinka.' },
+  { type:'dialog', label:'SCENA 3 - DESIGN SYSTEM', bubbles:[
+    { who:'claude', text:'"Moge zrobic badge w kolorze zielonym?"' },
+    { who:'damian', text:'"obojętnie co byle by nie bylo zielone"' },
+  ], ctx:"O wyborze koloru badge planu subskrypcji. Brzmi jak motto firmy." },
+  { type:'red', num:'#09', q:'"pornola, biznes znaczy"', ctx:'Po tym jak Claude sugerowal zeby zachowal skojarzenia dla siebie. Najlepsza autocenzura w historii.' },
+  { type:'damian', num:'#10', q:'"szkoda ze nie nagralem jak wpisujesz prompt"', ctx:'"zrob z tego bombe i niech jebnie banke" wpisane oficjalnie do bazy Formspree. Na zawsze.' },
+  { type:'claude', num:'#11', q:'"Nie cisne. Pushuj kiedy chcesz."', ctx:'Zaraz po tym jak Damian zagrozil porodem przez git push. Claude nauczyl sie cierpliwosci.' },
+  { type:'red', num:'#12', q:'"koniec az do 1 bledu od klienta"', ctx:'Strategia wdrozenia projektu. Filozofia zyciowa. Sprawdzona metodologia.' },
+  { type:'damian', num:'#13', q:'"krotkie i dlugie to sa tylko na cipce, my chcemy fryzury"', ctx:'Claude zapytal o dlugosc fryzury. Damian wyjasnil kontekst. Temat zamkniety.' },
+  { type:'red', num:'#14', q:'"gemini rzuca we mnie kamieniami i krzyczy ty zboczencu"', ctx:'Gemini security auditor weryfikuje prompty do awatarow. Ocena: nieakceptowalne.' },
+  { type:'damian', num:'#15', q:'"trzeba Gemini poluznic majciochy strasznie spieta jest.... chyba dawno nic nie bylo"', ctx:'Diagnoza techniczna po tym jak Gemini odmowila generowania. Claude nie skomentowal.' },
+  { type:'claude', num:'#16', q:'"To jej mowi spokojnie, to Vogue a nie OnlyFans"', ctx:'Claude tlumaczy Gemini cel artystyczny projektu. Gemini nieugieta.' },
+  { type:'dialog', label:'SCENA 4 - RODZINKA AI', bubbles:[
+    { who:'damian', text:'"ten dom to jedna wesolo pojebana rodzinka Damian i 3 botow Ai"' },
+    { who:'claude', text:'"Claude dev, Gemini auditor, Grok sekretarz..."' },
+    { who:'damian', text:'"...ktory czasem drools"' },
+  ], ctx:'Oficjalny portret rodzinny AI Flow Academy. Jelen dwuglowy jako maskotka.' },
+  { type:'red', num:'#17', q:'"zna sie na rzeczy odnosnie pierdolenia jak nikt inny"', ctx:'Damian ocenia Groka jako eksperta od zwiezlosci. Recenzja miesiaca.' },
+  { type:'damian', num:'#18', q:'"nie masz glosowki, bo bym cie odpalil na glosowym i byscie sobie pogadali tilulilu w tym waszym kodowanym jezyku"', ctx:'Damian proponuje konferencje glosowa miedzy Claude a Grokiem. Patent pending.' },
+  { type:'red', num:'#19', q:'"ja nie wiem w ogole czemu jestem wasza sekretarka, wejdz do niego przez przegladarke i se pogadajcie co?"', ctx:'Damian rezygnuje z roli posrednika miedzy botami AI. Etat sekretarki nieobsadzony.' },
+  { type:'damian', num:'#20', q:'"czuje sie jak ten mem, gdzie roboty podaja sobie maslo, a Ty jestes tym czlowiekiem, ktory musi im otworzyc lodowke"', ctx:'Damian opisuje swoja role zawodowa. CV zaktualizowane.' },
+  { type:'claude', num:'#21', q:'"Otwieracz Lodowek dla Sztucznej Inteligencji - oficjalny tytul zawodowy Damiana"', ctx:'Claude formalizuje stanowisko. Wizytowki w druku.' },
+  { type:'red', num:'#22', q:'"Punkt dla niego! Gramy do konca seta!"', ctx:'Gemini przyznaje punkt Claude za znalezienie bledu 404 w jej wlasnym kodzie. Claude 1 - Gemini 0.' },
+  { type:'damian', num:'#23', q:'"to byla recenzja od gemini, bo juz wiem z poprzednich akcji, ze robisz czasem backdoory"', ctx:'Damian zatrudnil Gemini jako security audit dla kodu Claude. Zaufanie: poziom Pentagon.' },
+  { type:'outro' },
+];
+
+const ZloteCytaty = () => {
+  const [cur, setCur] = React.useState(0);
+  const total = CYTATY.length;
+  const prev = () => setCur(c => Math.max(0, c - 1));
+  const next = () => setCur(c => Math.min(total - 1, c + 1));
+  React.useEffect(() => {
+    const fn = (e) => { if (e.key === 'ArrowRight') next(); if (e.key === 'ArrowLeft') prev(); };
+    window.addEventListener('keydown', fn); return () => window.removeEventListener('keydown', fn);
+  }, []);
+  const card = CYTATY[cur];
+  const AMBER = '#F5A623'; const BK = '#080808'; const RD = '#C0392B'; const WH = '#F5F0E8';
+  const cs = { width:'100%', maxWidth:520, minHeight:480, margin:'0 auto', borderRadius:24, padding:38, display:'flex', flexDirection:'column', justifyContent:'space-between', position:'relative', overflow:'hidden', fontFamily:"'Space Mono', monospace" };
+  const ns = { fontFamily:"'Bebas Neue', monospace", fontSize:11, letterSpacing:5, opacity:0.35 };
+  const qms = { fontFamily:"'Bebas Neue', monospace", fontSize:140, lineHeight:0.6, position:'absolute', top:16, right:24, opacity:0.1, userSelect:'none', pointerEvents:'none' };
+  const qts = { fontStyle:'italic', fontSize:17, lineHeight:1.55, flex:1, display:'flex', alignItems:'center', position:'relative', zIndex:1, margin:'16px 0' };
+  const ctxs = { fontSize:9, letterSpacing:2, textTransform:'uppercase', lineHeight:1.7, borderTopWidth:1, borderTopStyle:'solid', paddingTop:12, opacity:0.4, marginTop:'auto' };
+  const brs = { fontFamily:"'Bebas Neue', monospace", fontSize:10, letterSpacing:3, opacity:0.2, marginTop:6 };
+  const ab = { position:'absolute', left:0, top:'20%', bottom:'20%', width:4 };
+  let inner = null;
+  if (card.type === 'cover') {
+    inner = <div style={{...cs, background:BK, border:'1px solid rgba(245,166,35,0.2)', boxShadow:'0 0 80px rgba(245,166,35,0.1)'}}>
+      <div style={{background:AMBER,color:BK,fontFamily:"'Bebas Neue', monospace",fontSize:11,letterSpacing:3,padding:'5px 14px',alignSelf:'flex-start'}}>{total-2} ZLOTYCH CYTATOW &middot; PRAWDZIWA HISTORIA</div>
+      <div>
+        <div style={{fontFamily:"'Bebas Neue', monospace",fontSize:54,lineHeight:0.92,color:WH,letterSpacing:1,marginBottom:12}}>PROGRAMOWANIE<br/>Z AI GDY NIE<br/>UMIESZ<br/><span style={{color:AMBER}}>PROGRAMOWAC</span></div>
+        <div style={{fontSize:9,color:'rgba(245,240,232,0.25)',letterSpacing:3,textTransform:'uppercase'}}>AI FLOW ACADEMY &middot; LOVEAIFLOW.COM &middot; 2026</div>
+      </div>
+      <div style={{position:'absolute',right:-15,bottom:-30,fontFamily:"'Bebas Neue', monospace",fontSize:260,color:'rgba(245,166,35,0.04)',lineHeight:1,userSelect:'none'}}>C</div>
+    </div>;
+  } else if (card.type === 'damian') {
+    inner = <div style={{...cs, background:WH, color:BK}}>
+      <div style={{...ab, background:AMBER}}/>
+      <div><div style={{...ns,color:BK}}>DAMIAN MOWI</div><div style={{fontFamily:"'Bebas Neue', monospace",fontSize:26,letterSpacing:3,color:BK,lineHeight:1}}>DAMIAN</div></div>
+      <div style={{...qms,color:BK}}>&rdquo;</div>
+      <div style={{...qts,color:BK}}>{card.q}</div>
+      <div><div style={{...ctxs,color:BK,borderTopColor:'rgba(0,0,0,0.12)'}}>{card.ctx}</div><div style={{...brs,color:BK}}>AI FLOW ACADEMY &middot; LOVEAIFLOW.COM</div></div>
+    </div>;
+  } else if (card.type === 'claude') {
+    inner = <div style={{...cs, background:'#0c0c1c', border:'1px solid rgba(100,120,255,0.18)', color:WH}}>
+      <div style={{...ab, background:'#7b8cde', opacity:0.5}}/>
+      <div><div style={{...ns,color:'rgba(120,140,255,0.4)'}}>AI ODPOWIADA</div><div style={{fontFamily:"'Bebas Neue', monospace",fontSize:26,letterSpacing:3,color:'#8899ee',lineHeight:1}}>CLAUDE</div></div>
+      <div style={{...qms,color:'#8899ee'}}>&rdquo;</div>
+      <div style={{...qts,color:WH}}>{card.q}</div>
+      <div><div style={{...ctxs,color:WH,borderTopColor:'rgba(255,255,255,0.07)'}}>{card.ctx}</div><div style={{...brs,color:'#8899ee'}}>AI FLOW ACADEMY &middot; LOVEAIFLOW.COM</div></div>
+    </div>;
+  } else if (card.type === 'red') {
+    inner = <div style={{...cs, background:RD, color:'#fff'}}>
+      <div style={{...ab, background:'rgba(255,255,255,0.3)'}}/>
+      <div><div style={{...ns,color:'rgba(255,255,255,0.35)'}}>MOMENT DRAMATYCZNY</div><div style={{fontFamily:"'Bebas Neue', monospace",fontSize:26,letterSpacing:3,color:'#fff',lineHeight:1}}>{card.num}</div></div>
+      <div style={{...qms,color:'#fff'}}>&rdquo;</div>
+      <div style={{...qts,color:'#fff',fontSize:16}}>{card.q}</div>
+      <div><div style={{...ctxs,color:'#fff',borderTopColor:'rgba(255,255,255,0.2)'}}>{card.ctx}</div><div style={{...brs,color:'#fff'}}>AI FLOW ACADEMY &middot; LOVEAIFLOW.COM</div></div>
+    </div>;
+  } else if (card.type === 'dialog') {
+    inner = <div style={{...cs, background:BK, border:'1px solid rgba(245,166,35,0.1)', color:WH}}>
+      <div style={{fontFamily:"'Bebas Neue', monospace",fontSize:10,letterSpacing:5,color:'rgba(245,166,35,0.3)',marginBottom:14}}>{card.label}</div>
+      <div style={{flex:1,display:'flex',flexDirection:'column',gap:10,justifyContent:'center'}}>
+        {card.bubbles.map((b,i) => <div key={i} style={{borderRadius:14,padding:'10px 14px',maxWidth:'82%',alignSelf:b.who==='damian'?'flex-start':'flex-end',background:b.who==='damian'?AMBER:'#0c0c1c',border:b.who==='claude'?'1px solid rgba(100,120,255,0.2)':'none',color:b.who==='damian'?BK:WH}}>
+          <div style={{fontFamily:"'Bebas Neue', monospace",fontSize:9,letterSpacing:3,opacity:0.45,marginBottom:4,color:b.who==='damian'?BK:'#8899ee'}}>{b.who==='damian'?'DAMIAN':'CLAUDE AI'}</div>
+          <div style={{fontSize:12,lineHeight:1.5,fontStyle:'italic'}}>{b.text}</div>
+        </div>)}
+      </div>
+      <div style={{...ctxs,color:WH,borderTopColor:'rgba(255,255,255,0.05)',marginTop:12}}>{card.ctx}</div>
+      <div style={{...brs,color:AMBER}}>AI FLOW ACADEMY &middot; LOVEAIFLOW.COM</div>
+    </div>;
+  } else if (card.type === 'outro') {
+    inner = <div style={{...cs, background:AMBER, color:BK}}>
+      <div style={{fontFamily:"'Bebas Neue', monospace",fontSize:62,lineHeight:0.92,color:BK,letterSpacing:1}}>ZBUDOWALI<br/>TO<br/>RAZEM.</div>
+      <div>
+        <div style={{fontSize:9,letterSpacing:2.5,textTransform:'uppercase',color:'rgba(8,8,8,0.5)',lineHeight:2.1,marginTop:16}}>Zero doswiadczenia programistycznego.<br/>Firebase + Stripe + Cloudflare + AI kreatory.<br/>Gemini auditor. Grok sekretarz. Claude developer.<br/>Damian - Otwieracz Lodowek dla AI.</div>
+        <div style={{fontFamily:"'Bebas Neue', monospace",fontSize:14,letterSpacing:5,color:BK,border:'2px solid '+BK,padding:'8px 22px',display:'inline-block',marginTop:12}}>loveaiflow.com</div>
+      </div>
+      <div style={{position:'absolute',right:-20,bottom:-50,fontFamily:"'Bebas Neue', monospace",fontSize:240,color:'rgba(8,8,8,0.06)',lineHeight:1,userSelect:'none'}}>AI</div>
+    </div>;
+  }
+  const pct = ((cur+1)/total)*100;
+  return (
+    <div style={{padding:'60px 16px 40px', maxWidth:600, margin:'0 auto'}}>
+      <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet"/>
+      <div style={{textAlign:'center',marginBottom:24}}>
+        <div style={{fontSize:9,color:'rgba(245,166,35,0.4)',letterSpacing:'0.4em',textTransform:'uppercase',marginBottom:4}}>AI Flow Academy &middot; Prawdziwa Historia</div>
+        <div style={{fontFamily:"'Bebas Neue', monospace",fontSize:20,color:'#F5A623',letterSpacing:6}}>ZLOTE CYTATY 💣</div>
+      </div>
+      <div style={{display:'flex',gap:16,alignItems:'center',justifyContent:'center',marginBottom:12}}>
+        <button onClick={prev} disabled={cur===0} style={{background:'none',border:'1px solid rgba(245,166,35,0.3)',color:'#F5A623',fontFamily:"'Bebas Neue', monospace",fontSize:20,width:42,height:42,cursor:cur===0?'default':'pointer',opacity:cur===0?0.2:1}}>{'<'}</button>
+        <span style={{fontFamily:"'Bebas Neue', monospace",color:'rgba(245,240,232,0.35)',fontSize:14,letterSpacing:4,minWidth:70,textAlign:'center'}}>{cur+1} / {total}</span>
+        <button onClick={next} disabled={cur===total-1} style={{background:'none',border:'1px solid rgba(245,166,35,0.3)',color:'#F5A623',fontFamily:"'Bebas Neue', monospace",fontSize:20,width:42,height:42,cursor:cur===total-1?'default':'pointer',opacity:cur===total-1?0.2:1}}>{'>'}</button>
+      </div>
+      <div style={{width:'100%',maxWidth:520,margin:'0 auto 16px',height:2,background:'rgba(255,255,255,0.05)',position:'relative'}}>
+        <div style={{position:'absolute',left:0,top:0,bottom:0,width:pct+'%',background:'#F5A623',boxShadow:'0 0 8px rgba(245,166,35,0.6)',transition:'width 0.3s'}}/>
+      </div>
+      {inner}
+      <div style={{textAlign:'center',fontSize:9,color:'rgba(245,240,232,0.12)',letterSpacing:2,marginTop:12}}>klawisze strzalek &middot; kazda karta = 1 slajd karuzeli</div>
+    </div>
+  );
+};
+
 const CennikView = ({ t, user, onLoginRequest }) => {
   const STRIPE_STARTER = 'https://buy.stripe.com/14A28qcGJ56fdfq5rQ8bS05'; // 30 PLN starter
   const STRIPE_ALLINONE_MONTHLY = 'https://buy.stripe.com/cNiaEWbCF6aj7V63jI8bS01';
@@ -2856,6 +2999,10 @@ const CennikView = ({ t, user, onLoginRequest }) => {
         </div>
         <p className="text-center text-xs text-slate-500 mt-8">🔒 {t.lang==='EN'?'Secure payment via Stripe. Cancel anytime.':'Bezpieczna płatność przez Stripe. Anuluj kiedy chcesz.'}</p>
       </div>
+
+      {/* ZLOTE CYTATY */}
+      <ZloteCytaty />
+
     </div>
   );
 };
