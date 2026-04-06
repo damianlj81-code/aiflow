@@ -2322,6 +2322,7 @@ const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
 const FilmBuilderView = ({ t, user, onLoginRequest }) => {
   const [copied, setCopied] = useState(null);
   const [loadingFrame, setLoadingFrame] = useState(null);
+  const [aspectRatio, setAspectRatio] = useState('16:9');
   const [animPrompts, setAnimPrompts] = useState({ anim12: null, anim23: null });
   const [framePrompts, setFramePrompts] = useState({ f1: null, f2: null, f3: null });
   const WORKER_URL = 'https://aiflow-film-prompt.47y85nfm6p.workers.dev';
@@ -2378,9 +2379,9 @@ const FilmBuilderView = ({ t, user, onLoginRequest }) => {
     setFramePrompts({ f1: null, f2: null, f3: null });
     try {
       const [r1, r2, r3] = await Promise.all([
-        fetch(`${WORKER_URL}/generate-film-prompt`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ buildingType, archStyle, location, timeOfDay, camera, generator, frame: '1' }) }),
-        fetch(`${WORKER_URL}/generate-film-prompt`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ buildingType, archStyle, location, timeOfDay, camera, generator, frame: '2' }) }),
-        fetch(`${WORKER_URL}/generate-film-prompt`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ buildingType, archStyle, location, timeOfDay, camera, generator, frame: '3' }) }),
+        fetch(`${WORKER_URL}/generate-film-prompt`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ buildingType, archStyle, location, timeOfDay, camera, generator, frame: '1', aspectRatio }) }),
+        fetch(`${WORKER_URL}/generate-film-prompt`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ buildingType, archStyle, location, timeOfDay, camera, generator, frame: '2', aspectRatio }) }),
+        fetch(`${WORKER_URL}/generate-film-prompt`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ buildingType, archStyle, location, timeOfDay, camera, generator, frame: '3', aspectRatio }) }),
       ]);
       const [d1, d2, d3] = await Promise.all([r1.json(), r2.json(), r3.json()]);
       const ok = await useToken(db, user.uid);
@@ -2410,12 +2411,12 @@ const FilmBuilderView = ({ t, user, onLoginRequest }) => {
         fetch(`${WORKER_URL}/generate-film-prompt`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ buildingType, archStyle, location, timeOfDay, camera, generator, frame: 'anim12' }),
+          body: JSON.stringify({ buildingType, archStyle, location, timeOfDay, camera, generator, frame: 'anim12', aspectRatio }),
         }),
         fetch(`${WORKER_URL}/generate-film-prompt`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ buildingType, archStyle, location, timeOfDay, camera, generator, frame: 'anim23' }),
+          body: JSON.stringify({ buildingType, archStyle, location, timeOfDay, camera, generator, frame: 'anim23', aspectRatio }),
         }),
       ]);
       const [d1, d2] = await Promise.all([r1.json(), r2.json()]);
@@ -2480,14 +2481,41 @@ const FilmBuilderView = ({ t, user, onLoginRequest }) => {
           <div className={sectionClass}>
             <p className={headerClass}><span className="text-base">🏗️</span> {t.lang === 'EN' ? 'Building & Location' : 'Budynek i Lokacja'}</p>
             <div className="grid grid-cols-2 gap-3">
-              <Sel label={t.lang === 'EN' ? 'Building Type' : 'Typ budynku'} value={buildingType} set={setBuildingType} opts={[
-                ['single family house', t.lang === 'EN' ? 'Family House' : 'Dom jednorodzinny'],
-                ['apartment building', t.lang === 'EN' ? 'Apartment Block' : 'Kamienica'],
-                ['beachfront villa', t.lang === 'EN' ? 'Beach Villa' : 'Willa plażowa'],
-                ['industrial warehouse', t.lang === 'EN' ? 'Warehouse' : 'Magazyn/Fabryka'],
-                ['historic townhouse', t.lang === 'EN' ? 'Townhouse' : 'Kamienica historyczna'],
-                ['commercial building', t.lang === 'EN' ? 'Commercial' : 'Budynek komercyjny'],
-                ['country farmhouse', t.lang === 'EN' ? 'Farmhouse' : 'Wiejski dom'],
+              <Sel label={t.lang === 'EN' ? 'Object Type' : 'Typ obiektu'} value={buildingType} set={setBuildingType} opts={[
+                ['single family house', t.lang === 'EN' ? 'Family House' : '🏠 Dom jednorodzinny'],
+                ['apartment building', t.lang === 'EN' ? 'Apartment Block' : '🏢 Kamienica'],
+                ['beachfront villa', t.lang === 'EN' ? 'Beach Villa' : '🏖️ Willa plażowa'],
+                ['industrial warehouse', t.lang === 'EN' ? 'Warehouse' : '🏭 Magazyn/Fabryka'],
+                ['historic townhouse', t.lang === 'EN' ? 'Townhouse' : '🏛️ Kamienica historyczna'],
+                ['country farmhouse', t.lang === 'EN' ? 'Farmhouse' : '🌾 Wiejski dom'],
+                ['abandoned castle ruins', t.lang === 'EN' ? 'Castle Ruins' : '🏰 Ruiny zamku'],
+                ['old railway station', t.lang === 'EN' ? 'Railway Station' : '🚉 Stary dworzec'],
+                ['1969 Ford Mustang Fastback', t.lang === 'EN' ? '🚗 Ford Mustang 1969' : '🚗 Ford Mustang 1969'],
+                ['1967 Chevrolet Camaro SS', t.lang === 'EN' ? '🚗 Camaro 1967' : '🚗 Camaro 1967'],
+                ['1970 Dodge Charger R/T', t.lang === 'EN' ? '🚗 Dodge Charger 1970' : '🚗 Dodge Charger 1970'],
+                ['1975 Fiat 125p Polski classic car', t.lang === 'EN' ? '🚗 Fiat 125p (Polish)' : '🚗 Fiat 125p (Duży Fiat)'],
+                ['1973 Fiat 126p Maluch classic car', t.lang === 'EN' ? '🚗 Maluch Fiat 126p' : '🚗 Maluch (Fiat 126p)'],
+                ['1966 AC Cobra 427 classic roadster', t.lang === 'EN' ? '🚗 AC Cobra 427' : '🚗 AC Cobra 427'],
+                ['1965 Shelby GT350 Mustang', t.lang === 'EN' ? '🚗 Shelby GT350' : '🚗 Shelby GT350'],
+                ['Douglas DC-3 classic propeller airplane', t.lang === 'EN' ? '✈️ Douglas DC-3' : '✈️ Douglas DC-3'],
+                ['Supermarine Spitfire WWII fighter plane', t.lang === 'EN' ? '✈️ Spitfire WWII' : '✈️ Spitfire WWII'],
+                ['overgrown japanese garden', t.lang === 'EN' ? '🌿 Japanese Garden' : '🌿 Ogród japoński'],
+                ['neglected baroque fountain', t.lang === 'EN' ? '⛲ Baroque Fountain' : '⛲ Fontanna barokowa'],
+                ['abandoned greenhouse glass house', t.lang === 'EN' ? '🌱 Greenhouse' : '🌱 Stara szklarnia'],
+                ['dry waterfall rocky landscape', t.lang === 'EN' ? '💧 Waterfall' : '💧 Wodospad'],
+                ['old wooden sailing ship', t.lang === 'EN' ? '⛵ Sailing Ship' : '⛵ Stary żaglowiec'],
+                ['vintage steam locomotive train', t.lang === 'EN' ? '🚂 Steam Locomotive' : '🚂 Parowóz'],
+                ['abandoned amusement park', t.lang === 'EN' ? '🎡 Amusement Park' : '🎡 Wesołe miasteczko'],
+                ['ruined lighthouse on cliff', t.lang === 'EN' ? '🏗️ Lighthouse' : '🏗️ Latarnia morska'],
+                ['old damaged hardwood floor planks', t.lang === 'EN' ? '🪵 Wooden Floor' : '🪵 Stara podłoga drewniana'],
+                ['cracked marble floor tiles', t.lang === 'EN' ? '🏛️ Marble Floor' : '🏛️ Podłoga marmurowa'],
+                ['worn concrete industrial floor', t.lang === 'EN' ? '🏭 Industrial Floor' : '🏭 Podłoga industrialna'],
+                ['damaged terracotta floor tiles', t.lang === 'EN' ? '🟫 Terracotta Floor' : '🟫 Podłoga terakota'],
+                ['underwater coral reef', t.lang === 'EN' ? '🪸 Coral Reef' : '🪸 Rafa koralowa'],
+                ['sunken shipwreck underwater', t.lang === 'EN' ? '🚢 Sunken Ship' : '🚢 Zatopiony statek'],
+                ['underwater ancient ruins', t.lang === 'EN' ? '🏛️ Underwater Ruins' : '🏛️ Podwodne ruiny'],
+                ['abandoned swimming pool', t.lang === 'EN' ? '🏊 Old Pool' : '🏊 Stary basen'],
+                ['old pier over water', t.lang === 'EN' ? '⚓ Old Pier' : '⚓ Stary pomost'],
               ]}/>
               <Sel label={t.lang === 'EN' ? 'Architecture Style' : 'Styl po renowacji'} value={archStyle} set={setArchStyle} opts={[
                 ['modern minimalist', t.lang === 'EN' ? 'Modern Minimalist' : 'Nowoczesny minimalizm'],
@@ -2518,6 +2546,15 @@ const FilmBuilderView = ({ t, user, onLoginRequest }) => {
 
           <div className={sectionClass}>
             <p className={headerClass}><span className="text-base">🎥</span> {t.lang === 'EN' ? 'Camera & Generator' : 'Kamera i Generator'}</p>
+            <div className="flex gap-2 mb-3">
+              <label className={labelClass + ' mb-0 flex items-center'}>{t.lang==='EN'?'Format':'Format'}</label>
+              {[['16:9','🖥 16:9'],['9:16','📱 9:16']].map(([val,lbl]) => (
+                <button key={val} onClick={() => setAspectRatio(val)}
+                  className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all border ${aspectRatio===val ? 'bg-amber-500 border-amber-500 text-black' : 'border-black/10 dark:border-[#222] text-slate-500 hover:border-amber-500/50'}`}>
+                  {lbl}
+                </button>
+              ))}
+            </div>
             <div className="grid grid-cols-2 gap-3">
               <Sel label={t.lang === 'EN' ? 'Camera Angle' : 'Ujęcie'} value={camera} set={setCamera} opts={[
                 ['wide establishing shot', t.lang === 'EN' ? 'Wide establishing' : 'Szerokie ogólne'],
