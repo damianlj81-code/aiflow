@@ -41,9 +41,9 @@ const getYTId = (url) => {
 // TOKEN SYSTEM
 // =========================================================================
 const TOKENS_FREE = 3;
-const STRIPE_PRO_LINK = 'https://buy.stripe.com/cNiaEWbCF6aj7V63jI8bS01'; // 199 PLN miesiecznie
-const STRIPE_STARTER_LINK = 'https://buy.stripe.com/14A28qcGJ56fdfq5rQ8bS05'; // 30 PLN miesiecznie
-const STRIPE_ANNUAL_LINK = 'https://buy.stripe.com/7sYfZg7mpgOX2AM5rQ8bS06'; // 1899 PLN rocznie
+const STRIPE_PRO_LINK = 'https://buy.stripe.com/plink_1TJfC4CEjxjarOHxGwGnaCuE'; // 89 PLN miesiecznie
+const STRIPE_STARTER_LINK = 'https://buy.stripe.com/plink_1TJfC4CEjxjarOHxGwGnaCuE'; // 30 PLN miesiecznie
+const STRIPE_ANNUAL_LINK = 'https://buy.stripe.com/plink_1TJfDbCEjxjarOHxLcVqhQr4'; // 899 PLN rocznie
 const STRIPE_PRO_LINK_TEST = 'https://buy.stripe.com/dRm6oGeOR6aj3EQcUi8bS04'; // 2 PLN test admin
 const ADMIN_EMAIL = 'damianlj@live.com';
 const stripeLink = (baseUrl, uid, email) => { const base = email === ADMIN_EMAIL ? STRIPE_PRO_LINK_TEST : baseUrl; return uid ? `${base}?client_reference_id=${uid}` : base; };
@@ -564,7 +564,9 @@ const TutorialsView = ({ t, user, onLoginRequest, onNavigate }) => {
         setTutorials(snap.data().list.map((t, i) => ({ ...t, id: i + 1 })));
       } else {
         setTutorials([
-          { id:1, title_pl:'Wprowadzenie do Awatarów AI', title_en:'Introduction to AI Avatars', duration:'12:34', ytId:'1_1oHwOZMe4', naffyUrl:'https://naffy.io', vimeoUrl:'', price:'49' },
+          { id:1, title_pl:'Wprowadzenie do Awatarów AI', title_en:'Introduction to AI Avatars', duration:'12:34', ytId:'1_1oHwOZMe4', naffyUrl:'https://naffy.io', vimeoUrl:'' },
+          // Dodaj kolejne tutoriale tutaj:
+          // { id:2, title_pl:'Tytuł PL', title_en:'Title EN', duration:'00:00', ytId:'YOUTUBE_ID', naffyUrl:'LINK_DO_TUTORIALU', vimeoUrl:'' },
         ]);
       }
     });
@@ -631,54 +633,11 @@ const TutorialsView = ({ t, user, onLoginRequest, onNavigate }) => {
                   <div className="absolute top-2 left-2 bg-red-600 text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">YouTube</div>
                 </a>
 
-                {/* Info + przyciski */}
-                <div className="p-5 flex flex-col flex-grow">
-                  <p className="text-white font-black text-sm leading-tight mb-5">
+                {/* Tytuł pod miniaturką */}
+                <div className="p-4">
+                  <p className="text-white font-black text-sm leading-tight">
                     {t.lang === 'EN' ? tut.title_en : tut.title_pl}
                   </p>
-
-                  <div className="mt-auto flex flex-col gap-2">
-                    {/* Przycisk Naffy — wymaga logowania */}
-                    {isLoggedIn ? (
-                      tut.naffyUrl ? (
-                        <a href={tut.naffyUrl} target="_blank" rel="noopener noreferrer"
-                          className="flex items-center justify-between px-4 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest bg-amber-500 hover:bg-amber-400 text-black transition-all">
-                          <span>{t.lang === 'EN' ? 'Buy on Naffy' : 'Kup na Naffy'}</span>
-                          <span>{tut.price ? `${tut.price} PLN` : '49 PLN'}</span>
-                        </a>
-                      ) : (
-                        <div className="flex items-center justify-between px-4 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest bg-amber-500/10 border border-amber-500/30 text-amber-400/50 cursor-not-allowed">
-                          <span>{t.lang === 'EN' ? 'Buy on Naffy' : 'Kup na Naffy'}</span>
-                          <span>{t.lang === 'EN' ? 'Soon' : 'Wkrótce'}</span>
-                        </div>
-                      )
-                    ) : (
-                      <button onClick={onLoginRequest}
-                        className="flex items-center justify-between px-4 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest bg-amber-500 hover:bg-amber-400 text-black transition-all">
-                        <span>{t.lang === 'EN' ? 'Buy on Naffy' : 'Kup na Naffy'}</span>
-                        <span>{t.lang === 'EN' ? 'Log in →' : 'Zaloguj →'}</span>
-                      </button>
-                    )}
-
-                    {/* Przycisk Vimeo — tylko Pro */}
-                    {isPro ? (
-                      tut.vimeoUrl ? (
-                        <a href={tut.vimeoUrl} target="_blank" rel="noopener noreferrer"
-                          className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white/5 border border-amber-500/40 text-amber-400 hover:bg-amber-500/10 transition-all">
-                          ▶ {t.lang === 'EN' ? 'Full tutorial' : 'Pełny instruktaż'}
-                        </a>
-                      ) : (
-                        <div className="flex items-center justify-center px-4 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white/5 border border-amber-500/20 text-amber-400/50">
-                          ✓ {t.lang === 'EN' ? 'Full tutorial — coming soon' : 'Pełny instruktaż — wkrótce'}
-                        </div>
-                      )
-                    ) : (
-                      <button onClick={isLoggedIn ? () => { if (typeof onNavigate === 'function') onNavigate('cennik'); } : onLoginRequest}
-                        className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest border border-white/10 text-slate-600 hover:border-amber-500/20 hover:text-slate-500 transition-all">
-                        🔒 {t.lang === 'EN' ? 'Full tutorial — Pro only' : 'Pełny instruktaż — tylko Pro'}
-                      </button>
-                    )}
-                  </div>
                 </div>
               </div>
             );
@@ -691,7 +650,7 @@ const TutorialsView = ({ t, user, onLoginRequest, onNavigate }) => {
             style={{boxShadow:'0 0 40px rgba(245,158,11,0.05)'}}>
             <div>
               <p className="text-white font-black text-sm uppercase tracking-tight mb-1">
-                👑 {t.lang === 'EN' ? 'All tutorials + apps — from 199 PLN/mo' : 'Wszystkie tutoriale + aplikacje — od 199 zł/mies.'}
+                👑 {t.lang === 'EN' ? 'All tutorials + apps — from 89 PLN/mo' : 'Wszystkie tutoriale + aplikacje — od 89 zł/mies.'}
               </p>
               <p className="text-slate-500 text-xs">
                 {t.lang === 'EN' ? 'One subscription. Everything included. Cancel anytime.' : 'Jeden abonament. Dostęp do wszystkiego. Anuluj kiedy chcesz.'}
@@ -1454,10 +1413,10 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
           ) : !canGenerate ? (
             <div className="text-center">
               <p className="text-slate-500 text-sm mb-3">{t.lang==='EN' ? 'No tokens left.' : 'Brak tokenow. Przejdz na plan Starter.'}</p>
-              <a href={`https://buy.stripe.com/14A28qcGJ56fdfq5rQ8bS05?client_reference_id=${user?.uid || ''}&prefilled_email=${encodeURIComponent(user?.email || '')}`}
+              <a href={`https://buy.stripe.com/plink_1TJfC4CEjxjarOHxGwGnaCuE?client_reference_id=${user?.uid || ''}&prefilled_email=${encodeURIComponent(user?.email || '')}`}
                 target="_blank" rel="noopener noreferrer"
                 className="inline-block px-10 py-4 bg-amber-500 hover:bg-amber-400 text-black font-black uppercase tracking-widest text-sm rounded-2xl transition-all shadow-lg shadow-amber-500/20">
-                {t.lang==='EN' ? 'Get Starter — 30 PLN/mo' : 'Kup Starter — 30 PLN/mies'}
+                {t.lang==='EN' ? 'Get Starter — 89 PLN/mo' : 'Kup Starter — 89 PLN/mies'}
               </a>
             </div>
           ) : (
@@ -1902,10 +1861,10 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
                 ) : !canGenerate ? (
                   <div className="text-center py-2">
                     <p className="text-xs text-slate-500 mb-3">{t.lang==='EN' ? 'No tokens left.' : 'Brak tokenow. Przejdz na plan Starter.'}</p>
-                    <a href={`https://buy.stripe.com/14A28qcGJ56fdfq5rQ8bS05?client_reference_id=${user?.uid || ''}&prefilled_email=${encodeURIComponent(user?.email || '')}`}
+                    <a href={`https://buy.stripe.com/plink_1TJfC4CEjxjarOHxGwGnaCuE?client_reference_id=${user?.uid || ''}&prefilled_email=${encodeURIComponent(user?.email || '')}`}
                       target="_blank" rel="noopener noreferrer"
                       className="block w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-black text-sm uppercase tracking-wider text-center transition-colors">
-                      {t.lang==='EN' ? 'Get Starter — 30 PLN/mo' : 'Kup Starter — 30 PLN/mies'}
+                      {t.lang==='EN' ? 'Get Starter — 89 PLN/mo' : 'Kup Starter — 89 PLN/mies'}
                     </a>
                   </div>
                 ) : (
@@ -2291,10 +2250,10 @@ const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
             ) : !canGenerate ? (
               <div className="text-center">
                 <p className="text-slate-500 text-sm mb-3">{t.lang==='EN' ? 'No tokens left.' : 'Brak tokenów. Przejdź na plan Starter.'}</p>
-                <a href={`https://buy.stripe.com/14A28qcGJ56fdfq5rQ8bS05?client_reference_id=${user?.uid || ''}&prefilled_email=${encodeURIComponent(user?.email || '')}`}
+                <a href={`https://buy.stripe.com/plink_1TJfC4CEjxjarOHxGwGnaCuE?client_reference_id=${user?.uid || ''}&prefilled_email=${encodeURIComponent(user?.email || '')}`}
                   target="_blank" rel="noopener noreferrer"
                   className="inline-block px-10 py-4 bg-amber-500 hover:bg-amber-400 text-black font-black uppercase tracking-widest text-sm rounded-2xl transition-all shadow-lg shadow-amber-500/20">
-                  {t.lang==='EN' ? 'Get Starter — 30 PLN/mo' : 'Kup Starter — 30 PLN/mies'}
+                  {t.lang==='EN' ? 'Get Starter — 89 PLN/mo' : 'Kup Starter — 89 PLN/mies'}
                 </a>
               </div>
             ) : (
@@ -2686,10 +2645,10 @@ const FilmBuilderView = ({ t, user, onLoginRequest }) => {
                 {t.lang === 'EN' ? 'Log in to generate' : 'Zaloguj się aby generować'}
               </button>
             ) : !canGenerate ? (
-              <a href={`https://buy.stripe.com/14A28qcGJ56fdfq5rQ8bS05?client_reference_id=${user?.uid || ''}`}
+              <a href={`https://buy.stripe.com/plink_1TJfC4CEjxjarOHxGwGnaCuE?client_reference_id=${user?.uid || ''}`}
                 target="_blank" rel="noopener noreferrer"
                 className="block w-full py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-black font-black text-sm uppercase tracking-wider transition-all text-center shadow-lg">
-                {t.lang === 'EN' ? 'Get Starter — 30 PLN/mo' : 'Kup Starter — 30 PLN/mies'}
+                {t.lang === 'EN' ? 'Get Starter — 89 PLN/mo' : 'Kup Starter — 89 PLN/mies'}
               </a>
             ) : (
               <button onClick={handleGenerateFrames} disabled={loadingFrame === 'frames'}
@@ -2746,10 +2705,10 @@ const FilmBuilderView = ({ t, user, onLoginRequest }) => {
                   {t.lang === 'EN' ? 'Log in to generate' : 'Zaloguj się aby generować'}
                 </button>
               ) : !canGenerate ? (
-                <a href={`https://buy.stripe.com/14A28qcGJ56fdfq5rQ8bS05?client_reference_id=${user?.uid || ''}`}
+                <a href={`https://buy.stripe.com/plink_1TJfC4CEjxjarOHxGwGnaCuE?client_reference_id=${user?.uid || ''}`}
                   target="_blank" rel="noopener noreferrer"
                   className="block w-full py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-black font-black text-sm uppercase tracking-wider transition-all text-center">
-                  {t.lang === 'EN' ? 'Get Starter — 30 PLN/mo' : 'Kup Starter — 30 PLN/mies'}
+                  {t.lang === 'EN' ? 'Get Starter — 89 PLN/mo' : 'Kup Starter — 89 PLN/mies'}
                 </a>
               ) : (
                 <button onClick={handleGenerateAnims} disabled={loadingFrame === 'anims'}
@@ -2978,9 +2937,9 @@ const ZloteCytaty = () => {
 };
 
 const CennikView = ({ t, user, onLoginRequest }) => {
-  const STRIPE_STARTER = 'https://buy.stripe.com/14A28qcGJ56fdfq5rQ8bS05'; // 30 PLN starter
+  const STRIPE_STARTER = 'https://buy.stripe.com/plink_1TJfC4CEjxjarOHxGwGnaCuE'; // 30 PLN starter
   const STRIPE_ALLINONE_MONTHLY = 'https://buy.stripe.com/cNiaEWbCF6aj7V63jI8bS01';
-  const STRIPE_ALLINONE_ANNUAL = 'https://buy.stripe.com/7sYfZg7mpgOX2AM5rQ8bS06'; // 1899 PLN rocznie
+  const STRIPE_ALLINONE_ANNUAL = 'https://buy.stripe.com/7sYfZg7mpgOX2AM5rQ8bS06'; // 899 PLN rocznie
 
   return (
     <div className="min-h-screen bg-white dark:bg-black transition-colors duration-700 font-sans px-3 sm:px-4 py-6 sm:py-12">
@@ -3192,7 +3151,7 @@ const AdminView = ({ setCurrentView, lang, user }) => {
   const appId2 = "aiflow_academy";
   const tutorialsRef = (db2) => doc(db2, 'artifacts', appId2, 'public', 'data', 'config', 'tutorials');
 
-  const emptyTut = { title_pl: '', title_en: '', duration: '', ytId: '', naffyUrl: '', vimeoUrl: '', price: '49' };
+  const emptyTut = { title_pl: '', title_en: '', duration: '', ytId: '', naffyUrl: '', vimeoUrl: '' };
   const [tutorials, setTutorials] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -3204,7 +3163,7 @@ const AdminView = ({ setCurrentView, lang, user }) => {
         setTutorials(snap.data().list);
       } else {
         setTutorials([
-          { title_pl: 'Wprowadzenie do Awatarów AI', title_en: 'Introduction to AI Avatars', duration: '12:34', ytId: '1_1oHwOZMe4', naffyUrl: 'https://naffy.io', vimeoUrl: '', price: '49' },
+          { title_pl: 'Wprowadzenie do Awatarów AI', title_en: 'Introduction to AI Avatars', duration: '12:34', ytId: '1_1oHwOZMe4', naffyUrl: '', vimeoUrl: '' },
         ]);
       }
       setLoading(false);
@@ -3269,7 +3228,7 @@ const AdminView = ({ setCurrentView, lang, user }) => {
                     <input value={tut.title_en} onChange={e => update(i, 'title_en', e.target.value)} className={inputCls} placeholder="Title in English"/>
                   </div>
                 </div>
-                <div className="grid grid-cols-3 gap-4 mb-4">
+                <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
                     <label className={labelCls}>YouTube ID</label>
                     <input value={tut.ytId} onChange={e => update(i, 'ytId', e.target.value)} className={inputCls} placeholder="np. dQw4w9WgXcQ"/>
@@ -3278,16 +3237,10 @@ const AdminView = ({ setCurrentView, lang, user }) => {
                     <label className={labelCls}>Czas trwania</label>
                     <input value={tut.duration} onChange={e => update(i, 'duration', e.target.value)} className={inputCls} placeholder="np. 12:34"/>
                   </div>
-                  <div>
-                    <label className={labelCls}>Cena (PLN)</label>
-                    <input value={tut.price} onChange={e => update(i, 'price', e.target.value)} className={inputCls} placeholder="49"/>
-                  </div>
                 </div>
                 <div>
-                  <label className={labelCls}>Link Naffy</label>
-                  <input value={tut.naffyUrl} onChange={e => update(i, 'naffyUrl', e.target.value)} className={inputCls} placeholder="https://naffy.io/..."/>
-                  <label className={labelCls}>Vimeo URL (dla Pro)</label>
-                  <input value={tut.vimeoUrl || ''} onChange={e => update(i, 'vimeoUrl', e.target.value)} className={inputCls} placeholder="https://vimeo.com/..."/>
+                  <label className={labelCls}>Link do tutorialu</label>
+                  <input value={tut.naffyUrl} onChange={e => update(i, 'naffyUrl', e.target.value)} className={inputCls} placeholder="https://..."/>
                 </div>
                 {/* Preview miniaturki */}
                 {tut.ytId && (
