@@ -2329,8 +2329,8 @@ const FilmBuilderView = ({ t, user, onLoginRequest }) => {
         fetch(`${WORKER_URL}/generate-film-prompt`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ buildingType, archStyle, location, timeOfDay, camera, generator, frame: '3', aspectRatio }) }),
       ]);
       const [d1, d2, d3] = await Promise.all([r1.json(), r2.json(), r3.json()]);
-      const ok = await useToken(db, user.uid);
-      if (ok) setFramePrompts({ f1: d1.prompt || '', f2: d2.prompt || '', f3: d3.prompt || '' });
+      if (!isPro && !isStarter) await useToken(db, user.uid);
+      setFramePrompts({ f1: d1.prompt || '', f2: d2.prompt || '', f3: d3.prompt || '' });
     } catch (err) { console.error('Worker error:', err); }
     finally { setLoadingFrame(null); }
   };
@@ -2366,10 +2366,8 @@ const FilmBuilderView = ({ t, user, onLoginRequest }) => {
       ]);
       const [d1, d2] = await Promise.all([r1.json(), r2.json()]);
       // Zużywamy 1 token za oba prompty
-      const ok = await useToken(db, user.uid);
-      if (ok) {
-        setAnimPrompts({ anim12: d1.prompt || '', anim23: d2.prompt || '' });
-      }
+      if (!isPro && !isStarter) await useToken(db, user.uid);
+      setAnimPrompts({ anim12: d1.prompt || '', anim23: d2.prompt || '' });
     } catch (err) {
       console.error('Worker error:', err);
     } finally {
