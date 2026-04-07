@@ -2339,6 +2339,7 @@ const FilmBuilderView = ({ t, user, onLoginRequest }) => {
   }, [user]);
   const canGenerate = isPro || isStarter || (tokens !== null && tokens > 0);
 
+  const [category, setCategory] = useState('buildings');
   const [buildingType, setBuildingType] = useState('single family house');
   const [archStyle, setArchStyle]       = useState('modern minimalist');
   const [location, setLocation]         = useState('suburban area');
@@ -2479,61 +2480,167 @@ const FilmBuilderView = ({ t, user, onLoginRequest }) => {
         {/* Opcje */}
         <div className="max-w-3xl mx-auto">
           <div className={sectionClass}>
-            <p className={headerClass}><span className="text-base">🏗️</span> {t.lang === 'EN' ? 'Building & Location' : 'Budynek i Lokacja'}</p>
+            <p className={headerClass}><span className="text-base">🏗️</span> {t.lang === 'EN' ? 'Object & Location' : 'Obiekt i Lokacja'}</p>
+
+            {/* KATEGORIA */}
+            <div className="flex gap-2 mb-4 flex-wrap">
+              {[
+                ['buildings','🏠', t.lang==='EN'?'Buildings':'Budynki'],
+                ['cars','🚗', t.lang==='EN'?'Cars':'Auta'],
+                ['planes','✈️', t.lang==='EN'?'Planes':'Samoloty'],
+                ['nature','🌿', t.lang==='EN'?'Nature':'Natura'],
+                ['floors','🪵', t.lang==='EN'?'Floors':'Podłogi'],
+                ['underwater','🌊', t.lang==='EN'?'Underwater':'Podwodne'],
+              ].map(([cat,icon,lbl]) => (
+                <button key={cat} onClick={() => { setCategory(cat); setBuildingType(
+                  cat==='buildings' ? 'single family house' :
+                  cat==='cars' ? '1969 Ford Mustang Fastback' :
+                  cat==='planes' ? 'Douglas DC-3 classic propeller airplane' :
+                  cat==='nature' ? 'overgrown japanese garden' :
+                  cat==='floors' ? 'old damaged hardwood floor planks' :
+                  'underwater coral reef'
+                ); setArchStyle(
+                  cat==='cars' ? 'showroom finish' :
+                  cat==='planes' ? 'restored original' :
+                  cat==='nature' ? 'zen garden' :
+                  cat==='floors' ? 'luxury parquet' :
+                  cat==='underwater' ? 'thriving ecosystem' :
+                  'modern minimalist'
+                ); }}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all border ${category===cat ? 'bg-amber-500 border-amber-500 text-black' : 'border-black/10 dark:border-[#222] text-slate-500 hover:border-amber-500/50'}`}>
+                  {icon} {lbl}
+                </button>
+              ))}
+            </div>
+
             <div className="grid grid-cols-2 gap-3">
-              <Sel label={t.lang === 'EN' ? 'Object Type' : 'Typ obiektu'} value={buildingType} set={setBuildingType} opts={[
-                ['single family house', t.lang === 'EN' ? 'Family House' : '🏠 Dom jednorodzinny'],
-                ['apartment building', t.lang === 'EN' ? 'Apartment Block' : '🏢 Kamienica'],
-                ['beachfront villa', t.lang === 'EN' ? 'Beach Villa' : '🏖️ Willa plażowa'],
-                ['industrial warehouse', t.lang === 'EN' ? 'Warehouse' : '🏭 Magazyn/Fabryka'],
-                ['historic townhouse', t.lang === 'EN' ? 'Townhouse' : '🏛️ Kamienica historyczna'],
-                ['country farmhouse', t.lang === 'EN' ? 'Farmhouse' : '🌾 Wiejski dom'],
-                ['abandoned castle ruins', t.lang === 'EN' ? 'Castle Ruins' : '🏰 Ruiny zamku'],
-                ['old railway station', t.lang === 'EN' ? 'Railway Station' : '🚉 Stary dworzec'],
-                ['1969 Ford Mustang Fastback', t.lang === 'EN' ? '🚗 Ford Mustang 1969' : '🚗 Ford Mustang 1969'],
-                ['1967 Chevrolet Camaro SS', t.lang === 'EN' ? '🚗 Camaro 1967' : '🚗 Camaro 1967'],
-                ['1970 Dodge Charger R/T', t.lang === 'EN' ? '🚗 Dodge Charger 1970' : '🚗 Dodge Charger 1970'],
-                ['1975 Fiat 125p Polski classic car', t.lang === 'EN' ? '🚗 Fiat 125p (Polish)' : '🚗 Fiat 125p (Duży Fiat)'],
-                ['1973 Fiat 126p Maluch classic car', t.lang === 'EN' ? '🚗 Maluch Fiat 126p' : '🚗 Maluch (Fiat 126p)'],
-                ['1966 AC Cobra 427 classic roadster', t.lang === 'EN' ? '🚗 AC Cobra 427' : '🚗 AC Cobra 427'],
-                ['1965 Shelby GT350 Mustang', t.lang === 'EN' ? '🚗 Shelby GT350' : '🚗 Shelby GT350'],
-                ['Douglas DC-3 classic propeller airplane', t.lang === 'EN' ? '✈️ Douglas DC-3' : '✈️ Douglas DC-3'],
-                ['Supermarine Spitfire WWII fighter plane', t.lang === 'EN' ? '✈️ Spitfire WWII' : '✈️ Spitfire WWII'],
-                ['overgrown japanese garden', t.lang === 'EN' ? '🌿 Japanese Garden' : '🌿 Ogród japoński'],
-                ['neglected baroque fountain', t.lang === 'EN' ? '⛲ Baroque Fountain' : '⛲ Fontanna barokowa'],
-                ['abandoned greenhouse glass house', t.lang === 'EN' ? '🌱 Greenhouse' : '🌱 Stara szklarnia'],
-                ['dry waterfall rocky landscape', t.lang === 'EN' ? '💧 Waterfall' : '💧 Wodospad'],
-                ['old wooden sailing ship', t.lang === 'EN' ? '⛵ Sailing Ship' : '⛵ Stary żaglowiec'],
-                ['vintage steam locomotive train', t.lang === 'EN' ? '🚂 Steam Locomotive' : '🚂 Parowóz'],
-                ['abandoned amusement park', t.lang === 'EN' ? '🎡 Amusement Park' : '🎡 Wesołe miasteczko'],
-                ['ruined lighthouse on cliff', t.lang === 'EN' ? '🏗️ Lighthouse' : '🏗️ Latarnia morska'],
-                ['old damaged hardwood floor planks', t.lang === 'EN' ? '🪵 Wooden Floor' : '🪵 Stara podłoga drewniana'],
-                ['cracked marble floor tiles', t.lang === 'EN' ? '🏛️ Marble Floor' : '🏛️ Podłoga marmurowa'],
-                ['worn concrete industrial floor', t.lang === 'EN' ? '🏭 Industrial Floor' : '🏭 Podłoga industrialna'],
-                ['damaged terracotta floor tiles', t.lang === 'EN' ? '🟫 Terracotta Floor' : '🟫 Podłoga terakota'],
-                ['underwater coral reef', t.lang === 'EN' ? '🪸 Coral Reef' : '🪸 Rafa koralowa'],
-                ['sunken shipwreck underwater', t.lang === 'EN' ? '🚢 Sunken Ship' : '🚢 Zatopiony statek'],
-                ['underwater ancient ruins', t.lang === 'EN' ? '🏛️ Underwater Ruins' : '🏛️ Podwodne ruiny'],
-                ['abandoned swimming pool', t.lang === 'EN' ? '🏊 Old Pool' : '🏊 Stary basen'],
-                ['old pier over water', t.lang === 'EN' ? '⚓ Old Pier' : '⚓ Stary pomost'],
-              ]}/>
-              <Sel label={t.lang === 'EN' ? 'Architecture Style' : 'Styl po renowacji'} value={archStyle} set={setArchStyle} opts={[
-                ['modern minimalist', t.lang === 'EN' ? 'Modern Minimalist' : 'Nowoczesny minimalizm'],
-                ['luxury contemporary', t.lang === 'EN' ? 'Luxury Contemporary' : 'Luksusowy współczesny'],
-                ['scandinavian', t.lang === 'EN' ? 'Scandinavian' : 'Skandynawski'],
-                ['mediterranean', t.lang === 'EN' ? 'Mediterranean' : 'Śródziemnomorski'],
-                ['industrial loft', t.lang === 'EN' ? 'Industrial Loft' : 'Industrialny loft'],
-                ['art deco', t.lang === 'EN' ? 'Art Deco' : 'Art Deco'],
-                ['eco sustainable', t.lang === 'EN' ? 'Eco Sustainable' : 'Eko / Zielony'],
-              ]}/>
-              <Sel label={t.lang === 'EN' ? 'Location' : 'Lokacja'} value={location} set={setLocation} opts={[
-                ['suburban area', t.lang === 'EN' ? 'Suburbs' : 'Przedmieścia'],
-                ['city center', t.lang === 'EN' ? 'City Center' : 'Centrum miasta'],
-                ['beachfront', t.lang === 'EN' ? 'Beachfront' : 'Przy plaży'],
-                ['mountain area', t.lang === 'EN' ? 'Mountains' : 'W górach'],
-                ['countryside', t.lang === 'EN' ? 'Countryside' : 'Wieś'],
-                ['mediterranean coast', t.lang === 'EN' ? 'Mediterranean' : 'Wybrzeże śródziemnomorskie'],
-              ]}/>
+              {/* OBIEKTY — dynamicznie per kategoria */}
+              {category === 'buildings' && <Sel label={t.lang === 'EN' ? 'Building Type' : 'Typ budynku'} value={buildingType} set={setBuildingType} opts={[
+                ['single family house', '🏠 ' + (t.lang==='EN'?'Family House':'Dom jednorodzinny')],
+                ['apartment building', '🏢 ' + (t.lang==='EN'?'Apartment Block':'Kamienica')],
+                ['beachfront villa', '🏖️ ' + (t.lang==='EN'?'Beach Villa':'Willa plażowa')],
+                ['industrial warehouse', '🏭 ' + (t.lang==='EN'?'Warehouse':'Magazyn/Fabryka')],
+                ['historic townhouse', '🏛️ ' + (t.lang==='EN'?'Townhouse':'Kamienica historyczna')],
+                ['country farmhouse', '🌾 ' + (t.lang==='EN'?'Farmhouse':'Wiejski dom')],
+                ['abandoned castle ruins', '🏰 ' + (t.lang==='EN'?'Castle Ruins':'Ruiny zamku')],
+                ['old railway station', '🚉 ' + (t.lang==='EN'?'Railway Station':'Stary dworzec')],
+                ['abandoned amusement park', '🎡 ' + (t.lang==='EN'?'Amusement Park':'Wesołe miasteczko')],
+                ['ruined lighthouse on cliff', '🏗️ ' + (t.lang==='EN'?'Lighthouse':'Latarnia morska')],
+              ]}/>}
+              {category === 'cars' && <Sel label={t.lang === 'EN' ? 'Car Model' : 'Model auta'} value={buildingType} set={setBuildingType} opts={[
+                ['1969 Ford Mustang Fastback', '🚗 Ford Mustang 1969'],
+                ['1967 Chevrolet Camaro SS', '🚗 Camaro 1967'],
+                ['1970 Dodge Charger R/T', '🚗 Dodge Charger 1970'],
+                ['1975 Fiat 125p Polski classic car', '🚗 Fiat 125p (Duży Fiat)'],
+                ['1973 Fiat 126p Maluch classic car', '🚗 Maluch (Fiat 126p)'],
+                ['1966 AC Cobra 427 classic roadster', '🚗 AC Cobra 427'],
+                ['1965 Shelby GT350 Mustang', '🚗 Shelby GT350'],
+              ]}/>}
+              {category === 'planes' && <Sel label={t.lang === 'EN' ? 'Aircraft' : 'Samolot'} value={buildingType} set={setBuildingType} opts={[
+                ['Douglas DC-3 classic propeller airplane', '✈️ Douglas DC-3'],
+                ['Supermarine Spitfire WWII fighter plane', '✈️ Spitfire WWII'],
+              ]}/>}
+              {category === 'nature' && <Sel label={t.lang === 'EN' ? 'Nature Object' : 'Obiekt natury'} value={buildingType} set={setBuildingType} opts={[
+                ['overgrown japanese garden', '🌿 ' + (t.lang==='EN'?'Japanese Garden':'Ogród japoński')],
+                ['neglected baroque fountain', '⛲ ' + (t.lang==='EN'?'Baroque Fountain':'Fontanna barokowa')],
+                ['abandoned greenhouse glass house', '🌱 ' + (t.lang==='EN'?'Greenhouse':'Stara szklarnia')],
+                ['dry waterfall rocky landscape', '💧 ' + (t.lang==='EN'?'Waterfall':'Wodospad')],
+                ['old wooden sailing ship', '⛵ ' + (t.lang==='EN'?'Sailing Ship':'Stary żaglowiec')],
+                ['vintage steam locomotive train', '🚂 ' + (t.lang==='EN'?'Steam Locomotive':'Parowóz')],
+              ]}/>}
+              {category === 'floors' && <Sel label={t.lang === 'EN' ? 'Floor Type' : 'Typ podłogi'} value={buildingType} set={setBuildingType} opts={[
+                ['old damaged hardwood floor planks', '🪵 ' + (t.lang==='EN'?'Wooden Floor':'Podłoga drewniana')],
+                ['cracked marble floor tiles', '🏛️ ' + (t.lang==='EN'?'Marble Floor':'Podłoga marmurowa')],
+                ['worn concrete industrial floor', '🏭 ' + (t.lang==='EN'?'Industrial Floor':'Podłoga industrialna')],
+                ['damaged terracotta floor tiles', '🟫 ' + (t.lang==='EN'?'Terracotta Floor':'Podłoga terakota')],
+              ]}/>}
+              {category === 'underwater' && <Sel label={t.lang === 'EN' ? 'Underwater Scene' : 'Scena podwodna'} value={buildingType} set={setBuildingType} opts={[
+                ['underwater coral reef', '🪸 ' + (t.lang==='EN'?'Coral Reef':'Rafa koralowa')],
+                ['sunken shipwreck underwater', '🚢 ' + (t.lang==='EN'?'Sunken Ship':'Zatopiony statek')],
+                ['underwater ancient ruins', '🏛️ ' + (t.lang==='EN'?'Underwater Ruins':'Podwodne ruiny')],
+                ['abandoned swimming pool', '🏊 ' + (t.lang==='EN'?'Old Pool':'Stary basen')],
+                ['old pier over water', '⚓ ' + (t.lang==='EN'?'Old Pier':'Stary pomost')],
+              ]}/>}
+
+              {/* STYL — dynamicznie per kategoria */}
+              {category === 'buildings' && <Sel label={t.lang === 'EN' ? 'Style After' : 'Styl po renowacji'} value={archStyle} set={setArchStyle} opts={[
+                ['modern minimalist', t.lang==='EN'?'Modern Minimalist':'Nowoczesny minimalizm'],
+                ['luxury contemporary', t.lang==='EN'?'Luxury Contemporary':'Luksusowy współczesny'],
+                ['scandinavian', t.lang==='EN'?'Scandinavian':'Skandynawski'],
+                ['mediterranean', t.lang==='EN'?'Mediterranean':'Śródziemnomorski'],
+                ['industrial loft', t.lang==='EN'?'Industrial Loft':'Industrialny loft'],
+                ['art deco', t.lang==='EN'?'Art Deco':'Art Deco'],
+                ['eco sustainable', t.lang==='EN'?'Eco Sustainable':'Eko / Zielony'],
+              ]}/>}
+              {category === 'cars' && <Sel label={t.lang === 'EN' ? 'Finish Style' : 'Styl po renowacji'} value={archStyle} set={setArchStyle} opts={[
+                ['showroom finish, glossy paint, chrome details', t.lang==='EN'?'🏆 Showroom':'🏆 Showroom'],
+                ['racing livery, stripes, race numbers', t.lang==='EN'?'🏁 Racing':'🏁 Racing livery'],
+                ['custom hot rod, chrome, lowrider', t.lang==='EN'?'🔥 Hot Rod':'🔥 Hot Rod'],
+                ['factory original restoration', t.lang==='EN'?'🏭 Factory Original':'🏭 Oryginał fabryczny'],
+                ['restomod, classic exterior modern interior', t.lang==='EN'?'⚡ Restomod':'⚡ Restomod'],
+                ['patina style, intentional aged look', t.lang==='EN'?'🟤 Patina':'🟤 Patina style'],
+                ['military finish, matte green, army style', t.lang==='EN'?'🪖 Military':'🪖 Military'],
+              ]}/>}
+              {category === 'planes' && <Sel label={t.lang === 'EN' ? 'Finish Style' : 'Styl po renowacji'} value={archStyle} set={setArchStyle} opts={[
+                ['restored original livery, museum quality', t.lang==='EN'?'🏛️ Restored Original':'🏛️ Oryginalny'],
+                ['military markings, WWII colors', t.lang==='EN'?'🪖 Military':'🪖 Militarny'],
+                ['civilian airline livery, polished', t.lang==='EN'?'✈️ Airline':'✈️ Linia lotnicza'],
+                ['custom paint, modern finish', t.lang==='EN'?'🎨 Custom':'🎨 Custom'],
+              ]}/>}
+              {category === 'nature' && <Sel label={t.lang === 'EN' ? 'Restoration Style' : 'Styl po renowacji'} value={archStyle} set={setArchStyle} opts={[
+                ['zen garden, japanese minimalist', t.lang==='EN'?'🍃 Zen Garden':'🍃 Ogród zen'],
+                ['lush tropical paradise', t.lang==='EN'?'🌴 Tropical':'🌴 Tropikalny'],
+                ['formal european garden', t.lang==='EN'?'🌹 Formal Garden':'🌹 Ogród formalny'],
+                ['wild natural rewilded', t.lang==='EN'?'🌿 Rewilded':'🌿 Dzikie'],
+                ['luxury resort landscaping', t.lang==='EN'?'🏨 Resort':'🏨 Resort'],
+              ]}/>}
+              {category === 'floors' && <Sel label={t.lang === 'EN' ? 'Finish Style' : 'Styl po renowacji'} value={archStyle} set={setArchStyle} opts={[
+                ['luxury parquet, high gloss finish', t.lang==='EN'?'✨ Luxury Parquet':'✨ Luksusowy parkiet'],
+                ['polished marble, mirror finish', t.lang==='EN'?'💎 Polished Marble':'💎 Polerowany marmur'],
+                ['modern concrete, epoxy coating', t.lang==='EN'?'🏭 Epoxy Concrete':'🏭 Beton epoksydowy'],
+                ['spanish terracotta, hand painted tiles', t.lang==='EN'?'🟫 Spanish Tiles':'🟫 Hiszpańska terakota'],
+              ]}/>}
+              {category === 'underwater' && <Sel label={t.lang === 'EN' ? 'After State' : 'Stan po renowacji'} value={archStyle} set={setArchStyle} opts={[
+                ['thriving coral ecosystem, colorful fish', t.lang==='EN'?'🪸 Thriving Reef':'🪸 Tętniąca rafa'],
+                ['clear water visibility, pristine', t.lang==='EN'?'💎 Crystal Clear':'💎 Krystalicznie czyste'],
+                ['lush sea vegetation, marine life', t.lang==='EN'?'🌿 Marine Life':'🌿 Życie morskie'],
+                ['historic preservation, documented ruins', t.lang==='EN'?'🏛️ Preserved Ruins':'🏛️ Zachowane ruiny'],
+              ]}/>}
+
+              {/* LOKACJA — dynamicznie per kategoria */}
+              {category === 'buildings' && <Sel label={t.lang === 'EN' ? 'Location' : 'Lokacja'} value={location} set={setLocation} opts={[
+                ['suburban area', t.lang==='EN'?'Suburbs':'Przedmieścia'],
+                ['city center', t.lang==='EN'?'City Center':'Centrum miasta'],
+                ['beachfront', t.lang==='EN'?'Beachfront':'Przy plaży'],
+                ['mountain area', t.lang==='EN'?'Mountains':'W górach'],
+                ['countryside', t.lang==='EN'?'Countryside':'Wieś'],
+                ['mediterranean coast', t.lang==='EN'?'Mediterranean':'Wybrzeże śródziemnomorskie'],
+              ]}/>}
+              {category === 'cars' && <Sel label={t.lang === 'EN' ? 'Location' : 'Lokacja'} value={location} set={setLocation} opts={[
+                ['junkyard, rusty cars around', t.lang==='EN'?'🔧 Junkyard':'🔧 Złomowisko'],
+                ['underground parking garage', t.lang==='EN'?'🅿️ Garage':'🅿️ Garaż podziemny'],
+                ['desert highway Route 66', t.lang==='EN'?'🏜️ Desert Highway':'🏜️ Pustynia Route 66'],
+                ['Tokyo neon street at night', t.lang==='EN'?'🌆 Tokyo Street':'🌆 Ulica Tokio'],
+                ['old abandoned barn', t.lang==='EN'?'🚜 Barn Find':'🚜 Stara stodoła'],
+                ['race track pit lane', t.lang==='EN'?'🏁 Racetrack':'🏁 Tor wyścigowy'],
+                ['seaside cliff ocean view', t.lang==='EN'?'🌊 Seaside Cliff':'🌊 Urwisko nad morzem'],
+                ['classic car showroom', t.lang==='EN'?'🏆 Showroom':'🏆 Salon samochodowy'],
+                ['drive-in cinema parking lot', t.lang==='EN'?'🎬 Drive-in':'🎬 Drive-in kino'],
+              ]}/>}
+              {category === 'planes' && <Sel label={t.lang === 'EN' ? 'Location' : 'Lokacja'} value={location} set={setLocation} opts={[
+                ['abandoned airfield overgrown', t.lang==='EN'?'🛬 Abandoned Airfield':'🛬 Opuszczone lotnisko'],
+                ['museum hangar interior', t.lang==='EN'?'🏛️ Museum Hangar':'🏛️ Hangar muzeum'],
+                ['outdoor air show display', t.lang==='EN'?'☀️ Air Show':'☀️ Pokazy lotnicze'],
+                ['desert boneyard aircraft storage', t.lang==='EN'?'🏜️ Boneyard':'🏜️ Cmentarzysko maszyn'],
+                ['wartime airfield WWII', t.lang==='EN'?'🪖 WWII Airfield':'🪖 Lotnisko wojenne'],
+              ]}/>}
+              {(category === 'nature' || category === 'floors' || category === 'underwater') && <Sel label={t.lang === 'EN' ? 'Location' : 'Lokacja'} value={location} set={setLocation} opts={[
+                ['private estate grounds', t.lang==='EN'?'🏰 Private Estate':'🏰 Prywatna posiadłość'],
+                ['luxury resort property', t.lang==='EN'?'🏨 Resort':'🏨 Resort'],
+                ['urban rooftop', t.lang==='EN'?'🌆 Urban Rooftop':'🌆 Dach w mieście'],
+                ['countryside villa', t.lang==='EN'?'🌾 Country Villa':'🌾 Willa na wsi'],
+                ['mediterranean island', t.lang==='EN'?'🏝️ Mediterranean':'🏝️ Wyspa śródziemnomorska'],
+              ]}/>}
               <Sel label={t.lang === 'EN' ? 'Time of Day' : 'Pora dnia'} value={timeOfDay} set={setTimeOfDay} opts={[
                 ['golden hour', t.lang === 'EN' ? 'Golden Hour' : 'Złota godzina'],
                 ['blue hour dusk', t.lang === 'EN' ? 'Blue Hour' : 'Blue hour'],
