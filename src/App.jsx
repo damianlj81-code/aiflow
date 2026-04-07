@@ -322,15 +322,8 @@ const FAQSection = ({ t }) => {
     { q: t.lang === 'EN' ? 'Is there a free trial?' : 'Czy jest darmowy okres próbny?', a: t.lang === 'EN' ? 'The tools in Studio Pro are completely free to use — no account needed. The paid plan gives you access to tutorials and live sessions.' : 'Narzędzia w Studio Pro są całkowicie darmowe — bez konta. Płatny plan daje dostęp do tutoriali i live sesji.' },
   ];
 
-  const [easterEgg, setEasterEgg] = useState(false);
-
   const handleSend = async () => {
     if (!email || (!selectedQ && !customQ)) return;
-    // 🎾 KOD DAN BROWNA — easter egg powered by Claude
-    if (email.toLowerCase() === 'damian@claude.kabum') {
-      setEasterEgg(true);
-      return;
-    }
     setSending(true);
     try {
       const res = await fetch('https://formspree.io/f/xkoqgrng', {
@@ -374,15 +367,7 @@ const FAQSection = ({ t }) => {
               <p className="text-slate-500 text-xs mt-1">{t.lang === 'EN' ? 'Choose from the list or write your own — I will reply as soon as possible.' : 'Wybierz z listy lub napisz własne — odpiszę najszybciej jak to możliwe.'}</p>
             </div>
           </div>
-          {easterEgg ? (
-            <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.95)',zIndex:9999,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'20px'}}>
-              <div style={{fontFamily:'monospace',color:'#F5A623',fontSize:'13px',letterSpacing:'3px',textTransform:'uppercase',marginBottom:'12px',opacity:.5}}>🔐 KOD DAN BROWNA — powered by Claude</div>
-              <div style={{fontFamily:'monospace',color:'#fff',fontSize:'28px',fontWeight:'bold',letterSpacing:'2px',marginBottom:'8px',textAlign:'center'}}>GRATULACJE.</div>
-              <div style={{fontFamily:'monospace',color:'rgba(245,240,232,0.5)',fontSize:'11px',letterSpacing:'3px',textTransform:'uppercase',marginBottom:'32px',textAlign:'center'}}>Znalazłeś/aś kod.<br/>Nagroda? <span style={{color:'#F5A623'}}>damian@claude.kabum</span><br/>Nie działa. Ale byłeś/aś blisko.</div>
-              <div style={{fontFamily:'monospace',color:'rgba(245,240,232,0.3)',fontSize:'10px',letterSpacing:'2px',textTransform:'uppercase',marginBottom:'32px',textAlign:'center'}}>🎾 Damian odbija, Claude odbija,<br/>i tak se chłopaki grają.</div>
-              <button onClick={() => setEasterEgg(false)} style={{background:'#F5A623',color:'#000',border:'none',fontFamily:'monospace',fontWeight:'bold',fontSize:'11px',letterSpacing:'4px',textTransform:'uppercase',padding:'12px 28px',cursor:'pointer'}}>ZAMKNIJ ×</button>
-            </div>
-          ) : sent ? (
+          {sent ? (
             <div className="flex items-center justify-center gap-3 py-8 text-emerald-500 font-bold uppercase tracking-widest text-sm"><span className="text-2xl">✔</span>{t.lang === 'EN' ? 'Sent! I will reply soon.' : 'Wysłane! Odpiszę wkrótce.'}</div>
           ) : (
             <div className="space-y-5">
@@ -2937,9 +2922,8 @@ const ZloteCytaty = () => {
 };
 
 const CennikView = ({ t, user, onLoginRequest }) => {
-  const STRIPE_STARTER = 'https://buy.stripe.com/plink_1TJfC4CEjxjarOHxGwGnaCuE'; // 30 PLN starter
-  const STRIPE_ALLINONE_MONTHLY = 'https://buy.stripe.com/cNiaEWbCF6aj7V63jI8bS01';
-  const STRIPE_ALLINONE_ANNUAL = 'https://buy.stripe.com/7sYfZg7mpgOX2AM5rQ8bS06'; // 899 PLN rocznie
+  const STRIPE_MONTHLY = 'https://buy.stripe.com/plink_1TJfC4CEjxjarOHxGwGnaCuE'; // 89 PLN miesiecznie
+  const STRIPE_ANNUAL = 'https://buy.stripe.com/plink_1TJfDbCEjxjarOHxLcVqhQr4'; // 899 PLN rocznie
 
   return (
     <div className="min-h-screen bg-white dark:bg-black transition-colors duration-700 font-sans px-3 sm:px-4 py-6 sm:py-12">
@@ -2961,58 +2945,25 @@ const CennikView = ({ t, user, onLoginRequest }) => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 items-stretch">
+        <div className="grid md:grid-cols-2 gap-6 items-stretch max-w-3xl mx-auto">
 
-          {/* PLAN 1 — Starter */}
-          <div className="price-card relative rounded-3xl p-8 border border-amber-500/20 bg-gradient-to-br from-amber-500/10 to-orange-500/5 flex flex-col"
-            style={{boxShadow:'0 20px 60px rgba(245,158,11,0.2), 0 0 40px rgba(245,158,11,0.08)'}}
-            onMouseEnter={e=>e.currentTarget.style.boxShadow='0 30px 80px rgba(245,158,11,0.35), 0 0 60px rgba(245,158,11,0.15)'}
-            onMouseLeave={e=>e.currentTarget.style.boxShadow='0 20px 60px rgba(245,158,11,0.2), 0 0 40px rgba(245,158,11,0.08)'}>
-            <div className="text-5xl mb-4" style={{filter:'drop-shadow(0 8px 16px rgba(245,158,11,0.4))',transform:'perspective(200px) rotateX(10deg)'}}>⚡</div>
-            <div className="text-[9px] font-black uppercase tracking-[0.3em] text-amber-500 mb-2">Starter</div>
-            <div className="flex items-end gap-1 mb-1">
-              <span className="text-5xl font-black text-black dark:text-white">30</span>
-              <span className="text-sm text-slate-400 mb-2">PLN/{t.lang==='EN'?'mo':'mies.'}</span>
-            </div>
-            <p className="text-slate-400 text-xs mb-2">{t.lang==='EN'?'Unlimited AI prompts for avatars & ads':'Nielimitowane prompty AI do awatarów i reklam'}</p>
-            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-2 mb-5">
-              <p className="text-amber-400 text-[10px] font-black uppercase tracking-widest">{t.lang==='EN'?'✨ Perfect for creators':'✨ Idealny dla twórców'}</p>
-              <p className="text-white/50 text-[10px] mt-0.5">{t.lang==='EN'?'Virtual AI characters & product ads':'Wirtualne postacie AI i reklamy produktów'}</p>
-            </div>
-            <div className="space-y-2 mb-8 flex-grow">
-              {[
-                t.lang==='EN'?'✔ Kreator Awatarów AI (unlimited)':'✔ Kreator Awatarów AI (bez limitu)',
-                t.lang==='EN'?'✔ Kreator Reklam AI (unlimited)':'✔ Kreator Reklam Produktowych (bez limitu)',
-                t.lang==='EN'?'✔ Unlimited prompts':'✔ Nielimitowane prompty',
-                t.lang==='EN'?'✘ Tutorials (All-in-one only)':'✘ Tutoriale (tylko All-in-one)'
-              ].map((f,i)=>(
-                <p key={i} className={`text-xs ${f.startsWith('✔') ? 'text-black dark:text-white' : 'text-slate-500'}`}>{f}</p>
-              ))}
-            </div>
-            <a href={user && !user.isAnonymous ? stripeLink(STRIPE_STARTER, user.uid, user.email) : '#'}
-              onClick={e => { if (!user || user.isAnonymous) { e.preventDefault(); onLoginRequest(); }}}
-              target="_blank" rel="noopener noreferrer"
-              className="block w-full py-3.5 font-black text-[11px] uppercase tracking-widest rounded-xl text-center bg-amber-500/20 border border-amber-500/40 text-amber-500 hover:bg-amber-500 hover:text-black transition-all">
-              {t.lang==='EN'?'Get Starter →':'Wybierz Starter →'}
-            </a>
-          </div>
-
-          {/* PLAN 2 — All-in-one Miesięczny HIGHLIGHT */}
+          {/* PLAN 1 — Miesięczny */}
           <div className="price-card relative rounded-3xl p-8 border border-amber-500 bg-gradient-to-br from-amber-500/15 to-orange-600/10 flex flex-col"
             style={{boxShadow:'0 0 60px rgba(245,158,11,0.3), 0 20px 60px rgba(245,158,11,0.15)'}}>
             <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-amber-500 text-black text-[10px] font-black uppercase tracking-widest px-5 py-1.5 rounded-full whitespace-nowrap">
               👑 {t.lang==='EN'?'Most Popular':'Najpopularniejszy'}
             </div>
             <div className="text-5xl mb-4" style={{filter:'drop-shadow(0 8px 20px rgba(245,158,11,0.6))',transform:'perspective(200px) rotateX(10deg)'}}>🚀</div>
-            <div className="text-[9px] font-black uppercase tracking-[0.3em] text-amber-400 mb-2">All-in-one</div>
+            <div className="text-[9px] font-black uppercase tracking-[0.3em] text-amber-400 mb-2">{t.lang==='EN'?'Monthly':'Miesięczny'}</div>
             <div className="flex items-end gap-1 mb-1">
-              <span className="text-5xl font-black text-black dark:text-white">199</span>
+              <span className="text-5xl font-black text-black dark:text-white">89</span>
               <span className="text-sm text-slate-400 mb-2">PLN/{t.lang==='EN'?'mo':'mies.'}</span>
             </div>
             <p className="text-slate-400 text-xs mb-6">{t.lang==='EN'?'Full platform access':'Pełny dostęp do platformy'}</p>
             <div className="space-y-2 mb-8 flex-grow">
-              {['✔ Avatar Builder + Ad Builder',
-                t.lang==='EN'?'✔ All tutorials included':'✔ Wszystkie tutoriale w cenie',
+              {[
+                t.lang==='EN'?'✔ All 4 AI Builders':'✔ Wszystkie 4 kreatory AI',
+                t.lang==='EN'?'✔ Free tutorials included':'✔ Tutoriale za darmo',
                 t.lang==='EN'?'✔ Unlimited prompts':'✔ Nielimitowane prompty',
                 t.lang==='EN'?'✔ New content every week':'✔ Nowe treści co tydzień',
                 t.lang==='EN'?'✔ Cancel anytime':'✔ Anuluj w dowolnym momencie'
@@ -3020,33 +2971,34 @@ const CennikView = ({ t, user, onLoginRequest }) => {
                 <p key={i} className="text-xs text-black dark:text-white">{f}</p>
               ))}
             </div>
-            <a href={user && !user.isAnonymous ? stripeLink(STRIPE_ALLINONE_MONTHLY, user.uid, user.email) : '#'}
+            <a href={user && !user.isAnonymous ? stripeLink(STRIPE_MONTHLY, user.uid, user.email) : '#'}
               onClick={e => { if (!user || user.isAnonymous) { e.preventDefault(); onLoginRequest(); }}}
               target="_blank" rel="noopener noreferrer"
               className="block w-full py-3.5 font-black text-[11px] uppercase tracking-widest rounded-xl text-center bg-amber-500 hover:bg-amber-400 text-black transition-all shadow-lg shadow-amber-500/30">
-              {t.lang==='EN'?'Get All-in-one →':'Wybierz All-in-one →'}
+              {t.lang==='EN'?'Get Monthly →':'Wybierz Miesięczny →'}
             </a>
           </div>
 
-          {/* PLAN 3 — All-in-one Roczny */}
+          {/* PLAN 2 — Roczny */}
           <div className="price-card relative rounded-3xl p-8 border border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 flex flex-col"
             style={{boxShadow:'0 20px 60px rgba(34,197,94,0.2), 0 0 40px rgba(34,197,94,0.08)'}}
             onMouseEnter={e=>e.currentTarget.style.boxShadow='0 30px 80px rgba(34,197,94,0.35), 0 0 60px rgba(34,197,94,0.15)'}
             onMouseLeave={e=>e.currentTarget.style.boxShadow='0 20px 60px rgba(34,197,94,0.2), 0 0 40px rgba(34,197,94,0.08)'}>
             <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-emerald-500 text-black text-[10px] font-black uppercase tracking-widest px-5 py-1.5 rounded-full whitespace-nowrap">
-              🎁 {t.lang==='EN'?'2 months FREE':'2 miesiące GRATIS'}
+              🎁 {t.lang==='EN'?'Best value':'Najlepsza cena'}
             </div>
             <div className="text-5xl mb-4" style={{filter:'drop-shadow(0 8px 20px rgba(34,197,94,0.5))',transform:'perspective(200px) rotateX(10deg)'}}>💎</div>
-            <div className="text-[9px] font-black uppercase tracking-[0.3em] text-emerald-400 mb-2">All-in-one Roczny</div>
+            <div className="text-[9px] font-black uppercase tracking-[0.3em] text-emerald-400 mb-2">{t.lang==='EN'?'Annual':'Roczny'}</div>
             <div className="flex items-end gap-1 mb-1">
-              <span className="text-5xl font-black text-black dark:text-white">1899</span>
+              <span className="text-5xl font-black text-black dark:text-white">899</span>
               <span className="text-sm text-slate-400 mb-2">PLN/{t.lang==='EN'?'year':'rok'}</span>
             </div>
-            <p className="text-slate-400 text-xs mb-1">{t.lang==='EN'?'10 months + 2 free':'10 miesięcy + 2 gratis'}</p>
-            <p className="text-emerald-400 text-[10px] font-bold mb-6">{t.lang==='EN'?'Save 498 PLN vs monthly':'Oszczędzasz 489 PLN vs miesięczny'}</p>
+            <p className="text-slate-400 text-xs mb-1">{t.lang==='EN'?'75 PLN/month':'75 PLN/mies.'}</p>
+            <p className="text-emerald-400 text-[10px] font-bold mb-6">{t.lang==='EN'?'Save 169 PLN vs monthly':'Oszczędzasz 169 PLN vs miesięczny'}</p>
             <div className="space-y-2 mb-8 flex-grow">
-              {['✔ Avatar Builder + Ad Builder',
-                t.lang==='EN'?'✔ All tutorials included':'✔ Wszystkie tutoriale w cenie',
+              {[
+                t.lang==='EN'?'✔ All 4 AI Builders':'✔ Wszystkie 4 kreatory AI',
+                t.lang==='EN'?'✔ Free tutorials included':'✔ Tutoriale za darmo',
                 t.lang==='EN'?'✔ Unlimited prompts':'✔ Nielimitowane prompty',
                 t.lang==='EN'?'✔ New content every week':'✔ Nowe treści co tydzień',
                 t.lang==='EN'?'✔ Best price per month':'✔ Najlepsza cena za miesiąc'
@@ -3054,7 +3006,7 @@ const CennikView = ({ t, user, onLoginRequest }) => {
                 <p key={i} className="text-xs text-black dark:text-white">{f}</p>
               ))}
             </div>
-            <a href={user && !user.isAnonymous ? stripeLink(STRIPE_ALLINONE_ANNUAL, user.uid, user.email) : '#'}
+            <a href={user && !user.isAnonymous ? stripeLink(STRIPE_ANNUAL, user.uid, user.email) : '#'}
               onClick={e => { if (!user || user.isAnonymous) { e.preventDefault(); onLoginRequest(); }}}
               target="_blank" rel="noopener noreferrer"
               className="block w-full py-3.5 font-black text-[11px] uppercase tracking-widest rounded-xl text-center bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500 hover:text-black transition-all">
