@@ -3576,7 +3576,7 @@ export default function App() {
                 {navItems.map(({ id, label }) => (
                   <button
                     key={id}
-                    onClick={() => setCurrentView(id)}
+                    onClick={() => handleNavigate(id)}
                     className={`relative px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all duration-200 ${
                       currentView === id
                         ? 'bg-amber-500 text-black'
