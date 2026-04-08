@@ -1890,14 +1890,14 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
                 <button onClick={onLoginRequest} className="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-black text-xs uppercase tracking-widest transition-all">
                   {t.lang==='EN'?'Log in to copy':'Zaloguj się aby skopiować'}
                 </button>
-              ) : selectedEffects.length === 0 ? (
+              ) : effectFalling.length === 0 ? (
                 <div className="w-full py-3 rounded-xl font-black text-xs uppercase tracking-widest text-center bg-slate-200 dark:bg-[#222] text-slate-400 cursor-not-allowed">
                   {t.lang==='EN'?'Select at least 1 effect':'Wybierz co najmniej 1 efekt'}
                 </div>
               ) : (
                 <button onClick={handleCopy}
                   className={`w-full py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${copied ? 'bg-green-500 text-white' : 'bg-amber-500 hover:bg-amber-400 text-black'}`}>
-                  {copied ? `✓ Skopiowano! (${selectedEffects.length} efekt${selectedEffects.length > 1 ? 'y' : ''})` : (t.lang==='EN'?`📋 Copy Prompt (${selectedEffects.length} effect${selectedEffects.length!==1?'s':''})`:`📋 Kopiuj Prompt (${selectedEffects.length} efekt${selectedEffects.length > 1 ? 'y' : ''})`)}
+                  {copied ? '✓ Skopiowano!' : (t.lang==='EN'?'📋 Copy Effect Prompt':'📋 Kopiuj Prompt Efektu')}
                 </button>
               )}
             </div>
@@ -1955,13 +1955,20 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
               <p className={headerClass}>&#10024; {t.lang==='EN' ? '3. Effects & Lighting' : '3. Efekty i oswietlenie'}</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className={labelClass}>{t.lang==='EN' ? 'Special Effect' : 'Efekt specjalny'}</label>
-                  <div className="relative">
-                    <select value={effect} onChange={e => setEffect(e.target.value)} className={inputClass}>
-                      {EFFECTS.map(e => <option key={e.value} value={e.value}>{e.label}</option>)}
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/>
-                  </div>
+                  <label className={labelClass}>✨ {t.lang==='EN' ? 'Special Effect' : 'Efekt specjalny'}</label>
+                  <select value={specialEffect} onChange={e => setSpecialEffect(e.target.value)} className={inputClass}>
+                    <option value="">— {t.lang==='EN' ? 'No effect' : 'Bez efektu'} —</option>
+                    <option value="subtle glowing cracks on clothing, smoldering embers, wisps of smoke around body, not on fire but smoldering">🔥 Żarzenie — pęknięcia, żar, dym</option>
+                    <option value="frost and ice crystals on clothing, cold air vapor, snowflakes around body, icy shards floating">❄️ Mróz — lód, szron, para</option>
+                    <option value="electric sparks and lightning bolts crackling around body, electric aura, blue white energy">⚡ Elektryczność — iskry, ładunki</option>
+                    <option value="golden cracks glowing on skin and clothing, kintsugi effect, golden light from fractures">✨ Złote pęknięcia — kintsugi</option>
+                    <option value="dark smoke and shadow tendrils swirling around body, dark aura, mysterious shadow energy">🌑 Mroczna aura — czarny dym</option>
+                    <option value="delicate flower petals and leaves growing from clothing, nature magic, botanical aura, soft glowing vines">🌿 Natura — kwiaty, liście</option>
+                    <option value="water droplets and mist around body, wet fabric clinging, rain particles floating">🌊 Woda — krople, mgła</option>
+                    <option value="iridescent holographic shimmer on skin, glitch effect, digital artifacts, cyberpunk glow, neon data streams">💻 Holo / Glitch — cyfrowy blask</option>
+                    <option value="pink cherry blossom petals falling around, sakura flowers floating, soft romantic spring">🌸 Sakura — płatki wiśni</option>
+                    <option value="galaxy and stardust swirling around body, cosmic nebula colors, floating star particles">🌌 Kosmos — gwiazdy, mgławica</option>
+                  </select>
                 </div>
                 <div>
                   <label className={labelClass}>{t.lang==='EN' ? 'Lighting' : 'Oswietlenie'}</label>
