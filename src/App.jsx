@@ -707,17 +707,6 @@ const AplikacjeView = ({ t, user, onLoginRequest, onCreatorChange }) => {
       glow: 'rgba(249,115,22,0.3)',
       badge: t.lang === 'EN' ? 'FILM STUDIO' : 'STUDIO FILMÓW',
     },
-    {
-      id: 'video-ad-builder',
-      icon: '📦',
-      title: t.lang === 'EN' ? 'Video Ad Builder' : 'Kreator Reklam Wideo',
-      subtitle: t.lang === 'EN' ? 'Image-to-Video Effect Prompts' : 'Prompty Efektów Image-to-Video',
-      desc: t.lang === 'EN' ? 'Upload your product photo to Kling/Runway + paste the effect prompt. Your product, our effects.' : 'Wgraj zdjęcie produktu do Kling/Runway + wklej prompt efektów. Twój produkt, nasze efekty.',
-      color: 'from-rose-500/20 via-pink-500/10 to-fuchsia-500/20',
-      border: 'border-rose-500/30',
-      glow: 'rgba(244,63,94,0.3)',
-      badge: t.lang === 'EN' ? 'VIDEO AD STUDIO' : 'STUDIO REKLAM WIDEO',
-    },
   ];
 
   const currentIdx = activeApp ? apps.findIndex(a => a.id === activeApp) : -1;
@@ -769,7 +758,6 @@ const AplikacjeView = ({ t, user, onLoginRequest, onCreatorChange }) => {
         {activeApp === 'ad-builder' && <ProductAdBuilderView t={t} user={user} onLoginRequest={onLoginRequest} />}
         {activeApp === 'lifestyle-builder' && <LifestyleBuilderView t={t} user={user} onLoginRequest={onLoginRequest} />}
         {activeApp === 'film-builder' && <FilmBuilderView t={t} user={user} onLoginRequest={onLoginRequest} />}
-        {activeApp === 'video-ad-builder' && <VideoAdBuilderView t={t} user={user} onLoginRequest={onLoginRequest} />}
 
         {/* BACK BUTTON — fixed top left, always visible */}
         <div className="fixed top-20 left-4 z-50">
@@ -1310,8 +1298,8 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
       subjectLine,
       pose,
       bgSelect,
-      specialEffect || null,
       photoStyle,
+      specialEffect || null,
       'masterpiece, high-end fashion photography, ultra-detailed, sharp focus, cinematic lighting',
     ].filter(Boolean).join(', ');
 
@@ -1374,6 +1362,20 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
               </div>
             </div>
             <div>
+              <label className={labelClass}>&#10024; {t.lang==='EN'?'Special Effect':'Efekt specjalny'}</label>
+              <select value={specialEffect} onChange={e => setSpecialEffect(e.target.value)} className={inputClass}>
+                <option value="">— {t.lang==='EN'?'No effect':'Bez efektu'} —</option>
+                <option value="subtle glowing cracks on clothing, smoldering embers, wisps of smoke around body">&#128293; Żarzenie</option>
+                <option value="frost and ice crystals on clothing, cold air vapor, snowflakes around body">&#10052; Mróz</option>
+                <option value="electric sparks and lightning bolts crackling around body, electric aura">&#9889; Elektryczność</option>
+                <option value="golden cracks glowing on skin and clothing, kintsugi effect, golden light">&#10024; Złote pęknięcia</option>
+                <option value="dark smoke and shadow tendrils swirling around body, dark aura">&#127761; Mroczna aura</option>
+                <option value="delicate flower petals growing from clothing, nature magic, botanical aura">&#127807; Natura</option>
+                <option value="water droplets and mist around body, wet fabric clinging">&#127754; Woda</option>
+                <option value="iridescent holographic shimmer on skin, glitch effect, cyberpunk glow">&#128187; Holo / Glitch</option>
+                <option value="pink cherry blossom petals falling around, sakura flowers floating">&#127800; Sakura</option>
+                <option value="galaxy and stardust swirling around body, cosmic nebula colors">&#127756; Kosmos</option>
+              </select>
               <label className={labelClass}>{t.lang==='EN'?'Background':'Tlo'}</label>
               <div className="relative">
                 <select value={bgSelect} onChange={e => setBgSelect(e.target.value)} className={inputClass}>
@@ -1675,73 +1677,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
 
   const prompt = generatePrompt();
 
-  // Prompt efektów dla trybu Image-to-Video
-  const ENVIRONMENTS = {
-    '': '',
-    water: 'product submerged in crystal clear water, light caustics, water surface reflections',
-    sand: 'product placed on desert sand, warm sandy ground, soft shadows',
-    black_studio: 'pure black studio background, dramatic directional light',
-    white_studio: 'clean white studio background, soft even lighting',
-    forest: 'lush green forest floor, dappled natural light, bokeh background',
-    rain: 'product in rain, wet surface, rain drops falling around',
-    snow: 'product in snow, snowflakes falling, winter atmosphere',
-    marble: 'product on luxury marble surface, reflective floor',
-    concrete: 'product on raw concrete, urban industrial setting',
-  };
-
-  const FALLING_EFFECTS = {
-    powder: 'powder explosion bursting around',
-    rain_drops: 'rain of particles falling on',
-    liquid_pour: 'liquid being poured over',
-    sparks: 'sparks and embers flying around',
-    petals: 'petals falling gently on',
-    glitter: 'glitter and sparkles raining on',
-    smoke: 'smoke swirling around',
-    liquid_gold_pour: 'molten liquid gold being poured over',
-  };
-
-  const COLORS = {
-    golden: 'golden, warm gold',
-    silver: 'silver, metallic silver',
-    pink: 'soft pink, rose',
-    red: 'deep red, crimson',
-    green: 'vibrant green, emerald',
-    blue: 'electric blue, cobalt',
-    purple: 'deep purple, violet',
-    rainbow: 'rainbow, multi-color, full spectrum',
-    white: 'pure white, pearl',
-    black: 'dark black, obsidian',
-    neon_green: 'neon green, fluorescent',
-    orange: 'vivid orange, amber',
-  };
-
-  const toggleColor = (val) => {
-    setEffectColors(prev => prev.includes(val) ? prev.filter(c => c !== val) : [...prev, val]);
-  };
-
-  const toggleFalling = (val) => {
-    setEffectFalling(prev => prev.includes(val) ? prev.filter(e => e !== val) : [...prev, val]);
-  };
-
-  const generateEffectPrompt = () => {
-    const hasSomething = effectEnvironment || effectFalling.length > 0;
-    if (!hasSomething) return t.lang === 'EN' ? 'Select environment or falling effect above.' : 'Wybierz otoczenie lub efekt powyżej.';
-    const intensity = effectIntensity < 33 ? 'subtle, delicate' : effectIntensity < 66 ? 'moderate, balanced' : 'intense, dramatic, over the top';
-    const colorDesc = effectColors.length > 0 ? effectColors.map(c => COLORS[c] || c).join(' and ') : 'golden';
-    const envPart = effectEnvironment ? ENVIRONMENTS[effectEnvironment] : '';
-    const fallingParts = effectFalling.map(f => `${colorDesc} ${FALLING_EFFECTS[f]} the product`).join(', ');
-    const combined = [envPart, fallingParts].filter(Boolean).join(', ');
-    return `Image to video. Detect the main product from the reference image and keep it exactly unchanged. Setting: ${combined}. Intensity: ${intensity}. ${speed.replace('_',' ')}, ${GENERATORS.find(g=>g.value===generator)?.label || 'Kling AI'} optimized. Product must remain identical to reference — only add effects around it.`;
-  };
-
   const handleCopy = async () => {
-    if (adMode === 'effect') {
-      if (!isLoggedIn) { onLoginRequest(); return; }
-      await navigator.clipboard.writeText(generateEffectPrompt());
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-      return;
-    }
     if (!productName.trim() || isProductBlocked(productName) || !canGenerate) return;
     await navigator.clipboard.writeText(prompt);
     setCopied(true);
@@ -1773,151 +1709,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
           </p>
         </div>
 
-        {/* PRZEŁĄCZNIK TRYBU */}
-        <div className="flex gap-3 mb-6 justify-center">
-          {[
-            ['prompt', '📝', t.lang==='EN'?'Describe product':'Opisz produkt'],
-            ['effect', '✨', t.lang==='EN'?'Effect on your photo':'Efekt na Twoje zdjęcie'],
-          ].map(([mode, icon, lbl]) => (
-            <button key={mode} onClick={() => setAdMode(mode)}
-              className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all border ${adMode===mode ? 'bg-amber-500 border-amber-500 text-black' : 'border-black/10 dark:border-[#222] text-slate-500 hover:border-amber-500/50'}`}>
-              {icon} {lbl}
-            </button>
-          ))}
-        </div>
-
-        {/* TRYB EFEKTÓW */}
-        {adMode === 'effect' && (
-          <div className="max-w-2xl mx-auto mb-6">
-            <div className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4 mb-4 text-center">
-              <p className="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-1">💡 {t.lang==='EN'?'How to use':'Jak używać'}</p>
-              <p className="text-xs text-slate-500">{t.lang==='EN'?'Choose effect → copy prompt → go to Kling/Runway → upload YOUR product photo → paste prompt → generate!':'Wybierz efekt → skopiuj prompt → idź do Kling/Runway → wgraj SWOJE zdjęcie produktu → wklej prompt → generuj!'}</p>
-            </div>
-
-            <div className="bg-white dark:bg-[#0a0a0a] border border-black/10 dark:border-[#1a1a1a] rounded-2xl p-5 mb-4">
-              {/* SEKCJA 1 — Otoczenie */}
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-500 mb-3">🌍 {t.lang==='EN'?'Environment (optional)':'Otoczenie (opcjonalne)'}</p>
-              <div className="grid grid-cols-2 gap-2 mb-5">
-                {[
-                  ['','⬜',t.lang==='EN'?'No environment':'Bez otoczenia'],
-                  ['water','🌊',t.lang==='EN'?'In water':'W wodzie'],
-                  ['sand','🏜️',t.lang==='EN'?'On sand':'Na piasku'],
-                  ['black_studio','⬛',t.lang==='EN'?'Black studio':'Czarne studio'],
-                  ['white_studio','⬜',t.lang==='EN'?'White studio':'Białe studio'],
-                  ['forest','🌿',t.lang==='EN'?'In forest':'W lesie'],
-                  ['rain','🌧️',t.lang==='EN'?'In rain':'W deszczu'],
-                  ['snow','❄️',t.lang==='EN'?'In snow':'W śniegu'],
-                  ['marble','🏛️',t.lang==='EN'?'Marble floor':'Marmurowa podłoga'],
-                  ['concrete','🏚️',t.lang==='EN'?'Concrete':'Beton'],
-                ].map(([val,icon,lbl]) => (
-                  <button key={val} onClick={() => setEffectEnvironment(val)}
-                    className={`py-2 px-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all border flex items-center gap-2 ${effectEnvironment===val ? 'bg-amber-500 border-amber-500 text-black' : 'bg-slate-100 dark:bg-[#111] border-black/10 dark:border-[#222] text-slate-500 hover:border-amber-500/50'}`}>
-                    {icon} {lbl}
-                  </button>
-                ))}
-              </div>
-
-              {/* SEKCJA 2 — Efekt który spada (multi-select) */}
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-500">💫 {t.lang==='EN'?'Falling Effect (multi-select)':'Efekt który spada (można kilka)'}</p>
-                {effectFalling.length > 0 && <button onClick={() => setEffectFalling([])} className="text-[9px] text-slate-400 hover:text-red-400 uppercase tracking-widest">✕ {t.lang==='EN'?'Clear':'Wyczyść'}</button>}
-              </div>
-              <div className="grid grid-cols-2 gap-2 mb-5">
-                {[
-                  ['powder','💥',t.lang==='EN'?'Powder explosion':'Wybuch prochu'],
-                  ['liquid_gold_pour','🥇',t.lang==='EN'?'Liquid pour':'Ciekłe polewanie'],
-                  ['rain_drops','🌧️',t.lang==='EN'?'Rain of particles':'Deszcz cząsteczek'],
-                  ['sparks','✨',t.lang==='EN'?'Sparks & embers':'Iskry i żar'],
-                  ['petals','🌸',t.lang==='EN'?'Petals':'Płatki'],
-                  ['glitter','⭐',t.lang==='EN'?'Glitter rain':'Deszcz brokatu'],
-                  ['smoke','🌫️',t.lang==='EN'?'Smoke swirl':'Kłęby dymu'],
-                ].map(([val,icon,lbl]) => (
-                  <button key={val} onClick={() => toggleFalling(val)}
-                    className={`py-2 px-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all border flex items-center gap-2 ${effectFalling.includes(val) ? 'bg-amber-500 border-amber-500 text-black' : 'bg-slate-100 dark:bg-[#111] border-black/10 dark:border-[#222] text-slate-500 hover:border-amber-500/50'}`}>
-                    {effectFalling.includes(val) ? '✓' : icon} {lbl}
-                  </button>
-                ))}
-              </div>
-
-              {/* SEKCJA 3 — Kolor efektu */}
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-500">🎨 {t.lang==='EN'?'Effect Colors (mix!)':'Kolory Efektu (mieszaj!)'}</p>
-                {effectColors.length > 1 && <span className="text-[9px] text-amber-400 font-black">{effectColors.length} {t.lang==='EN'?'colors mixed':'kolory mieszane'}</span>}
-              </div>
-              <div className="grid grid-cols-3 gap-2 mb-5">
-                {[
-                  ['golden','🟡',t.lang==='EN'?'Golden':'Złoty'],
-                  ['silver','⚪',t.lang==='EN'?'Silver':'Srebrny'],
-                  ['pink','🩷',t.lang==='EN'?'Pink':'Różowy'],
-                  ['red','🔴',t.lang==='EN'?'Red':'Czerwony'],
-                  ['green','💚',t.lang==='EN'?'Green':'Zielony'],
-                  ['blue','🔵',t.lang==='EN'?'Blue':'Niebieski'],
-                  ['purple','💜',t.lang==='EN'?'Purple':'Fioletowy'],
-                  ['rainbow','🌈',t.lang==='EN'?'Rainbow':'Tęczowy'],
-                  ['white','🤍',t.lang==='EN'?'White':'Biały'],
-                  ['black','🖤',t.lang==='EN'?'Black':'Czarny'],
-                  ['neon_green','🟢',t.lang==='EN'?'Neon green':'Neonowy zielony'],
-                  ['orange','🟠',t.lang==='EN'?'Orange':'Pomarańczowy'],
-                ].map(([val,icon,lbl]) => (
-                  <button key={val} onClick={() => toggleColor(val)}
-                    className={`py-2 px-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all border flex items-center gap-1.5 ${effectColors.includes(val) ? 'bg-amber-500 border-amber-500 text-black' : 'bg-slate-100 dark:bg-[#111] border-black/10 dark:border-[#222] text-slate-500 hover:border-amber-500/50'}`}>
-                    {effectColors.includes(val) ? '✓' : icon} {lbl}
-                  </button>
-                ))}
-              </div>
-
-              {/* Suwak intensywności */}
-              <div className="mb-4">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-amber-500">🎚️ {t.lang==='EN'?'Intensity':'Intensywność'}</p>
-                  <span className="text-xs font-black text-amber-400">{effectIntensity < 33 ? (t.lang==='EN'?'Subtle':'Delikatny') : effectIntensity < 66 ? (t.lang==='EN'?'Balanced':'Zbalansowany') : (t.lang==='EN'?'Dramatic':'Dramatyczny')}</span>
-                </div>
-                <input type="range" min="0" max="100" value={effectIntensity} onChange={e => setEffectIntensity(Number(e.target.value))}
-                  className="w-full h-2 rounded-full appearance-none cursor-pointer"
-                  style={{background: `linear-gradient(to right, #f59e0b ${effectIntensity}%, #374151 ${effectIntensity}%)`}}/>
-                <div className="flex justify-between text-[9px] text-slate-500 mt-1">
-                  <span>{t.lang==='EN'?'Subtle':'Delikatny'}</span>
-                  <span>{t.lang==='EN'?'Dramatic':'Dramatyczny'}</span>
-                </div>
-              </div>
-
-              {/* Generator */}
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-500 mb-3">🎬 Generator</p>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
-                {GENERATORS.map(g => (
-                  <button key={g.value} onClick={() => setGenerator(g.value)}
-                    className={`py-2 px-2 rounded-xl text-xs font-bold uppercase tracking-wider border transition-all ${generator===g.value ? 'bg-amber-500 border-amber-500 text-black' : 'bg-slate-100 dark:bg-[#111] border-black/10 dark:border-[#222] text-slate-500 hover:border-amber-500/50'}`}>
-                    {g.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Podgląd promptu */}
-              <div className="bg-black/5 dark:bg-white/5 rounded-xl p-3 mb-4">
-                <p className="text-[9px] font-mono text-slate-500 leading-relaxed">{generateEffectPrompt()}</p>
-              </div>
-
-              {/* Przycisk kopiuj */}
-              {!isLoggedIn ? (
-                <button onClick={onLoginRequest} className="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-black text-xs uppercase tracking-widest transition-all">
-                  {t.lang==='EN'?'Log in to copy':'Zaloguj się aby skopiować'}
-                </button>
-              ) : selectedEffects.length === 0 ? (
-                <div className="w-full py-3 rounded-xl font-black text-xs uppercase tracking-widest text-center bg-slate-200 dark:bg-[#222] text-slate-400 cursor-not-allowed">
-                  {t.lang==='EN'?'Select at least 1 effect':'Wybierz co najmniej 1 efekt'}
-                </div>
-              ) : (
-                <button onClick={handleCopy}
-                  className={`w-full py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${copied ? 'bg-green-500 text-white' : 'bg-amber-500 hover:bg-amber-400 text-black'}`}>
-                  {copied ? `✓ Skopiowano! (${selectedEffects.length} efekt${selectedEffects.length > 1 ? 'y' : ''})` : (t.lang==='EN'?`📋 Copy Prompt (${selectedEffects.length} effect${selectedEffects.length!==1?'s':''})`:`📋 Kopiuj Prompt (${selectedEffects.length} efekt${selectedEffects.length > 1 ? 'y' : ''})`)}
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* TRYB NORMALNY */}
-        {adMode === 'prompt' && <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
           {/* LEFT — Controls */}
           <div className="lg:col-span-2 space-y-4">
@@ -2101,7 +1893,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
             </div>
           </div>
 
-        </div>}
+        </div>
       </div>
     </div>
   );
@@ -2565,7 +2357,7 @@ const FilmBuilderView = ({ t, user, onLoginRequest }) => {
     const text = framePrompts[key];
     if (!text) return;
     await navigator.clipboard.writeText(text);
-    setCopied(String(frame));
+    setCopied(frame);
     setTimeout(() => setCopied(null), 2500);
   };
 
@@ -2869,7 +2661,7 @@ const FilmBuilderView = ({ t, user, onLoginRequest }) => {
           <div className="space-y-3 mb-6">
             {[1, 2, 3].map(frame => {
               const fc = FRAME_COLORS[frame];
-              const isCopied = copied === String(frame);
+              const isCopied = copied === frame;
               const generatedText = framePrompts[`f${frame}`];
               return (
                 <div key={frame} className={`border rounded-2xl p-4 ${fc.bg}`}>
@@ -3491,7 +3283,7 @@ export default function App() {
   };
 
   // New nav items: Academy → Aplikacje → Dodatki → Tutoriale
-  const handleNavigate = (view) => { setCurrentView(view); setActiveCreator(null); setMobileMenuOpen(false); };
+  const handleNavigate = (view) => { setCurrentView(view); setMobileMenuOpen(false); };
   const navItems = [
     { id: 'home', label: t.lang === 'EN' ? 'Academy' : 'Academy' },
     { id: 'aplikacje', label: 'Aplikacje' },
