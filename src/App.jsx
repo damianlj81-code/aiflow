@@ -707,17 +707,6 @@ const AplikacjeView = ({ t, user, onLoginRequest, onCreatorChange }) => {
       glow: 'rgba(249,115,22,0.3)',
       badge: t.lang === 'EN' ? 'FILM STUDIO' : 'STUDIO FILMÓW',
     },
-    {
-      id: 'video-ad-builder',
-      icon: '📦',
-      title: t.lang === 'EN' ? 'Video Ad Builder' : 'Kreator Reklam Wideo',
-      subtitle: t.lang === 'EN' ? 'Image-to-Video Effect Prompts' : 'Prompty Efektów Image-to-Video',
-      desc: t.lang === 'EN' ? 'Upload your product photo to Kling/Runway + paste the effect prompt. Your product, our effects.' : 'Wgraj zdjęcie produktu do Kling/Runway + wklej prompt efektów. Twój produkt, nasze efekty.',
-      color: 'from-rose-500/20 via-pink-500/10 to-fuchsia-500/20',
-      border: 'border-rose-500/30',
-      glow: 'rgba(244,63,94,0.3)',
-      badge: t.lang === 'EN' ? 'VIDEO AD STUDIO' : 'STUDIO REKLAM WIDEO',
-    },
   ];
 
   const currentIdx = activeApp ? apps.findIndex(a => a.id === activeApp) : -1;
@@ -769,7 +758,6 @@ const AplikacjeView = ({ t, user, onLoginRequest, onCreatorChange }) => {
         {activeApp === 'ad-builder' && <ProductAdBuilderView t={t} user={user} onLoginRequest={onLoginRequest} />}
         {activeApp === 'lifestyle-builder' && <LifestyleBuilderView t={t} user={user} onLoginRequest={onLoginRequest} />}
         {activeApp === 'film-builder' && <FilmBuilderView t={t} user={user} onLoginRequest={onLoginRequest} />}
-        {activeApp === 'video-ad-builder' && <VideoAdBuilderView t={t} user={user} onLoginRequest={onLoginRequest} />}
 
         {/* BACK BUTTON — fixed top left, always visible */}
         <div className="fixed top-20 left-4 z-50">
