@@ -40,13 +40,16 @@ const getYTId = (url) => {
 // =========================================================================
 // TOKEN SYSTEM
 // =========================================================================
-const TOKENS_FREE = 3;
-const STRIPE_PRO_LINK = 'https://buy.stripe.com/plink_1TJfC4CEjxjarOHxGwGnaCuE'; // 89 PLN miesiecznie
-const STRIPE_STARTER_LINK = 'https://buy.stripe.com/plink_1TJfC4CEjxjarOHxGwGnaCuE'; // 30 PLN miesiecznie
-const STRIPE_ANNUAL_LINK = 'https://buy.stripe.com/plink_1TJfDbCEjxjarOHxLcVqhQr4'; // 899 PLN rocznie
-const STRIPE_PRO_LINK_TEST = 'https://buy.stripe.com/dRm6oGeOR6aj3EQcUi8bS04'; // 2 PLN test admin
+const TOKENS_FREE = 3; // legacy - nowy system: 1 token per kreator
+const STRIPE_MONTHLY = 'https://buy.stripe.com/plink_1TJfC4CEjxjarOHxGwGnaCuE'; // 89 PLN miesiecznie
+const STRIPE_ANNUAL = 'https://buy.stripe.com/plink_1TJfDbCEjxjarOHxLcVqhQr4'; // 899 PLN rocznie
+// Aliases dla kompatybilnosci
+const STRIPE_PRO_LINK = STRIPE_MONTHLY;
+const STRIPE_STARTER_LINK = STRIPE_MONTHLY;
+const STRIPE_ANNUAL_LINK = STRIPE_ANNUAL;
+const STRIPE_PRO_LINK_TEST = STRIPE_MONTHLY; // test admin - tymczasowo ten sam link
 const ADMIN_EMAIL = 'damianlj@live.com';
-const stripeLink = (baseUrl, uid, email) => { const base = email === ADMIN_EMAIL ? STRIPE_PRO_LINK_TEST : baseUrl; return uid ? `${base}?client_reference_id=${uid}` : base; };
+const stripeLink = (baseUrl, uid) => uid ? `${baseUrl}?client_reference_id=${uid}` : baseUrl;
 
 const getSubscriptionStatus = (data) => {
   if (!data || (!data.pro && !data.starter)) return { active: false, reason: 'no_plan' };
@@ -59,11 +62,16 @@ const getSubscriptionStatus = (data) => {
   return { active: true, reason: 'ok', date: expiryDate };
 };
 
-async function getTokenData(db, uid) {
+async function getTokenData(db, uid, creatorId = null) {
   const ref = doc(db, 'artifacts', appId, 'public', 'data', 'tokens', uid);
   const snap = await getDoc(ref);
   if (!snap.exists()) {
-    await setDoc(ref, { tokens: TOKENS_FREE, used: 0, createdAt: new Date().toISOString(), pro: false, starter: false });
+    // Nowy system: 1 token per kreator
+    await setDoc(ref, {
+      tokens: TOKENS_FREE,
+      tokens_avatar: 1, tokens_ad: 1, tokens_lifestyle: 1, tokens_film: 2,
+      used: 0, createdAt: new Date().toISOString(), pro: false, starter: false
+    });
     return { tokens: TOKENS_FREE, isPro: false, isStarter: false, isExpired: false, paymentFailed: false, daysLeft: null, plan: null };
   }
   const data = snap.data();
@@ -89,6 +97,25 @@ async function getTokenData(db, uid) {
 async function getTokens(db, uid) {
   const { tokens } = await getTokenData(db, uid);
   return tokens;
+}
+
+async function useTokenForCreator(db, uid, creatorId) {
+  // creatorId: 'avatar' | 'ad' | 'lifestyle' | 'film'
+  const ref = doc(db, 'artifacts', appId, 'public', 'data', 'tokens', uid);
+  const snap = await getDoc(ref);
+  const field = `tokens_${creatorId}`;
+  const current = snap.exists() ? (snap.data()[field] ?? 0) : 0;
+  if (current <= 0) return false;
+  await setDoc(ref, { [field]: current - 1 }, { merge: true });
+  return true;
+}
+
+async function getCreatorTokens(db, uid, creatorId) {
+  const ref = doc(db, 'artifacts', appId, 'public', 'data', 'tokens', uid);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return 1; // nowy user dostaje 1
+  const field = `tokens_${creatorId}`;
+  return snap.data()[field] ?? 0;
 }
 
 async function useToken(db, uid) {
@@ -1195,6 +1222,7 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
   const [isStarter, setIsStarter] = useState(false);
   const [loadingTokens, setLoadingTokens] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [creatorToken, setCreatorToken] = useState(1);
 
   useEffect(() => {
     if (isLoggedIn && user?.uid) {
@@ -1202,6 +1230,7 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
       getTokenData(db, user.uid).then(({ tokens, isPro, isStarter }) => {
         setTokens(tokens); setIsPro(isPro); setIsStarter(isStarter); setLoadingTokens(false);
       }).catch(() => setLoadingTokens(false));
+      getCreatorTokens(db, user.uid, 'avatar').then(t => setCreatorToken(t));
     } else { setTokens(null); setIsPro(false); setIsStarter(false); }
   }, [isLoggedIn, user?.uid]);
 
@@ -1282,7 +1311,7 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
 
   const generatePrompt = async () => {
     if (!canGenerate) return;
-    const ok = await useToken(db, user.uid);
+    const ok = await useTokenForCreator(db, user.uid, 'avatar');
     if (!ok) return;
     setTokens(prev => (prev !== null ? prev - 1 : null));
 
@@ -1454,6 +1483,11 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
   // --- Stan kreatora ---
   const [productName, setProductName] = useState('');
   const [generator, setGenerator] = useState('kling');
+  const [adMode, setAdMode] = useState('prompt');
+  const [effectEnvironment, setEffectEnvironment] = useState('');
+  const [effectFalling, setEffectFalling] = useState([]);
+  const [effectColors, setEffectColors] = useState(['golden']);
+  const [effectIntensity, setEffectIntensity] = useState(50);
   const [scene, setScene] = useState('levitation');
   const [effect, setEffect] = useState('water_splash');
   const [lighting, setLighting] = useState('golden_hour');
@@ -2548,7 +2582,7 @@ const FilmBuilderView = ({ t, user, onLoginRequest }) => {
         fetch(`${WORKER_URL}/generate-film-prompt`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ buildingType, archStyle, location, timeOfDay, camera, generator, frame: '3', aspectRatio }) }),
       ]);
       const [d1, d2, d3] = await Promise.all([r1.json(), r2.json(), r3.json()]);
-      if (!isPro && !isStarter) await useToken(db, user.uid);
+      if (!isPro && !isStarter) await useTokenForCreator(db, user.uid, 'film');
       setFramePrompts({ f1: d1.prompt || '', f2: d2.prompt || '', f3: d3.prompt || '' });
     } catch (err) { console.error('Worker error:', err); }
     finally { setLoadingFrame(null); }
@@ -2585,7 +2619,7 @@ const FilmBuilderView = ({ t, user, onLoginRequest }) => {
       ]);
       const [d1, d2] = await Promise.all([r1.json(), r2.json()]);
       // Zużywamy 1 token za oba prompty
-      if (!isPro && !isStarter) await useToken(db, user.uid);
+      if (!isPro && !isStarter) await useTokenForCreator(db, user.uid, 'film');
       setAnimPrompts({ anim12: d1.prompt || '', anim23: d2.prompt || '' });
     } catch (err) {
       console.error('Worker error:', err);
