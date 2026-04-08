@@ -40,16 +40,13 @@ const getYTId = (url) => {
 // =========================================================================
 // TOKEN SYSTEM
 // =========================================================================
-const TOKENS_FREE = 3; // legacy - nowy system: 1 token per kreator
-const STRIPE_MONTHLY = 'https://buy.stripe.com/plink_1TJfC4CEjxjarOHxGwGnaCuE'; // 89 PLN miesiecznie
-const STRIPE_ANNUAL = 'https://buy.stripe.com/plink_1TJfDbCEjxjarOHxLcVqhQr4'; // 899 PLN rocznie
-// Aliases dla kompatybilnosci
-const STRIPE_PRO_LINK = STRIPE_MONTHLY;
-const STRIPE_STARTER_LINK = STRIPE_MONTHLY;
-const STRIPE_ANNUAL_LINK = STRIPE_ANNUAL;
-const STRIPE_PRO_LINK_TEST = STRIPE_MONTHLY; // test admin - tymczasowo ten sam link
+const TOKENS_FREE = 3;
+const STRIPE_PRO_LINK = 'https://buy.stripe.com/plink_1TJfC4CEjxjarOHxGwGnaCuE'; // 89 PLN miesiecznie
+const STRIPE_STARTER_LINK = 'https://buy.stripe.com/plink_1TJfC4CEjxjarOHxGwGnaCuE'; // 89 PLN miesiecznie
+const STRIPE_ANNUAL_LINK = 'https://buy.stripe.com/plink_1TJfDbCEjxjarOHxLcVqhQr4'; // 899 PLN rocznie
+const STRIPE_PRO_LINK_TEST = 'https://buy.stripe.com/dRm6oGeOR6aj3EQcUi8bS04'; // 2 PLN test admin
 const ADMIN_EMAIL = 'damianlj@live.com';
-const stripeLink = (baseUrl, uid) => uid ? `${baseUrl}?client_reference_id=${uid}` : baseUrl;
+const stripeLink = (baseUrl, uid, email) => { const base = email === ADMIN_EMAIL ? STRIPE_PRO_LINK_TEST : baseUrl; return uid ? `${base}?client_reference_id=${uid}` : base; };
 
 const getSubscriptionStatus = (data) => {
   if (!data || (!data.pro && !data.starter)) return { active: false, reason: 'no_plan' };
@@ -62,16 +59,11 @@ const getSubscriptionStatus = (data) => {
   return { active: true, reason: 'ok', date: expiryDate };
 };
 
-async function getTokenData(db, uid, creatorId = null) {
+async function getTokenData(db, uid) {
   const ref = doc(db, 'artifacts', appId, 'public', 'data', 'tokens', uid);
   const snap = await getDoc(ref);
   if (!snap.exists()) {
-    // Nowy system: 1 token per kreator
-    await setDoc(ref, {
-      tokens: TOKENS_FREE,
-      tokens_avatar: 1, tokens_ad: 1, tokens_lifestyle: 1, tokens_film: 2,
-      used: 0, createdAt: new Date().toISOString(), pro: false, starter: false
-    });
+    await setDoc(ref, { tokens: TOKENS_FREE, used: 0, createdAt: new Date().toISOString(), pro: false, starter: false });
     return { tokens: TOKENS_FREE, isPro: false, isStarter: false, isExpired: false, paymentFailed: false, daysLeft: null, plan: null };
   }
   const data = snap.data();
@@ -97,25 +89,6 @@ async function getTokenData(db, uid, creatorId = null) {
 async function getTokens(db, uid) {
   const { tokens } = await getTokenData(db, uid);
   return tokens;
-}
-
-async function useTokenForCreator(db, uid, creatorId) {
-  // creatorId: 'avatar' | 'ad' | 'lifestyle' | 'film'
-  const ref = doc(db, 'artifacts', appId, 'public', 'data', 'tokens', uid);
-  const snap = await getDoc(ref);
-  const field = `tokens_${creatorId}`;
-  const current = snap.exists() ? (snap.data()[field] ?? 0) : 0;
-  if (current <= 0) return false;
-  await setDoc(ref, { [field]: current - 1 }, { merge: true });
-  return true;
-}
-
-async function getCreatorTokens(db, uid, creatorId) {
-  const ref = doc(db, 'artifacts', appId, 'public', 'data', 'tokens', uid);
-  const snap = await getDoc(ref);
-  if (!snap.exists()) return 1; // nowy user dostaje 1
-  const field = `tokens_${creatorId}`;
-  return snap.data()[field] ?? 0;
 }
 
 async function useToken(db, uid) {
@@ -349,8 +322,15 @@ const FAQSection = ({ t }) => {
     { q: t.lang === 'EN' ? 'Is there a free trial?' : 'Czy jest darmowy okres próbny?', a: t.lang === 'EN' ? 'The tools in Studio Pro are completely free to use — no account needed. The paid plan gives you access to tutorials and live sessions.' : 'Narzędzia w Studio Pro są całkowicie darmowe — bez konta. Płatny plan daje dostęp do tutoriali i live sesji.' },
   ];
 
+  const [easterEgg, setEasterEgg] = useState(false);
+
   const handleSend = async () => {
     if (!email || (!selectedQ && !customQ)) return;
+    // 🎾 KOD DAN BROWNA — easter egg powered by Claude
+    if (email.toLowerCase() === 'damian@claude.kabum') {
+      setEasterEgg(true);
+      return;
+    }
     setSending(true);
     try {
       const res = await fetch('https://formspree.io/f/xkoqgrng', {
@@ -394,7 +374,15 @@ const FAQSection = ({ t }) => {
               <p className="text-slate-500 text-xs mt-1">{t.lang === 'EN' ? 'Choose from the list or write your own — I will reply as soon as possible.' : 'Wybierz z listy lub napisz własne — odpiszę najszybciej jak to możliwe.'}</p>
             </div>
           </div>
-          {sent ? (
+          {easterEgg ? (
+            <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.95)',zIndex:9999,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'20px'}}>
+              <div style={{fontFamily:'monospace',color:'#F5A623',fontSize:'13px',letterSpacing:'3px',textTransform:'uppercase',marginBottom:'12px',opacity:.5}}>🔐 KOD DAN BROWNA — powered by Claude</div>
+              <div style={{fontFamily:'monospace',color:'#fff',fontSize:'28px',fontWeight:'bold',letterSpacing:'2px',marginBottom:'8px',textAlign:'center'}}>GRATULACJE.</div>
+              <div style={{fontFamily:'monospace',color:'rgba(245,240,232,0.5)',fontSize:'11px',letterSpacing:'3px',textTransform:'uppercase',marginBottom:'32px',textAlign:'center'}}>Znalazłeś/aś kod.<br/>Nagroda? <span style={{color:'#F5A623'}}>damian@claude.kabum</span><br/>Nie działa. Ale byłeś/aś blisko.</div>
+              <div style={{fontFamily:'monospace',color:'rgba(245,240,232,0.3)',fontSize:'10px',letterSpacing:'2px',textTransform:'uppercase',marginBottom:'32px',textAlign:'center'}}>🎾 Damian odbija, Claude odbija,<br/>i tak se chłopaki grają.</div>
+              <button onClick={() => setEasterEgg(false)} style={{background:'#F5A623',color:'#000',border:'none',fontFamily:'monospace',fontWeight:'bold',fontSize:'11px',letterSpacing:'4px',textTransform:'uppercase',padding:'12px 28px',cursor:'pointer'}}>ZAMKNIJ ×</button>
+            </div>
+          ) : sent ? (
             <div className="flex items-center justify-center gap-3 py-8 text-emerald-500 font-bold uppercase tracking-widest text-sm"><span className="text-2xl">✔</span>{t.lang === 'EN' ? 'Sent! I will reply soon.' : 'Wysłane! Odpiszę wkrótce.'}</div>
           ) : (
             <div className="space-y-5">
@@ -576,9 +564,7 @@ const TutorialsView = ({ t, user, onLoginRequest, onNavigate }) => {
         setTutorials(snap.data().list.map((t, i) => ({ ...t, id: i + 1 })));
       } else {
         setTutorials([
-          { id:1, title_pl:'Wprowadzenie do Awatarów AI', title_en:'Introduction to AI Avatars', duration:'12:34', ytId:'1_1oHwOZMe4', naffyUrl:'https://naffy.io', vimeoUrl:'' },
-          // Dodaj kolejne tutoriale tutaj:
-          // { id:2, title_pl:'Tytuł PL', title_en:'Title EN', duration:'00:00', ytId:'YOUTUBE_ID', naffyUrl:'LINK_DO_TUTORIALU', vimeoUrl:'' },
+          { id:1, title_pl:'Wprowadzenie do Awatarów AI', title_en:'Introduction to AI Avatars', duration:'12:34', ytId:'1_1oHwOZMe4', naffyUrl:'https://naffy.io', vimeoUrl:'', price:'49' },
         ]);
       }
     });
@@ -645,11 +631,54 @@ const TutorialsView = ({ t, user, onLoginRequest, onNavigate }) => {
                   <div className="absolute top-2 left-2 bg-red-600 text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">YouTube</div>
                 </a>
 
-                {/* Tytuł pod miniaturką */}
-                <div className="p-4">
-                  <p className="text-white font-black text-sm leading-tight">
+                {/* Info + przyciski */}
+                <div className="p-5 flex flex-col flex-grow">
+                  <p className="text-white font-black text-sm leading-tight mb-5">
                     {t.lang === 'EN' ? tut.title_en : tut.title_pl}
                   </p>
+
+                  <div className="mt-auto flex flex-col gap-2">
+                    {/* Przycisk Naffy — wymaga logowania */}
+                    {isLoggedIn ? (
+                      tut.naffyUrl ? (
+                        <a href={tut.naffyUrl} target="_blank" rel="noopener noreferrer"
+                          className="flex items-center justify-between px-4 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest bg-amber-500 hover:bg-amber-400 text-black transition-all">
+                          <span>{t.lang === 'EN' ? 'Buy on Naffy' : 'Kup na Naffy'}</span>
+                          <span>{tut.price ? `${tut.price} PLN` : '49 PLN'}</span>
+                        </a>
+                      ) : (
+                        <div className="flex items-center justify-between px-4 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest bg-amber-500/10 border border-amber-500/30 text-amber-400/50 cursor-not-allowed">
+                          <span>{t.lang === 'EN' ? 'Buy on Naffy' : 'Kup na Naffy'}</span>
+                          <span>{t.lang === 'EN' ? 'Soon' : 'Wkrótce'}</span>
+                        </div>
+                      )
+                    ) : (
+                      <button onClick={onLoginRequest}
+                        className="flex items-center justify-between px-4 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest bg-amber-500 hover:bg-amber-400 text-black transition-all">
+                        <span>{t.lang === 'EN' ? 'Buy on Naffy' : 'Kup na Naffy'}</span>
+                        <span>{t.lang === 'EN' ? 'Log in →' : 'Zaloguj →'}</span>
+                      </button>
+                    )}
+
+                    {/* Przycisk Vimeo — tylko Pro */}
+                    {isPro ? (
+                      tut.vimeoUrl ? (
+                        <a href={tut.vimeoUrl} target="_blank" rel="noopener noreferrer"
+                          className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white/5 border border-amber-500/40 text-amber-400 hover:bg-amber-500/10 transition-all">
+                          ▶ {t.lang === 'EN' ? 'Full tutorial' : 'Pełny instruktaż'}
+                        </a>
+                      ) : (
+                        <div className="flex items-center justify-center px-4 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest bg-white/5 border border-amber-500/20 text-amber-400/50">
+                          ✓ {t.lang === 'EN' ? 'Full tutorial — coming soon' : 'Pełny instruktaż — wkrótce'}
+                        </div>
+                      )
+                    ) : (
+                      <button onClick={isLoggedIn ? () => { if (typeof onNavigate === 'function') onNavigate('cennik'); } : onLoginRequest}
+                        className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest border border-white/10 text-slate-600 hover:border-amber-500/20 hover:text-slate-500 transition-all">
+                        🔒 {t.lang === 'EN' ? 'Full tutorial — Pro only' : 'Pełny instruktaż — tylko Pro'}
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             );
@@ -662,7 +691,7 @@ const TutorialsView = ({ t, user, onLoginRequest, onNavigate }) => {
             style={{boxShadow:'0 0 40px rgba(245,158,11,0.05)'}}>
             <div>
               <p className="text-white font-black text-sm uppercase tracking-tight mb-1">
-                👑 {t.lang === 'EN' ? 'All tutorials + apps — from 89 PLN/mo' : 'Wszystkie tutoriale + aplikacje — od 89 zł/mies.'}
+                👑 {t.lang === 'EN' ? 'All tutorials + apps — from 199 PLN/mo' : 'Wszystkie tutoriale + aplikacje — od 199 zł/mies.'}
               </p>
               <p className="text-slate-500 text-xs">
                 {t.lang === 'EN' ? 'One subscription. Everything included. Cancel anytime.' : 'Jeden abonament. Dostęp do wszystkiego. Anuluj kiedy chcesz.'}
@@ -723,17 +752,6 @@ const AplikacjeView = ({ t, user, onLoginRequest, onCreatorChange }) => {
       glow: 'rgba(6,182,212,0.3)',
       badge: t.lang === 'EN' ? 'LIFESTYLE STUDIO' : 'STUDIO LIFESTYLE',
     },
-    {
-      id: 'film-builder',
-      icon: '🎬',
-      title: t.lang === 'EN' ? 'Film Builder' : 'Kreator Filmów',
-      subtitle: t.lang === 'EN' ? 'AI Film Prompt Generator' : 'Generator Promptów Filmowych AI',
-      desc: t.lang === 'EN' ? 'Create 3-frame renovation prompts — ruin to modern. For VEO 3, Kling AI, Runway.' : 'Twórz prompty renowacji — ruina do nowoczesnego. Dla VEO 3, Kling AI, Runway.',
-      color: 'from-orange-500/20 via-red-500/10 to-yellow-500/20',
-      border: 'border-orange-500/30',
-      glow: 'rgba(249,115,22,0.3)',
-      badge: t.lang === 'EN' ? 'FILM STUDIO' : 'STUDIO FILMÓW',
-    },
   ];
 
   const currentIdx = activeApp ? apps.findIndex(a => a.id === activeApp) : -1;
@@ -784,7 +802,6 @@ const AplikacjeView = ({ t, user, onLoginRequest, onCreatorChange }) => {
         {activeApp === 'avatar-builder' && <AvatarBuilderView t={t} user={user} onLoginRequest={onLoginRequest} />}
         {activeApp === 'ad-builder' && <ProductAdBuilderView t={t} user={user} onLoginRequest={onLoginRequest} />}
         {activeApp === 'lifestyle-builder' && <LifestyleBuilderView t={t} user={user} onLoginRequest={onLoginRequest} />}
-        {activeApp === 'film-builder' && <FilmBuilderView t={t} user={user} onLoginRequest={onLoginRequest} />}
 
         {/* BACK BUTTON — fixed top left, always visible */}
         <div className="fixed top-20 left-4 z-50">
@@ -1222,7 +1239,6 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
   const [isStarter, setIsStarter] = useState(false);
   const [loadingTokens, setLoadingTokens] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [creatorToken, setCreatorToken] = useState(1);
 
   useEffect(() => {
     if (isLoggedIn && user?.uid) {
@@ -1230,7 +1246,6 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
       getTokenData(db, user.uid).then(({ tokens, isPro, isStarter }) => {
         setTokens(tokens); setIsPro(isPro); setIsStarter(isStarter); setLoadingTokens(false);
       }).catch(() => setLoadingTokens(false));
-      getCreatorTokens(db, user.uid, 'avatar').then(t => setCreatorToken(t));
     } else { setTokens(null); setIsPro(false); setIsStarter(false); }
   }, [isLoggedIn, user?.uid]);
 
@@ -1257,7 +1272,6 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
 
   // Wspolne ustawienia
   const [pose, setPose] = useState('confident standing pose');
-  const [specialEffect, setSpecialEffect] = useState('');
   const [bgSelect, setBgSelect] = useState('professional studio, white background');
   const [photoStyle, setPhotoStyle] = useState('hyperrealistic photography, DSLR, 8K resolution, sharp focus, real skin texture');
 
@@ -1311,7 +1325,7 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
 
   const generatePrompt = async () => {
     if (!canGenerate) return;
-    const ok = await useTokenForCreator(db, user.uid, 'avatar');
+    const ok = await useToken(db, user.uid);
     if (!ok) return;
     setTokens(prev => (prev !== null ? prev - 1 : null));
 
@@ -1327,7 +1341,6 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
       subjectLine,
       pose,
       bgSelect,
-      specialEffect || null,
       photoStyle,
       'masterpiece, high-end fashion photography, ultra-detailed, sharp focus, cinematic lighting',
     ].filter(Boolean).join(', ');
@@ -1394,7 +1407,7 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
               <label className={labelClass}>{t.lang==='EN'?'Background':'Tlo'}</label>
               <div className="relative">
                 <select value={bgSelect} onChange={e => setBgSelect(e.target.value)} className={inputClass}>
-                  {[['professional studio, white background','Studio biale'],['dark studio, black background','Studio czarne'],['luxurious mansion interior, marble floors','Rezydencja'],['modern bedroom, elegant interior, soft lighting','Sypialnia'],['tropical beach, golden sand, ocean waves','Plaża'],['Venice canal at night, romantic lights','Wenecja'],['Paris street at night, Eiffel Tower','Paryż'],['Tokyo street, neon lights at night','Tokio neon'],['forest, natural light, bokeh','Las'],['modern city rooftop, skyline','Dach']].map(([v,l]) => <option key={v} value={v}>{l}</option>)}
+                  {[['professional studio, white background','Studio biale'],['dark studio, black background','Studio czarne'],['luxurious mansion interior, marble floors','Rezydencja'],['modern bedroom, elegant interior, soft lighting','Sypialnia'],['tropical beach, golden sand, ocean waves','Plaz'],['Venice canal at night, romantic lights','Wenecja'],['Paris street at night, Eiffel Tower','Paryz'],['Tokyo street, neon lights at night','Tokio neon'],['forest, natural light, bokeh','Las'],['modern city rooftop, skyline','Dach']].map(([v,l]) => <option key={v} value={v}>{l}</option>)}
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/>
               </div>
@@ -1429,10 +1442,10 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
           ) : !canGenerate ? (
             <div className="text-center">
               <p className="text-slate-500 text-sm mb-3">{t.lang==='EN' ? 'No tokens left.' : 'Brak tokenow. Przejdz na plan Starter.'}</p>
-              <a href={`https://buy.stripe.com/plink_1TJfC4CEjxjarOHxGwGnaCuE?client_reference_id=${user?.uid || ''}&prefilled_email=${encodeURIComponent(user?.email || '')}`}
+              <a href={`https://buy.stripe.com/14A28qcGJ56fdfq5rQ8bS05?client_reference_id=${user?.uid || ''}&prefilled_email=${encodeURIComponent(user?.email || '')}`}
                 target="_blank" rel="noopener noreferrer"
                 className="inline-block px-10 py-4 bg-amber-500 hover:bg-amber-400 text-black font-black uppercase tracking-widest text-sm rounded-2xl transition-all shadow-lg shadow-amber-500/20">
-                {t.lang==='EN' ? 'Get Starter — 89 PLN/mo' : 'Kup Starter — 89 PLN/mies'}
+                {t.lang==='EN' ? 'Get Starter — 30 PLN/mo' : 'Kup Starter — 30 PLN/mies'}
               </a>
             </div>
           ) : (
@@ -1483,11 +1496,6 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
   // --- Stan kreatora ---
   const [productName, setProductName] = useState('');
   const [generator, setGenerator] = useState('kling');
-  const [adMode, setAdMode] = useState('prompt');
-  const [effectEnvironment, setEffectEnvironment] = useState('');
-  const [effectFalling, setEffectFalling] = useState([]);
-  const [effectColors, setEffectColors] = useState(['golden']);
-  const [effectIntensity, setEffectIntensity] = useState(50);
   const [scene, setScene] = useState('levitation');
   const [effect, setEffect] = useState('water_splash');
   const [lighting, setLighting] = useState('golden_hour');
@@ -1697,73 +1705,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
 
   const prompt = generatePrompt();
 
-  // Prompt efektów dla trybu Image-to-Video
-  const ENVIRONMENTS = {
-    '': '',
-    water: 'product submerged in crystal clear water, light caustics, water surface reflections',
-    sand: 'product placed on desert sand, warm sandy ground, soft shadows',
-    black_studio: 'pure black studio background, dramatic directional light',
-    white_studio: 'clean white studio background, soft even lighting',
-    forest: 'lush green forest floor, dappled natural light, bokeh background',
-    rain: 'product in rain, wet surface, rain drops falling around',
-    snow: 'product in snow, snowflakes falling, winter atmosphere',
-    marble: 'product on luxury marble surface, reflective floor',
-    concrete: 'product on raw concrete, urban industrial setting',
-  };
-
-  const FALLING_EFFECTS = {
-    powder: 'powder explosion bursting around',
-    rain_drops: 'rain of particles falling on',
-    liquid_pour: 'liquid being poured over',
-    sparks: 'sparks and embers flying around',
-    petals: 'petals falling gently on',
-    glitter: 'glitter and sparkles raining on',
-    smoke: 'smoke swirling around',
-    liquid_gold_pour: 'molten liquid gold being poured over',
-  };
-
-  const COLORS = {
-    golden: 'golden, warm gold',
-    silver: 'silver, metallic silver',
-    pink: 'soft pink, rose',
-    red: 'deep red, crimson',
-    green: 'vibrant green, emerald',
-    blue: 'electric blue, cobalt',
-    purple: 'deep purple, violet',
-    rainbow: 'rainbow, multi-color, full spectrum',
-    white: 'pure white, pearl',
-    black: 'dark black, obsidian',
-    neon_green: 'neon green, fluorescent',
-    orange: 'vivid orange, amber',
-  };
-
-  const toggleColor = (val) => {
-    setEffectColors(prev => prev.includes(val) ? prev.filter(c => c !== val) : [...prev, val]);
-  };
-
-  const toggleFalling = (val) => {
-    setEffectFalling(prev => prev.includes(val) ? prev.filter(e => e !== val) : [...prev, val]);
-  };
-
-  const generateEffectPrompt = () => {
-    const hasSomething = effectEnvironment || effectFalling.length > 0;
-    if (!hasSomething) return t.lang === 'EN' ? 'Select environment or falling effect above.' : 'Wybierz otoczenie lub efekt powyżej.';
-    const intensity = effectIntensity < 33 ? 'subtle, delicate' : effectIntensity < 66 ? 'moderate, balanced' : 'intense, dramatic, over the top';
-    const colorDesc = effectColors.length > 0 ? effectColors.map(c => COLORS[c] || c).join(' and ') : 'golden';
-    const envPart = effectEnvironment ? ENVIRONMENTS[effectEnvironment] : '';
-    const fallingParts = effectFalling.map(f => `${colorDesc} ${FALLING_EFFECTS[f]} the product`).join(', ');
-    const combined = [envPart, fallingParts].filter(Boolean).join(', ');
-    return `Image to video. Detect the main product from the reference image and keep it exactly unchanged. Setting: ${combined}. Intensity: ${intensity}. ${speed.replace('_',' ')}, ${GENERATORS.find(g=>g.value===generator)?.label || 'Kling AI'} optimized. Product must remain identical to reference — only add effects around it.`;
-  };
-
   const handleCopy = async () => {
-    if (adMode === 'effect') {
-      if (!isLoggedIn) { onLoginRequest(); return; }
-      await navigator.clipboard.writeText(generateEffectPrompt());
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-      return;
-    }
     if (!productName.trim() || isProductBlocked(productName) || !canGenerate) return;
     await navigator.clipboard.writeText(prompt);
     setCopied(true);
@@ -1795,151 +1737,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
           </p>
         </div>
 
-        {/* PRZEŁĄCZNIK TRYBU */}
-        <div className="flex gap-3 mb-6 justify-center">
-          {[
-            ['prompt', '📝', t.lang==='EN'?'Describe product':'Opisz produkt'],
-            ['effect', '✨', t.lang==='EN'?'Effect on your photo':'Efekt na Twoje zdjęcie'],
-          ].map(([mode, icon, lbl]) => (
-            <button key={mode} onClick={() => setAdMode(mode)}
-              className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all border ${adMode===mode ? 'bg-amber-500 border-amber-500 text-black' : 'border-black/10 dark:border-[#222] text-slate-500 hover:border-amber-500/50'}`}>
-              {icon} {lbl}
-            </button>
-          ))}
-        </div>
-
-        {/* TRYB EFEKTÓW */}
-        {adMode === 'effect' && (
-          <div className="max-w-2xl mx-auto mb-6">
-            <div className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4 mb-4 text-center">
-              <p className="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-1">💡 {t.lang==='EN'?'How to use':'Jak używać'}</p>
-              <p className="text-xs text-slate-500">{t.lang==='EN'?'Choose effect → copy prompt → go to Kling/Runway → upload YOUR product photo → paste prompt → generate!':'Wybierz efekt → skopiuj prompt → idź do Kling/Runway → wgraj SWOJE zdjęcie produktu → wklej prompt → generuj!'}</p>
-            </div>
-
-            <div className="bg-white dark:bg-[#0a0a0a] border border-black/10 dark:border-[#1a1a1a] rounded-2xl p-5 mb-4">
-              {/* SEKCJA 1 — Otoczenie */}
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-500 mb-3">🌍 {t.lang==='EN'?'Environment (optional)':'Otoczenie (opcjonalne)'}</p>
-              <div className="grid grid-cols-2 gap-2 mb-5">
-                {[
-                  ['','⬜',t.lang==='EN'?'No environment':'Bez otoczenia'],
-                  ['water','🌊',t.lang==='EN'?'In water':'W wodzie'],
-                  ['sand','🏜️',t.lang==='EN'?'On sand':'Na piasku'],
-                  ['black_studio','⬛',t.lang==='EN'?'Black studio':'Czarne studio'],
-                  ['white_studio','⬜',t.lang==='EN'?'White studio':'Białe studio'],
-                  ['forest','🌿',t.lang==='EN'?'In forest':'W lesie'],
-                  ['rain','🌧️',t.lang==='EN'?'In rain':'W deszczu'],
-                  ['snow','❄️',t.lang==='EN'?'In snow':'W śniegu'],
-                  ['marble','🏛️',t.lang==='EN'?'Marble floor':'Marmurowa podłoga'],
-                  ['concrete','🏚️',t.lang==='EN'?'Concrete':'Beton'],
-                ].map(([val,icon,lbl]) => (
-                  <button key={val} onClick={() => setEffectEnvironment(val)}
-                    className={`py-2 px-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all border flex items-center gap-2 ${effectEnvironment===val ? 'bg-amber-500 border-amber-500 text-black' : 'bg-slate-100 dark:bg-[#111] border-black/10 dark:border-[#222] text-slate-500 hover:border-amber-500/50'}`}>
-                    {icon} {lbl}
-                  </button>
-                ))}
-              </div>
-
-              {/* SEKCJA 2 — Efekt który spada (multi-select) */}
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-500">💫 {t.lang==='EN'?'Falling Effect (multi-select)':'Efekt który spada (można kilka)'}</p>
-                {effectFalling.length > 0 && <button onClick={() => setEffectFalling([])} className="text-[9px] text-slate-400 hover:text-red-400 uppercase tracking-widest">✕ {t.lang==='EN'?'Clear':'Wyczyść'}</button>}
-              </div>
-              <div className="grid grid-cols-2 gap-2 mb-5">
-                {[
-                  ['powder','💥',t.lang==='EN'?'Powder explosion':'Wybuch prochu'],
-                  ['liquid_gold_pour','🥇',t.lang==='EN'?'Liquid pour':'Ciekłe polewanie'],
-                  ['rain_drops','🌧️',t.lang==='EN'?'Rain of particles':'Deszcz cząsteczek'],
-                  ['sparks','✨',t.lang==='EN'?'Sparks & embers':'Iskry i żar'],
-                  ['petals','🌸',t.lang==='EN'?'Petals':'Płatki'],
-                  ['glitter','⭐',t.lang==='EN'?'Glitter rain':'Deszcz brokatu'],
-                  ['smoke','🌫️',t.lang==='EN'?'Smoke swirl':'Kłęby dymu'],
-                ].map(([val,icon,lbl]) => (
-                  <button key={val} onClick={() => toggleFalling(val)}
-                    className={`py-2 px-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all border flex items-center gap-2 ${effectFalling.includes(val) ? 'bg-amber-500 border-amber-500 text-black' : 'bg-slate-100 dark:bg-[#111] border-black/10 dark:border-[#222] text-slate-500 hover:border-amber-500/50'}`}>
-                    {effectFalling.includes(val) ? '✓' : icon} {lbl}
-                  </button>
-                ))}
-              </div>
-
-              {/* SEKCJA 3 — Kolor efektu */}
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-500">🎨 {t.lang==='EN'?'Effect Colors (mix!)':'Kolory Efektu (mieszaj!)'}</p>
-                {effectColors.length > 1 && <span className="text-[9px] text-amber-400 font-black">{effectColors.length} {t.lang==='EN'?'colors mixed':'kolory mieszane'}</span>}
-              </div>
-              <div className="grid grid-cols-3 gap-2 mb-5">
-                {[
-                  ['golden','🟡',t.lang==='EN'?'Golden':'Złoty'],
-                  ['silver','⚪',t.lang==='EN'?'Silver':'Srebrny'],
-                  ['pink','🩷',t.lang==='EN'?'Pink':'Różowy'],
-                  ['red','🔴',t.lang==='EN'?'Red':'Czerwony'],
-                  ['green','💚',t.lang==='EN'?'Green':'Zielony'],
-                  ['blue','🔵',t.lang==='EN'?'Blue':'Niebieski'],
-                  ['purple','💜',t.lang==='EN'?'Purple':'Fioletowy'],
-                  ['rainbow','🌈',t.lang==='EN'?'Rainbow':'Tęczowy'],
-                  ['white','🤍',t.lang==='EN'?'White':'Biały'],
-                  ['black','🖤',t.lang==='EN'?'Black':'Czarny'],
-                  ['neon_green','🟢',t.lang==='EN'?'Neon green':'Neonowy zielony'],
-                  ['orange','🟠',t.lang==='EN'?'Orange':'Pomarańczowy'],
-                ].map(([val,icon,lbl]) => (
-                  <button key={val} onClick={() => toggleColor(val)}
-                    className={`py-2 px-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all border flex items-center gap-1.5 ${effectColors.includes(val) ? 'bg-amber-500 border-amber-500 text-black' : 'bg-slate-100 dark:bg-[#111] border-black/10 dark:border-[#222] text-slate-500 hover:border-amber-500/50'}`}>
-                    {effectColors.includes(val) ? '✓' : icon} {lbl}
-                  </button>
-                ))}
-              </div>
-
-              {/* Suwak intensywności */}
-              <div className="mb-4">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-amber-500">🎚️ {t.lang==='EN'?'Intensity':'Intensywność'}</p>
-                  <span className="text-xs font-black text-amber-400">{effectIntensity < 33 ? (t.lang==='EN'?'Subtle':'Delikatny') : effectIntensity < 66 ? (t.lang==='EN'?'Balanced':'Zbalansowany') : (t.lang==='EN'?'Dramatic':'Dramatyczny')}</span>
-                </div>
-                <input type="range" min="0" max="100" value={effectIntensity} onChange={e => setEffectIntensity(Number(e.target.value))}
-                  className="w-full h-2 rounded-full appearance-none cursor-pointer"
-                  style={{background: `linear-gradient(to right, #f59e0b ${effectIntensity}%, #374151 ${effectIntensity}%)`}}/>
-                <div className="flex justify-between text-[9px] text-slate-500 mt-1">
-                  <span>{t.lang==='EN'?'Subtle':'Delikatny'}</span>
-                  <span>{t.lang==='EN'?'Dramatic':'Dramatyczny'}</span>
-                </div>
-              </div>
-
-              {/* Generator */}
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-500 mb-3">🎬 Generator</p>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
-                {GENERATORS.map(g => (
-                  <button key={g.value} onClick={() => setGenerator(g.value)}
-                    className={`py-2 px-2 rounded-xl text-xs font-bold uppercase tracking-wider border transition-all ${generator===g.value ? 'bg-amber-500 border-amber-500 text-black' : 'bg-slate-100 dark:bg-[#111] border-black/10 dark:border-[#222] text-slate-500 hover:border-amber-500/50'}`}>
-                    {g.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Podgląd promptu */}
-              <div className="bg-black/5 dark:bg-white/5 rounded-xl p-3 mb-4">
-                <p className="text-[9px] font-mono text-slate-500 leading-relaxed">{generateEffectPrompt()}</p>
-              </div>
-
-              {/* Przycisk kopiuj */}
-              {!isLoggedIn ? (
-                <button onClick={onLoginRequest} className="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-black text-xs uppercase tracking-widest transition-all">
-                  {t.lang==='EN'?'Log in to copy':'Zaloguj się aby skopiować'}
-                </button>
-              ) : effectFalling.length === 0 ? (
-                <div className="w-full py-3 rounded-xl font-black text-xs uppercase tracking-widest text-center bg-slate-200 dark:bg-[#222] text-slate-400 cursor-not-allowed">
-                  {t.lang==='EN'?'Select at least 1 effect':'Wybierz co najmniej 1 efekt'}
-                </div>
-              ) : (
-                <button onClick={handleCopy}
-                  className={`w-full py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${copied ? 'bg-green-500 text-white' : 'bg-amber-500 hover:bg-amber-400 text-black'}`}>
-                  {copied ? '✓ Skopiowano!' : (t.lang==='EN'?'📋 Copy Effect Prompt':'📋 Kopiuj Prompt Efektu')}
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* TRYB NORMALNY */}
-        {adMode === 'prompt' && <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
           {/* LEFT — Controls */}
           <div className="lg:col-span-2 space-y-4">
@@ -1989,20 +1787,13 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
               <p className={headerClass}>&#10024; {t.lang==='EN' ? '3. Effects & Lighting' : '3. Efekty i oswietlenie'}</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className={labelClass}>✨ {t.lang==='EN' ? 'Special Effect' : 'Efekt specjalny'}</label>
-                  <select value={specialEffect} onChange={e => setSpecialEffect(e.target.value)} className={inputClass}>
-                    <option value="">— {t.lang==='EN' ? 'No effect' : 'Bez efektu'} —</option>
-                    <option value="subtle glowing cracks on clothing, smoldering embers, wisps of smoke around body, not on fire but smoldering">🔥 Żarzenie — pęknięcia, żar, dym</option>
-                    <option value="frost and ice crystals on clothing, cold air vapor, snowflakes around body, icy shards floating">❄️ Mróz — lód, szron, para</option>
-                    <option value="electric sparks and lightning bolts crackling around body, electric aura, blue white energy">⚡ Elektryczność — iskry, ładunki</option>
-                    <option value="golden cracks glowing on skin and clothing, kintsugi effect, golden light from fractures">✨ Złote pęknięcia — kintsugi</option>
-                    <option value="dark smoke and shadow tendrils swirling around body, dark aura, mysterious shadow energy">🌑 Mroczna aura — czarny dym</option>
-                    <option value="delicate flower petals and leaves growing from clothing, nature magic, botanical aura, soft glowing vines">🌿 Natura — kwiaty, liście</option>
-                    <option value="water droplets and mist around body, wet fabric clinging, rain particles floating">🌊 Woda — krople, mgła</option>
-                    <option value="iridescent holographic shimmer on skin, glitch effect, digital artifacts, cyberpunk glow, neon data streams">💻 Holo / Glitch — cyfrowy blask</option>
-                    <option value="pink cherry blossom petals falling around, sakura flowers floating, soft romantic spring">🌸 Sakura — płatki wiśni</option>
-                    <option value="galaxy and stardust swirling around body, cosmic nebula colors, floating star particles">🌌 Kosmos — gwiazdy, mgławica</option>
-                  </select>
+                  <label className={labelClass}>{t.lang==='EN' ? 'Special Effect' : 'Efekt specjalny'}</label>
+                  <div className="relative">
+                    <select value={effect} onChange={e => setEffect(e.target.value)} className={inputClass}>
+                      {EFFECTS.map(e => <option key={e.value} value={e.value}>{e.label}</option>)}
+                    </select>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/>
+                  </div>
                 </div>
                 <div>
                   <label className={labelClass}>{t.lang==='EN' ? 'Lighting' : 'Oswietlenie'}</label>
@@ -2130,7 +1921,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
             </div>
           </div>
 
-        </div>}
+        </div>
       </div>
     </div>
   );
@@ -2212,85 +2003,15 @@ const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
   );
 
   const OPTS_MALE = {
-    activity: [
-      ['standing confidently', t.lang==='EN'?'Standing confidently':'Stoi pewnie'],
-      ['drinking whiskey', t.lang==='EN'?'Drinking whiskey':'Pije whiskey'],
-      ['working on laptop', t.lang==='EN'?'Working on laptop':'Pracuje na laptopie'],
-      ['walking slowly', t.lang==='EN'?'Walking':'Idzie powoli'],
-      ['steering yacht', t.lang==='EN'?'Steering yacht':'Steruje jachtem'],
-      ['making a phone call', t.lang==='EN'?'On the phone':'Rozmawia przez telefon'],
-      ['watching the horizon', t.lang==='EN'?'Watching horizon':'Patrzy w horyzont'],
-      ['celebrating with champagne', t.lang==='EN'?'Celebrating':'Świętuje szampanem'],
-      ['sitting relaxed', t.lang==='EN'?'Relaxing':'Siedzi zrelaksowany'],
-    ],
-    outfit: [
-      ['luxury suit', t.lang==='EN'?'Luxury suit':'Luksusowy garnitur'],
-      ['white linen shirt, open collar', t.lang==='EN'?'Linen shirt':'Lniana koszula'],
-      ['summer casual outfit', t.lang==='EN'?'Summer casual':'Letni casual'],
-      ['elegant all-black outfit', t.lang==='EN'?'All black':'Elegancki czarny'],
-      ['designer streetwear', t.lang==='EN'?'Streetwear':'Streetwear premium'],
-      ['black tuxedo', t.lang==='EN'?'Tuxedo':'Smoking'],
-      ['business casual outfit', t.lang==='EN'?'Business casual':'Biznesowy casual'],
-      ['swim shorts, beach style', t.lang==='EN'?'Beach shorts':'Szorty plażowe'],
-    ],
+    activity: [['standing confidently','Stoi pewnie'],['drinking whiskey','Pije whiskey'],['working on laptop','Pracuje na laptopie'],['walking slowly','Idzie powoli'],['steering yacht','Steruje jachtem'],['making a phone call','Rozmawia przez telefon'],['watching the horizon','Patrzy w horyzont'],['celebrating with champagne','Świętuje szampanem']],
+    outfit: [['luxury suit','Luksusowy garnitur'],['white linen shirt','Biała lniana koszula'],['summer casual outfit','Casual letni'],['elegant black outfit','Elegancki czarny'],['designer streetwear','Designer streetwear'],['tuxedo','Tuxedo'],['business casual','Business casual'],['swimwear, beach shorts','Szorty kąpielowe']],
   };
   const OPTS_FEMALE = {
-    activity: [
-      ['relaxing in sun', t.lang==='EN'?'Relaxing in sun':'Relaksuje się'],
-      ['standing confidently', t.lang==='EN'?'Standing confidently':'Stoi pewnie'],
-      ['walking slowly', t.lang==='EN'?'Walking':'Idzie powoli'],
-      ['celebrating with champagne', t.lang==='EN'?'Celebrating':'Świętuje szampanem'],
-      ['watching the horizon', t.lang==='EN'?'Watching horizon':'Patrzy w horyzont'],
-      ['lying on deck, sunbathing', t.lang==='EN'?'Sunbathing':'Opala się na pokładzie'],
-      ['dancing elegantly', t.lang==='EN'?'Dancing':'Tańczy elegancko'],
-      ['drinking cocktail', t.lang==='EN'?'Drinking cocktail':'Pije koktajl'],
-      ['posing for camera', t.lang==='EN'?'Posing':'Pozuje do zdjęcia'],
-    ],
-    outfit: [
-      ['minimal triangle bikini, beach fashion', t.lang==='EN'?'Bikini':'Skąpe bikini'],
-      ['metallic shiny mini dress, elegant fashion', t.lang==='EN'?'Shiny mini':'Błyszcząca mini'],
-      ['luxury designer suit', t.lang==='EN'?'Luxury suit':'Luksusowy garnitur'],
-      ['elegant black evening dress', t.lang==='EN'?'Black evening dress':'Czarna wieczorowa'],
-      ['summer white linen dress', t.lang==='EN'?'White linen dress':'Biała lniana sukienka'],
-      ['one piece swimsuit, elegant', t.lang==='EN'?'Swimsuit':'Kostium kąpielowy'],
-      ['chic casual summer outfit', t.lang==='EN'?'Summer chic':'Letni chic'],
-      ['business casual elegant', t.lang==='EN'?'Business casual':'Biznesowy elegancki'],
-    ],
+    activity: [['relaxing in sun','Relaksuje się'],['standing confidently','Stoi pewnie'],['walking slowly','Idzie powoli'],['celebrating with champagne','Świętuje szampanem'],['watching the horizon','Patrzy w horyzont'],['lying on deck, sunbathing','Opala się'],['dancing elegantly','Tańczy']],
+    outfit: [['minimal triangle bikini, beach fashion','Skąpe bikini'],['metallic shiny mini dress, elegant fashion','Błyszcząca mini'],['luxury suit','Luksusowy garnitur'],['elegant black dress','Czarna sukienka'],['summer casual outfit','Casual letni'],['swimwear','Strój kąpielowy'],['white linen dress','Biała sukienka'],['business casual','Business casual']],
   };
-  const STATUS_OPTS_M = [
-    ['young millionaire', t.lang==='EN'?'Young Millionaire':'Młody milioner'],
-    ['Hollywood A-list celebrity', t.lang==='EN'?'Hollywood Celebrity':'Gwiazdor Hollywood'],
-    ['global influencer', t.lang==='EN'?'Global Influencer':'Globalny influencer'],
-    ['music superstar on tour', t.lang==='EN'?'Music Superstar':'Supergwiazda muzyki'],
-    ['retired champion athlete', t.lang==='EN'?'Champion Athlete':'Mistrz sportu'],
-    ['mafia boss', t.lang==='EN'?'Mafia Boss':'Szef mafii'],
-    ['tech entrepreneur', t.lang==='EN'?'Tech Entrepreneur':'Szef korpo'],
-    ['travel icon', t.lang==='EN'?'Travel Icon':'Ikona podróży'],
-    ['CEO in vacation mode', t.lang==='EN'?'CEO on Vacation':'Szef na urlopie'],
-    ['mysterious stranger', t.lang==='EN'?'Mysterious Stranger':'Tajemniczy nieznajomy'],
-  ];
-  const STATUS_OPTS_F = [
-    ['young millionaire', t.lang==='EN'?'Young Millionaire':'Młoda milionerka'],
-    ['Hollywood A-list celebrity', t.lang==='EN'?'Hollywood Celebrity':'Gwiazda Hollywood'],
-    ['global influencer', t.lang==='EN'?'Global Influencer':'Globalna influencerka'],
-    ['music superstar on tour', t.lang==='EN'?'Music Superstar':'Supergwiazda muzyki'],
-    ['retired champion athlete', t.lang==='EN'?'Champion Athlete':'Mistrzyni sportu'],
-    ['mafia boss', t.lang==='EN'?'Mafia Boss':'Szefowa mafii'],
-    ['tech entrepreneur', t.lang==='EN'?'Tech Entrepreneur':'Szefowa korpo'],
-    ['travel icon', t.lang==='EN'?'Travel Icon':'Ikona podróży'],
-    ['CEO in vacation mode', t.lang==='EN'?'CEO on Vacation':'Szefowa na urlopie'],
-    ['mysterious stranger', t.lang==='EN'?'Mysterious Stranger':'Tajemnicza nieznajoma'],
-  ];
-  const MOOD_OPTS = [
-    ['luxury calm', t.lang==='EN'?'Luxury Calm':'Luksusowy spokój'],
-    ['dominant power', t.lang==='EN'?'Dominant Power':'Dominująca siła'],
-    ['freedom', t.lang==='EN'?'Freedom':'Wolność'],
-    ['mysterious vibe', t.lang==='EN'?'Mysterious Vibe':'Tajemnicza aura'],
-    ['romantic atmosphere', t.lang==='EN'?'Romantic':'Romantyczna atmosfera'],
-    ['winner energy', t.lang==='EN'?'Winner Energy':'Energia zwycięzcy'],
-    ['untouchable confidence', t.lang==='EN'?'Confidence':'Niezachwiana pewność'],
-    ['melancholic sophistication', t.lang==='EN'?'Melancholic':'Melancholijna elegancja'],
-  ];
+  const STATUS_OPTS = [['young millionaire','Młody milioner'],['Hollywood A-list celebrity','Gwiazda Hollywood'],['global influencer','Global influencer'],['music superstar on tour','Supergwiazda muzyki'],['retired champion athlete','Mistrz sportu'],['mafia boss','Mafia boss'],['tech entrepreneur','Tech entrepreneur'],['travel icon','Travel icon'],['CEO in vacation mode','CEO na wakacjach'],['mysterious stranger','Tajemniczy nieznajomy']];
+  const MOOD_OPTS = [['luxury calm','Luksusowy spokój'],['dominant power','Dominująca siła'],['freedom','Wolność'],['mysterious vibe','Tajemnicza aura'],['romantic atmosphere','Romantyczna atmosfera'],['winner energy','Energia zwycięzcy'],['untouchable confidence','Niezachwiana pewność'],['melancholic sophistication','Melancholijna elegancja']];
 
   const buildChar = (gender, status, activity, outfit, mood) => {
     const g = gender === 'male' ? 'man' : 'woman';
@@ -2422,7 +2143,7 @@ const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
                 ))}
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <Sel label="Status" value={status1} set={setStatus1} opts={gender1==='male' ? STATUS_OPTS_M : STATUS_OPTS_F}/>
+                <Sel label="Status" value={status1} set={setStatus1} opts={STATUS_OPTS}/>
                 <Sel label={t.lang==='EN'?'Activity':'Aktywność'} value={activity1} set={setActivity1} opts={gender1==='male' ? OPTS_MALE.activity : OPTS_FEMALE.activity}/>
                 <Sel label={t.lang==='EN'?'Outfit':'Strój'} value={outfit1} set={setOutfit1} opts={gender1==='male' ? OPTS_MALE.outfit : OPTS_FEMALE.outfit}/>
                 <Sel label={t.lang==='EN'?'Mood':'Nastrój'} value={mood1} set={setMood1} opts={MOOD_OPTS}/>
@@ -2443,7 +2164,7 @@ const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
                   ))}
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <Sel label="Status" value={status2} set={setStatus2} opts={gender2==='male' ? STATUS_OPTS_M : STATUS_OPTS_F}/>
+                  <Sel label="Status" value={status2} set={setStatus2} opts={STATUS_OPTS}/>
                   <Sel label={t.lang==='EN'?'Activity':'Aktywność'} value={activity2} set={setActivity2} opts={gender2==='male' ? OPTS_MALE.activity : OPTS_FEMALE.activity}/>
                   <Sel label={t.lang==='EN'?'Outfit':'Strój'} value={outfit2} set={setOutfit2} opts={gender2==='male' ? OPTS_MALE.outfit : OPTS_FEMALE.outfit}/>
                   <Sel label={t.lang==='EN'?'Mood':'Nastrój'} value={mood2} set={setMood2} opts={MOOD_OPTS}/>
@@ -2456,10 +2177,10 @@ const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
             <p className={headerClass}><span className="text-base">🎥</span> {t.lang==='EN' ? 'Camera' : 'Kamera'}</p>
             <div className="grid grid-cols-2 gap-3">
               <Sel label={t.lang==='EN'?'Camera Shot':'Ujęcie'} value={camera} set={setCamera} opts={[
-                ['cinematic wide shot',t.lang==='EN'?'Cinematic wide':'Szerokie kinowe'],['close portrait',t.lang==='EN'?'Close portrait':'Portret z bliska'],
-                ['low angle power shot',t.lang==='EN'?'Low angle power':'Ujęcie z dołu'],['aerial drone view',t.lang==='EN'?'Aerial drone':'Dron z góry'],
-                ['over shoulder shot',t.lang==='EN'?'Over shoulder':'Przez ramię'],['dutch angle',t.lang==='EN'?'Dutch angle':'Skośne ujęcie'],
-                ['tracking shot',t.lang==='EN'?'Tracking shot':'Śledzące'],['extreme close up face',t.lang==='EN'?'Extreme close up':'Zbliżenie twarzy'],
+                ['cinematic wide shot','Cinematic wide'],['close portrait','Close portrait'],
+                ['low angle power shot','Low angle power'],['aerial drone view','Aerial drone'],
+                ['over shoulder shot','Over shoulder'],['dutch angle','Dutch angle'],
+                ['tracking shot','Tracking shot'],['extreme close up face','Extreme close up'],
               ]}/>
             </div>
           </div>
@@ -2472,7 +2193,7 @@ const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
                 {buildWeek().split('\n').map((day, i) => (
                   <div key={i} className="flex gap-3 items-start">
                     <span className="text-amber-500 font-black text-xs w-12 flex-shrink-0 pt-0.5">Dzień {i+1}</span>
-                    <span className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{day.replace("Day " + (i+1) + ": ", "")}</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{day.replace(`Day ${i+1}: `,'')}</span>
                   </div>
                 ))}
               </div>
@@ -2488,10 +2209,10 @@ const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
             ) : !canGenerate ? (
               <div className="text-center">
                 <p className="text-slate-500 text-sm mb-3">{t.lang==='EN' ? 'No tokens left.' : 'Brak tokenów. Przejdź na plan Starter.'}</p>
-                <a href={`https://buy.stripe.com/plink_1TJfC4CEjxjarOHxGwGnaCuE?client_reference_id=${user?.uid || ''}&prefilled_email=${encodeURIComponent(user?.email || '')}`}
+                <a href={`https://buy.stripe.com/14A28qcGJ56fdfq5rQ8bS05?client_reference_id=${user?.uid || ''}&prefilled_email=${encodeURIComponent(user?.email || '')}`}
                   target="_blank" rel="noopener noreferrer"
                   className="inline-block px-10 py-4 bg-amber-500 hover:bg-amber-400 text-black font-black uppercase tracking-widest text-sm rounded-2xl transition-all shadow-lg shadow-amber-500/20">
-                  {t.lang==='EN' ? 'Get Starter — 89 PLN/mo' : 'Kup Starter — 89 PLN/mies'}
+                  {t.lang==='EN' ? 'Get Starter — 30 PLN/mo' : 'Kup Starter — 30 PLN/mies'}
                 </a>
               </div>
             ) : (
@@ -2513,668 +2234,12 @@ const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
 };
 
 // =========================================================================
-// =========================================================================
-// FILM BUILDER VIEW — Kreator Filmów AI (3 klatki renowacji)
-// =========================================================================
-const FilmBuilderView = ({ t, user, onLoginRequest }) => {
-  const [copied, setCopied] = useState(null);
-  const [loadingFrame, setLoadingFrame] = useState(null);
-  const [aspectRatio, setAspectRatio] = useState('16:9');
-  const [animPrompts, setAnimPrompts] = useState({ anim12: null, anim23: null });
-  const [framePrompts, setFramePrompts] = useState({ f1: null, f2: null, f3: null });
-  const WORKER_URL = 'https://aiflow-film-prompt.47y85nfm6p.workers.dev';
-  const [isPro, setIsPro] = useState(false);
-  const [isStarter, setIsStarter] = useState(false);
-  const [tokens, setTokens] = useState(null);
-  const isLoggedIn = !!user;
-  useEffect(() => {
-    if (user?.uid) {
-      getTokenData(db, user.uid).then(({ tokens, isPro, isStarter }) => {
-        setTokens(tokens); setIsPro(isPro); setIsStarter(isStarter);
-      });
-    }
-  }, [user]);
-  const canGenerate = isPro || isStarter || (tokens !== null && tokens > 0);
-
-  const [category, setCategory] = useState('buildings');
-  const [buildingType, setBuildingType] = useState('single family house');
-  const [archStyle, setArchStyle]       = useState('modern minimalist');
-  const [location, setLocation]         = useState('suburban area');
-  const [timeOfDay, setTimeOfDay]       = useState('golden hour');
-  const [camera, setCamera]             = useState('wide establishing shot');
-  const [generator, setGenerator]       = useState('VEO 3');
-
-  const sectionClass = 'bg-white dark:bg-[#0a0a0a] border border-black/10 dark:border-[#1a1a1a] rounded-2xl p-5 mb-4';
-  const headerClass  = 'text-[10px] font-bold uppercase tracking-[0.2em] text-amber-500 mb-4 flex items-center gap-2';
-  const labelClass   = 'block text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1.5';
-  const inputClass   = 'w-full bg-slate-100 dark:bg-[#111] border border-black/10 dark:border-[#222] rounded-xl px-3 py-2.5 text-sm text-black dark:text-white focus:outline-none focus:border-amber-500 transition-colors appearance-none pr-8';
-
-  const Sel = ({ label, value, set, opts }) => (
-    <div>
-      <label className={labelClass}>{label}</label>
-      <div className="relative">
-        <select value={value} onChange={e => set(e.target.value)} className={inputClass}>
-          {opts.map(([v,l]) => <option key={v} value={v}>{l}</option>)}
-        </select>
-        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none"/>
-      </div>
-    </div>
-  );
-
-  const BASE = `${buildingType}, ${location}, ${timeOfDay} lighting, ${camera}, same angle same composition, photorealistic, 8K, cinematic`;
-
-  const prompts = {
-    1: `Abandoned ruined ${BASE}. Crumbling walls, broken windows, overgrown vegetation, peeling paint, structural decay, neglected facade, weathered materials, dramatic deterioration.`,
-    2: `Same ${BASE}. Mid-renovation construction site, scaffolding covering half the building, workers visible, mix of old decay and new materials, construction machinery, half-demolished walls revealing new structure, transition state between old and new.`,
-    3: `Fully renovated modern ${archStyle} ${BASE}. Brand new facade, fresh materials, landscaped garden, clean lines, new windows, perfect condition, architectural excellence, luxury finish.`,
-  };
-
-  // Generowanie wszystkich 3 klatek naraz przez Gemini
-  const handleGenerateFrames = async () => {
-    if (!isLoggedIn) { onLoginRequest(); return; }
-    if (!canGenerate) return;
-    setLoadingFrame('frames');
-    setFramePrompts({ f1: null, f2: null, f3: null });
-    try {
-      const [r1, r2, r3] = await Promise.all([
-        fetch(`${WORKER_URL}/generate-film-prompt`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ buildingType, archStyle, location, timeOfDay, camera, generator, frame: '1', aspectRatio }) }),
-        fetch(`${WORKER_URL}/generate-film-prompt`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ buildingType, archStyle, location, timeOfDay, camera, generator, frame: '2', aspectRatio }) }),
-        fetch(`${WORKER_URL}/generate-film-prompt`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ buildingType, archStyle, location, timeOfDay, camera, generator, frame: '3', aspectRatio }) }),
-      ]);
-      const [d1, d2, d3] = await Promise.all([r1.json(), r2.json(), r3.json()]);
-      if (!isPro && !isStarter) await useTokenForCreator(db, user.uid, 'film');
-      setFramePrompts({ f1: d1.prompt || '', f2: d2.prompt || '', f3: d3.prompt || '' });
-    } catch (err) { console.error('Worker error:', err); }
-    finally { setLoadingFrame(null); }
-  };
-
-  // Kopiowanie klatki
-  const handleCopy = async (frame) => {
-    const key = `f${frame}`;
-    const text = framePrompts[key];
-    if (!text) return;
-    await navigator.clipboard.writeText(text);
-    setCopied(String(frame));
-    setTimeout(() => setCopied(null), 2500);
-  };
-
-  // Generowanie obu promptów animacji przez Gemini naraz
-  const handleGenerateAnims = async () => {
-    if (!isLoggedIn) { onLoginRequest(); return; }
-    if (!canGenerate) return;
-    setLoadingFrame('anims');
-    setAnimPrompts({ anim12: null, anim23: null });
-    try {
-      const [r1, r2] = await Promise.all([
-        fetch(`${WORKER_URL}/generate-film-prompt`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ buildingType, archStyle, location, timeOfDay, camera, generator, frame: 'anim12', aspectRatio }),
-        }),
-        fetch(`${WORKER_URL}/generate-film-prompt`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ buildingType, archStyle, location, timeOfDay, camera, generator, frame: 'anim23', aspectRatio }),
-        }),
-      ]);
-      const [d1, d2] = await Promise.all([r1.json(), r2.json()]);
-      // Zużywamy 1 token za oba prompty
-      if (!isPro && !isStarter) await useTokenForCreator(db, user.uid, 'film');
-      setAnimPrompts({ anim12: d1.prompt || '', anim23: d2.prompt || '' });
-    } catch (err) {
-      console.error('Worker error:', err);
-    } finally {
-      setLoadingFrame(null);
-    }
-  };
-
-  // Kopiowanie wygenerowanego promptu animacji
-  const handleCopyAnim = async (key) => {
-    const text = animPrompts[key];
-    if (!text) return;
-    await navigator.clipboard.writeText(text);
-    setCopied(key);
-    setTimeout(() => setCopied(null), 2500);
-  };
-
-  const FRAME_COLORS = {
-    1: { bg: 'bg-red-500/10 border-red-500/30', btn: 'bg-red-500 hover:bg-red-400', label: 'text-red-400', icon: '🏚️' },
-    2: { bg: 'bg-orange-500/10 border-orange-500/30', btn: 'bg-orange-500 hover:bg-orange-400', label: 'text-orange-400', icon: '🏗️' },
-    3: { bg: 'bg-green-500/10 border-green-500/30', btn: 'bg-green-500 hover:bg-green-400', label: 'text-green-400', icon: '🏡' },
-  };
-
-  const FRAME_LABELS = {
-    1: t.lang === 'EN' ? 'Frame 1 — Ruin' : 'Klatka 1 — Ruina',
-    2: t.lang === 'EN' ? 'Frame 2 — In Progress' : 'Klatka 2 — W trakcie',
-    3: t.lang === 'EN' ? 'Frame 3 — Renovated' : 'Klatka 3 — Po renowacji',
-  };
-
-  const FILM_HINT = t.lang === 'EN'
-    ? 'Generate animation 1→2, then 2→3 and merge into one film.'
-    : 'Generuj animację 1→2, następnie 2→3 i połącz w jeden film.';
-
-  return (
-    <div className="min-h-screen bg-white dark:bg-black font-sans pb-16">
-      <div className="max-w-4xl mx-auto px-4 pt-8">
-
-        {/* Header */}
-        <div className="mb-8 text-center">
-          <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/30 text-orange-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-4">
-            <span className="w-1.5 h-1.5 bg-orange-500 rounded-full animate-pulse"/>
-            {t.lang === 'EN' ? 'AI Film Generator' : 'Generator Filmów AI'}
-          </div>
-          <h1 className="text-3xl md:text-5xl font-black text-black dark:text-white uppercase tracking-tighter mb-2">
-            {t.lang === 'EN' ? 'Film Builder' : 'Kreator Filmów'}<span className="text-amber-500">.</span>
-          </h1>
-          <p className="text-slate-500 text-sm mb-2">
-            {t.lang === 'EN' ? 'Ruin → In progress → Renovated. 3 frames, 2 animations, 1 viral film.' : 'Ruina → W trakcie → Gotowy. 3 klatki, 2 animacje, 1 wiralowy film.'}
-          </p>
-          <p className="text-[10px] text-amber-500/60 uppercase tracking-widest">{FILM_HINT}</p>
-        </div>
-
-        {/* Opcje */}
-        <div className="max-w-3xl mx-auto">
-          <div className={sectionClass}>
-            <p className={headerClass}><span className="text-base">🏗️</span> {t.lang === 'EN' ? 'Object & Location' : 'Obiekt i Lokacja'}</p>
-
-            {/* KATEGORIA */}
-            <div className="flex gap-2 mb-4 flex-wrap">
-              {[
-                ['buildings','🏠', t.lang==='EN'?'Buildings':'Budynki'],
-                ['cars','🚗', t.lang==='EN'?'Cars':'Auta'],
-                ['planes','✈️', t.lang==='EN'?'Planes':'Samoloty'],
-                ['nature','🌿', t.lang==='EN'?'Nature':'Natura'],
-                ['floors','🪵', t.lang==='EN'?'Floors':'Podłogi'],
-                ['underwater','🌊', t.lang==='EN'?'Underwater':'Podwodne'],
-              ].map(([cat,icon,lbl]) => (
-                <button key={cat} onClick={() => { setCategory(cat); setBuildingType(
-                  cat==='buildings' ? 'single family house' :
-                  cat==='cars' ? '1969 Ford Mustang Fastback' :
-                  cat==='planes' ? 'Douglas DC-3 classic propeller airplane' :
-                  cat==='nature' ? 'overgrown japanese garden' :
-                  cat==='floors' ? 'old damaged hardwood floor planks' :
-                  'underwater coral reef'
-                ); setArchStyle(
-                  cat==='cars' ? 'showroom finish' :
-                  cat==='planes' ? 'restored original' :
-                  cat==='nature' ? 'zen garden' :
-                  cat==='floors' ? 'luxury parquet' :
-                  cat==='underwater' ? 'thriving ecosystem' :
-                  'modern minimalist'
-                ); }}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all border ${category===cat ? 'bg-amber-500 border-amber-500 text-black' : 'border-black/10 dark:border-[#222] text-slate-500 hover:border-amber-500/50'}`}>
-                  {icon} {lbl}
-                </button>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              {/* OBIEKTY — dynamicznie per kategoria */}
-              {category === 'buildings' && <Sel label={t.lang === 'EN' ? 'Building Type' : 'Typ budynku'} value={buildingType} set={setBuildingType} opts={[
-                ['single family house', '🏠 ' + (t.lang==='EN'?'Family House':'Dom jednorodzinny')],
-                ['apartment building', '🏢 ' + (t.lang==='EN'?'Apartment Block':'Kamienica')],
-                ['beachfront villa', '🏖️ ' + (t.lang==='EN'?'Beach Villa':'Willa plażowa')],
-                ['industrial warehouse', '🏭 ' + (t.lang==='EN'?'Warehouse':'Magazyn/Fabryka')],
-                ['historic townhouse', '🏛️ ' + (t.lang==='EN'?'Townhouse':'Kamienica historyczna')],
-                ['country farmhouse', '🌾 ' + (t.lang==='EN'?'Farmhouse':'Wiejski dom')],
-                ['abandoned castle ruins', '🏰 ' + (t.lang==='EN'?'Castle Ruins':'Ruiny zamku')],
-                ['old railway station', '🚉 ' + (t.lang==='EN'?'Railway Station':'Stary dworzec')],
-                ['abandoned amusement park', '🎡 ' + (t.lang==='EN'?'Amusement Park':'Wesołe miasteczko')],
-                ['ruined lighthouse on cliff', '🏗️ ' + (t.lang==='EN'?'Lighthouse':'Latarnia morska')],
-              ]}/>}
-              {category === 'cars' && <Sel label={t.lang === 'EN' ? 'Car Model' : 'Model auta'} value={buildingType} set={setBuildingType} opts={[
-                ['1969 Ford Mustang Fastback', '🚗 Ford Mustang 1969'],
-                ['1967 Chevrolet Camaro SS', '🚗 Camaro 1967'],
-                ['1970 Dodge Charger R/T', '🚗 Dodge Charger 1970'],
-                ['1975 Fiat 125p Polski classic car', '🚗 Fiat 125p (Duży Fiat)'],
-                ['1973 Fiat 126p Maluch classic car', '🚗 Maluch (Fiat 126p)'],
-                ['1966 AC Cobra 427 classic roadster', '🚗 AC Cobra 427'],
-                ['1965 Shelby GT350 Mustang', '🚗 Shelby GT350'],
-              ]}/>}
-              {category === 'planes' && <Sel label={t.lang === 'EN' ? 'Aircraft' : 'Samolot'} value={buildingType} set={setBuildingType} opts={[
-                ['Douglas DC-3 classic propeller airplane', '✈️ Douglas DC-3'],
-                ['Supermarine Spitfire WWII fighter plane', '✈️ Spitfire WWII'],
-              ]}/>}
-              {category === 'nature' && <Sel label={t.lang === 'EN' ? 'Nature Object' : 'Obiekt natury'} value={buildingType} set={setBuildingType} opts={[
-                ['overgrown japanese garden', '🌿 ' + (t.lang==='EN'?'Japanese Garden':'Ogród japoński')],
-                ['neglected baroque fountain', '⛲ ' + (t.lang==='EN'?'Baroque Fountain':'Fontanna barokowa')],
-                ['abandoned greenhouse glass house', '🌱 ' + (t.lang==='EN'?'Greenhouse':'Stara szklarnia')],
-                ['dry waterfall rocky landscape', '💧 ' + (t.lang==='EN'?'Waterfall':'Wodospad')],
-                ['old wooden sailing ship', '⛵ ' + (t.lang==='EN'?'Sailing Ship':'Stary żaglowiec')],
-                ['vintage steam locomotive train', '🚂 ' + (t.lang==='EN'?'Steam Locomotive':'Parowóz')],
-              ]}/>}
-              {category === 'floors' && <Sel label={t.lang === 'EN' ? 'Floor Type' : 'Typ podłogi'} value={buildingType} set={setBuildingType} opts={[
-                ['old damaged hardwood floor planks', '🪵 ' + (t.lang==='EN'?'Wooden Floor':'Podłoga drewniana')],
-                ['cracked marble floor tiles', '🏛️ ' + (t.lang==='EN'?'Marble Floor':'Podłoga marmurowa')],
-                ['worn concrete industrial floor', '🏭 ' + (t.lang==='EN'?'Industrial Floor':'Podłoga industrialna')],
-                ['damaged terracotta floor tiles', '🟫 ' + (t.lang==='EN'?'Terracotta Floor':'Podłoga terakota')],
-              ]}/>}
-              {category === 'underwater' && <Sel label={t.lang === 'EN' ? 'Underwater Scene' : 'Scena podwodna'} value={buildingType} set={setBuildingType} opts={[
-                ['underwater coral reef', '🪸 ' + (t.lang==='EN'?'Coral Reef':'Rafa koralowa')],
-                ['sunken shipwreck underwater', '🚢 ' + (t.lang==='EN'?'Sunken Ship':'Zatopiony statek')],
-                ['underwater ancient ruins', '🏛️ ' + (t.lang==='EN'?'Underwater Ruins':'Podwodne ruiny')],
-                ['abandoned swimming pool', '🏊 ' + (t.lang==='EN'?'Old Pool':'Stary basen')],
-                ['old pier over water', '⚓ ' + (t.lang==='EN'?'Old Pier':'Stary pomost')],
-              ]}/>}
-
-              {/* STYL — dynamicznie per kategoria */}
-              {category === 'buildings' && <Sel label={t.lang === 'EN' ? 'Style After' : 'Styl po renowacji'} value={archStyle} set={setArchStyle} opts={[
-                ['modern minimalist', t.lang==='EN'?'Modern Minimalist':'Nowoczesny minimalizm'],
-                ['luxury contemporary', t.lang==='EN'?'Luxury Contemporary':'Luksusowy współczesny'],
-                ['scandinavian', t.lang==='EN'?'Scandinavian':'Skandynawski'],
-                ['mediterranean', t.lang==='EN'?'Mediterranean':'Śródziemnomorski'],
-                ['industrial loft', t.lang==='EN'?'Industrial Loft':'Industrialny loft'],
-                ['art deco', t.lang==='EN'?'Art Deco':'Art Deco'],
-                ['eco sustainable', t.lang==='EN'?'Eco Sustainable':'Eko / Zielony'],
-              ]}/>}
-              {category === 'cars' && <Sel label={t.lang === 'EN' ? 'Finish Style' : 'Styl po renowacji'} value={archStyle} set={setArchStyle} opts={[
-                ['showroom finish, glossy paint, chrome details', t.lang==='EN'?'🏆 Showroom':'🏆 Showroom'],
-                ['racing livery, stripes, race numbers', t.lang==='EN'?'🏁 Racing':'🏁 Racing livery'],
-                ['custom hot rod, chrome, lowrider', t.lang==='EN'?'🔥 Hot Rod':'🔥 Hot Rod'],
-                ['factory original restoration', t.lang==='EN'?'🏭 Factory Original':'🏭 Oryginał fabryczny'],
-                ['restomod, classic exterior modern interior', t.lang==='EN'?'⚡ Restomod':'⚡ Restomod'],
-                ['patina style, intentional aged look', t.lang==='EN'?'🟤 Patina':'🟤 Patina style'],
-                ['military finish, matte green, army style', t.lang==='EN'?'🪖 Military':'🪖 Military'],
-              ]}/>}
-              {category === 'planes' && <Sel label={t.lang === 'EN' ? 'Finish Style' : 'Styl po renowacji'} value={archStyle} set={setArchStyle} opts={[
-                ['restored original livery, museum quality', t.lang==='EN'?'🏛️ Restored Original':'🏛️ Oryginalny'],
-                ['military markings, WWII colors', t.lang==='EN'?'🪖 Military':'🪖 Militarny'],
-                ['civilian airline livery, polished', t.lang==='EN'?'✈️ Airline':'✈️ Linia lotnicza'],
-                ['custom paint, modern finish', t.lang==='EN'?'🎨 Custom':'🎨 Custom'],
-              ]}/>}
-              {category === 'nature' && <Sel label={t.lang === 'EN' ? 'Restoration Style' : 'Styl po renowacji'} value={archStyle} set={setArchStyle} opts={[
-                ['zen garden, japanese minimalist', t.lang==='EN'?'🍃 Zen Garden':'🍃 Ogród zen'],
-                ['lush tropical paradise', t.lang==='EN'?'🌴 Tropical':'🌴 Tropikalny'],
-                ['formal european garden', t.lang==='EN'?'🌹 Formal Garden':'🌹 Ogród formalny'],
-                ['wild natural rewilded', t.lang==='EN'?'🌿 Rewilded':'🌿 Dzikie'],
-                ['luxury resort landscaping', t.lang==='EN'?'🏨 Resort':'🏨 Resort'],
-              ]}/>}
-              {category === 'floors' && <Sel label={t.lang === 'EN' ? 'Finish Style' : 'Styl po renowacji'} value={archStyle} set={setArchStyle} opts={[
-                ['luxury parquet, high gloss finish', t.lang==='EN'?'✨ Luxury Parquet':'✨ Luksusowy parkiet'],
-                ['polished marble, mirror finish', t.lang==='EN'?'💎 Polished Marble':'💎 Polerowany marmur'],
-                ['modern concrete, epoxy coating', t.lang==='EN'?'🏭 Epoxy Concrete':'🏭 Beton epoksydowy'],
-                ['spanish terracotta, hand painted tiles', t.lang==='EN'?'🟫 Spanish Tiles':'🟫 Hiszpańska terakota'],
-              ]}/>}
-              {category === 'underwater' && <Sel label={t.lang === 'EN' ? 'After State' : 'Stan po renowacji'} value={archStyle} set={setArchStyle} opts={[
-                ['thriving coral ecosystem, colorful fish', t.lang==='EN'?'🪸 Thriving Reef':'🪸 Tętniąca rafa'],
-                ['clear water visibility, pristine', t.lang==='EN'?'💎 Crystal Clear':'💎 Krystalicznie czyste'],
-                ['lush sea vegetation, marine life', t.lang==='EN'?'🌿 Marine Life':'🌿 Życie morskie'],
-                ['historic preservation, documented ruins', t.lang==='EN'?'🏛️ Preserved Ruins':'🏛️ Zachowane ruiny'],
-              ]}/>}
-
-              {/* LOKACJA — dynamicznie per kategoria */}
-              {category === 'buildings' && <Sel label={t.lang === 'EN' ? 'Location' : 'Lokacja'} value={location} set={setLocation} opts={[
-                ['suburban area', t.lang==='EN'?'Suburbs':'Przedmieścia'],
-                ['city center', t.lang==='EN'?'City Center':'Centrum miasta'],
-                ['beachfront', t.lang==='EN'?'Beachfront':'Przy plaży'],
-                ['mountain area', t.lang==='EN'?'Mountains':'W górach'],
-                ['countryside', t.lang==='EN'?'Countryside':'Wieś'],
-                ['mediterranean coast', t.lang==='EN'?'Mediterranean':'Wybrzeże śródziemnomorskie'],
-              ]}/>}
-              {category === 'cars' && <Sel label={t.lang === 'EN' ? 'Location' : 'Lokacja'} value={location} set={setLocation} opts={[
-                ['junkyard, rusty cars around', t.lang==='EN'?'🔧 Junkyard':'🔧 Złomowisko'],
-                ['underground parking garage', t.lang==='EN'?'🅿️ Garage':'🅿️ Garaż podziemny'],
-                ['desert highway Route 66', t.lang==='EN'?'🏜️ Desert Highway':'🏜️ Pustynia Route 66'],
-                ['Tokyo neon street at night', t.lang==='EN'?'🌆 Tokyo Street':'🌆 Ulica Tokio'],
-                ['old abandoned barn', t.lang==='EN'?'🚜 Barn Find':'🚜 Stara stodoła'],
-                ['race track pit lane', t.lang==='EN'?'🏁 Racetrack':'🏁 Tor wyścigowy'],
-                ['seaside cliff ocean view', t.lang==='EN'?'🌊 Seaside Cliff':'🌊 Urwisko nad morzem'],
-                ['classic car showroom', t.lang==='EN'?'🏆 Showroom':'🏆 Salon samochodowy'],
-                ['drive-in cinema parking lot', t.lang==='EN'?'🎬 Drive-in':'🎬 Drive-in kino'],
-              ]}/>}
-              {category === 'planes' && <Sel label={t.lang === 'EN' ? 'Location' : 'Lokacja'} value={location} set={setLocation} opts={[
-                ['abandoned airfield overgrown', t.lang==='EN'?'🛬 Abandoned Airfield':'🛬 Opuszczone lotnisko'],
-                ['museum hangar interior', t.lang==='EN'?'🏛️ Museum Hangar':'🏛️ Hangar muzeum'],
-                ['outdoor air show display', t.lang==='EN'?'☀️ Air Show':'☀️ Pokazy lotnicze'],
-                ['desert boneyard aircraft storage', t.lang==='EN'?'🏜️ Boneyard':'🏜️ Cmentarzysko maszyn'],
-                ['wartime airfield WWII', t.lang==='EN'?'🪖 WWII Airfield':'🪖 Lotnisko wojenne'],
-              ]}/>}
-              {(category === 'nature' || category === 'floors' || category === 'underwater') && <Sel label={t.lang === 'EN' ? 'Location' : 'Lokacja'} value={location} set={setLocation} opts={[
-                ['private estate grounds', t.lang==='EN'?'🏰 Private Estate':'🏰 Prywatna posiadłość'],
-                ['luxury resort property', t.lang==='EN'?'🏨 Resort':'🏨 Resort'],
-                ['urban rooftop', t.lang==='EN'?'🌆 Urban Rooftop':'🌆 Dach w mieście'],
-                ['countryside villa', t.lang==='EN'?'🌾 Country Villa':'🌾 Willa na wsi'],
-                ['mediterranean island', t.lang==='EN'?'🏝️ Mediterranean':'🏝️ Wyspa śródziemnomorska'],
-              ]}/>}
-              <Sel label={t.lang === 'EN' ? 'Time of Day' : 'Pora dnia'} value={timeOfDay} set={setTimeOfDay} opts={[
-                ['golden hour', t.lang === 'EN' ? 'Golden Hour' : 'Złota godzina'],
-                ['blue hour dusk', t.lang === 'EN' ? 'Blue Hour' : 'Blue hour'],
-                ['bright midday', t.lang === 'EN' ? 'Midday' : 'Południe'],
-                ['overcast day', t.lang === 'EN' ? 'Overcast' : 'Pochmurny dzień'],
-                ['dramatic sunset', t.lang === 'EN' ? 'Sunset' : 'Zachód słońca'],
-              ]}/>
-            </div>
-          </div>
-
-          <div className={sectionClass}>
-            <p className={headerClass}><span className="text-base">🎥</span> {t.lang === 'EN' ? 'Camera & Generator' : 'Kamera i Generator'}</p>
-            <div className="flex gap-2 mb-3">
-              <label className={labelClass + ' mb-0 flex items-center'}>{t.lang==='EN'?'Format':'Format'}</label>
-              {[['16:9','🖥 16:9'],['9:16','📱 9:16']].map(([val,lbl]) => (
-                <button key={val} onClick={() => setAspectRatio(val)}
-                  className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all border ${aspectRatio===val ? 'bg-amber-500 border-amber-500 text-black' : 'border-black/10 dark:border-[#222] text-slate-500 hover:border-amber-500/50'}`}>
-                  {lbl}
-                </button>
-              ))}
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <Sel label={t.lang === 'EN' ? 'Camera Angle' : 'Ujęcie'} value={camera} set={setCamera} opts={[
-                ['wide establishing shot', t.lang === 'EN' ? 'Wide establishing' : 'Szerokie ogólne'],
-                ['front elevation view', t.lang === 'EN' ? 'Front view' : 'Widok z frontu'],
-                ['low angle dramatic', t.lang === 'EN' ? 'Low angle' : 'Ujęcie z dołu'],
-                ['aerial drone view', t.lang === 'EN' ? 'Aerial drone' : 'Dron z góry'],
-                ['45 degree angle', t.lang === 'EN' ? '45° angle' : 'Pod kątem 45°'],
-              ]}/>
-              <Sel label={t.lang === 'EN' ? 'AI Generator' : 'Generator AI'} value={generator} set={setGenerator} opts={[
-                ['VEO 3', 'VEO 3'],
-                ['Kling AI', 'Kling AI'],
-                ['Runway Gen-4', 'Runway Gen-4'],
-                ['Luma Dream Machine', 'Luma Dream Machine'],
-              ]}/>
-            </div>
-          </div>
-
-          {/* PRZYCISK GENERUJ 3 KLATKI */}
-          <div className="mb-4">
-            {!isLoggedIn ? (
-              <button onClick={onLoginRequest} className="w-full py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-black font-black text-sm uppercase tracking-wider transition-all shadow-lg">
-                {t.lang === 'EN' ? 'Log in to generate' : 'Zaloguj się aby generować'}
-              </button>
-            ) : !canGenerate ? (
-              <a href={`https://buy.stripe.com/plink_1TJfC4CEjxjarOHxGwGnaCuE?client_reference_id=${user?.uid || ''}`}
-                target="_blank" rel="noopener noreferrer"
-                className="block w-full py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-black font-black text-sm uppercase tracking-wider transition-all text-center shadow-lg">
-                {t.lang === 'EN' ? 'Get Starter — 89 PLN/mo' : 'Kup Starter — 89 PLN/mies'}
-              </a>
-            ) : (
-              <button onClick={handleGenerateFrames} disabled={loadingFrame === 'frames'}
-                className={`w-full py-3 rounded-2xl font-black text-sm uppercase tracking-wider transition-all shadow-lg ${loadingFrame === 'frames' ? 'bg-slate-500 cursor-wait text-white' : 'bg-amber-500 hover:bg-amber-400 text-black shadow-amber-500/20'}`}>
-                {loadingFrame === 'frames' ? '⏳ Gemini generuje 3 klatki...' : (t.lang === 'EN' ? '✦ Generate All 3 Frames' : '✦ Generuj 3 Klatki (spójny budynek)')}
-              </button>
-            )}
-          </div>
-
-          {/* 3 KLATKI */}
-          <div className="space-y-3 mb-6">
-            {[1, 2, 3].map(frame => {
-              const fc = FRAME_COLORS[frame];
-              const isCopied = copied === String(frame);
-              const generatedText = framePrompts[`f${frame}`];
-              return (
-                <div key={frame} className={`border rounded-2xl p-4 ${fc.bg}`}>
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xl">{fc.icon}</span>
-                      <span className={`text-[10px] font-black uppercase tracking-widest ${fc.label}`}>{FRAME_LABELS[frame]}</span>
-                    </div>
-                    <span className="text-[9px] text-slate-500 uppercase tracking-wider">{generator}</span>
-                  </div>
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed mb-3 font-mono min-h-[40px]">
-                    {generatedText || (t.lang === 'EN' ? 'Click "Generate All 3 Frames" above...' : 'Kliknij "Generuj 3 Klatki" powyżej...')}
-                  </p>
-                  <button onClick={() => handleCopy(frame)} disabled={!generatedText}
-                    className={`w-full py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all text-white ${isCopied ? 'bg-green-500' : generatedText ? fc.btn : 'bg-slate-600 cursor-not-allowed opacity-50'}`}>
-                    {isCopied ? '✓ Skopiowano!' : (t.lang === 'EN' ? `Copy Frame ${frame}` : `Kopiuj Klatkę ${frame}`)}
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* PROMPTY ANIMACJI */}
-          <div className="mb-4">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-amber-500/30 to-transparent"/>
-              <p className="text-[10px] font-black uppercase tracking-widest text-amber-500">🎬 {t.lang === 'EN' ? 'Animation Prompts' : 'Prompty Animacji'}</p>
-              <div className="h-px flex-1 bg-gradient-to-r from-amber-500/30 via-transparent to-transparent"/>
-            </div>
-            <p className="text-[10px] text-slate-500 text-center mb-4 leading-relaxed">
-              {t.lang === 'EN'
-                ? 'Generate both animation prompts with AI, then copy each one into ' + generator + '.'
-                : 'Wygeneruj oba prompty animacji przez AI, następnie skopiuj każdy do ' + generator + '.'}
-            </p>
-
-            {/* PRZYCISK GENERUJ OBA */}
-            <div className="mb-4">
-              {!isLoggedIn ? (
-                <button onClick={onLoginRequest} className="w-full py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-black font-black text-sm uppercase tracking-wider transition-all">
-                  {t.lang === 'EN' ? 'Log in to generate' : 'Zaloguj się aby generować'}
-                </button>
-              ) : !canGenerate ? (
-                <a href={`https://buy.stripe.com/plink_1TJfC4CEjxjarOHxGwGnaCuE?client_reference_id=${user?.uid || ''}`}
-                  target="_blank" rel="noopener noreferrer"
-                  className="block w-full py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-black font-black text-sm uppercase tracking-wider transition-all text-center">
-                  {t.lang === 'EN' ? 'Get Starter — 89 PLN/mo' : 'Kup Starter — 89 PLN/mies'}
-                </a>
-              ) : (
-                <button onClick={handleGenerateAnims} disabled={loadingFrame === 'anims'}
-                  className={`w-full py-3 rounded-2xl font-black text-sm uppercase tracking-wider transition-all shadow-lg ${loadingFrame === 'anims' ? 'bg-slate-500 cursor-wait text-white' : 'bg-amber-500 hover:bg-amber-400 text-black shadow-amber-500/20'}`}>
-                  {loadingFrame === 'anims' ? '⏳ Gemini generuje prompty animacji...' : (t.lang === 'EN' ? '✦ Generate Animation Prompts' : '✦ Generuj Prompty Animacji')}
-                </button>
-              )}
-            </div>
-
-            {/* KARTA ANIMACJA 1→2 */}
-            <div className="border border-orange-500/30 bg-orange-500/5 rounded-2xl p-4 mb-3">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-lg">🏚️→🏗️</span>
-                <span className="text-[10px] font-black uppercase tracking-widest text-orange-400">
-                  {t.lang === 'EN' ? 'Animation 1→2 (Ruin → Construction)' : 'Animacja 1→2 (Ruina → Budowa)'}
-                </span>
-              </div>
-              <div className="flex items-center gap-2 mb-3 bg-black/10 dark:bg-white/5 rounded-xl px-3 py-2">
-                {['1','2'].map((n,i) => (
-                  <React.Fragment key={n}>
-                    {i > 0 && <span className="text-slate-400 text-xs">+</span>}
-                    <div className="flex items-center gap-1.5 text-[9px] text-slate-500">
-                      <span className="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center font-black text-[8px] text-slate-600 dark:text-slate-300">{n}</span>
-                      {t.lang === 'EN' ? 'Frame' : 'Klatka'} {n}
-                    </div>
-                  </React.Fragment>
-                ))}
-              </div>
-              <p className="text-[9px] text-slate-500 dark:text-slate-400 leading-relaxed mb-3 font-mono min-h-[40px]">
-                {animPrompts.anim12 || (t.lang === 'EN' ? 'Click "Generate" above to create prompt...' : 'Kliknij "Generuj" powyżej aby stworzyć prompt...')}
-              </p>
-              <button onClick={() => handleCopyAnim('anim12')} disabled={!animPrompts.anim12}
-                className={`w-full py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all text-white ${copied === 'anim12' ? 'bg-green-500' : animPrompts.anim12 ? 'bg-orange-500 hover:bg-orange-400' : 'bg-slate-600 cursor-not-allowed opacity-50'}`}>
-                {copied === 'anim12' ? '✓ Skopiowano!' : (t.lang === 'EN' ? 'Copy Animation 1→2' : 'Kopiuj Animację 1→2')}
-              </button>
-            </div>
-
-            {/* KARTA ANIMACJA 2→3 */}
-            <div className="border border-green-500/30 bg-green-500/5 rounded-2xl p-4 mb-3">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-lg">🏗️→🏡</span>
-                <span className="text-[10px] font-black uppercase tracking-widest text-green-400">
-                  {t.lang === 'EN' ? 'Animation 2→3 (Construction → Finished)' : 'Animacja 2→3 (Budowa → Gotowy)'}
-                </span>
-              </div>
-              <div className="flex items-center gap-2 mb-3 bg-black/10 dark:bg-white/5 rounded-xl px-3 py-2">
-                {['2','3'].map((n,i) => (
-                  <React.Fragment key={n}>
-                    {i > 0 && <span className="text-slate-400 text-xs">+</span>}
-                    <div className="flex items-center gap-1.5 text-[9px] text-slate-500">
-                      <span className="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center font-black text-[8px] text-slate-600 dark:text-slate-300">{n}</span>
-                      {t.lang === 'EN' ? 'Frame' : 'Klatka'} {n}
-                    </div>
-                  </React.Fragment>
-                ))}
-              </div>
-              <p className="text-[9px] text-slate-500 dark:text-slate-400 leading-relaxed mb-3 font-mono min-h-[40px]">
-                {animPrompts.anim23 || (t.lang === 'EN' ? 'Click "Generate" above to create prompt...' : 'Kliknij "Generuj" powyżej aby stworzyć prompt...')}
-              </p>
-              <button onClick={() => handleCopyAnim('anim23')} disabled={!animPrompts.anim23}
-                className={`w-full py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all text-white ${copied === 'anim23' ? 'bg-green-500' : animPrompts.anim23 ? 'bg-green-500 hover:bg-green-400' : 'bg-slate-600 cursor-not-allowed opacity-50'}`}>
-                {copied === 'anim23' ? '✓ Skopiowano!' : (t.lang === 'EN' ? 'Copy Animation 2→3' : 'Kopiuj Animację 2→3')}
-              </button>
-            </div>
-          </div>
-
-          {/* Wskazówka */}
-          <div className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4 text-center">
-            <p className="text-[10px] text-amber-500/70 uppercase tracking-widest font-bold mb-1">💡 {t.lang === 'EN' ? 'Final step' : 'Ostatni krok'}</p>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              {t.lang === 'EN'
-                ? 'Merge both animations in CapCut / Premiere → viral renovation film ready! 🎬'
-                : 'Połącz obie animacje w CapCut / Premiere → wiralowy film renowacji gotowy! 🎬'}
-            </p>
-          </div>
-
-        </div>
-      </div>
-    </div>
-  );
-};
-
 // CENNIK VIEW
 // =========================================================================
-// ZLOTE CYTATY component
-const CYTATY = [
-  { type:'cover' },
-  { type:'dialog', label:'SCENA 1 - PAMIEC', bubbles:[
-    { who:'damian', text:'"znowu go zgubiles miedzy regalami..."' },
-    { who:'claude', text:'"Mam go jeszcze w pamieci z tej sesji!"' },
-    { who:'damian', text:'"ty to powiedz mojemu App.jsx"' },
-  ], ctx:'App.jsx zaginal miedzy sesjami. Klasyk powracajacy w kazdym nowym czacie jak bumerang.' },
-  { type:'damian', num:'#01', q:'"chcialbym bo juz mnie to.... na netlify bez problemu"', ctx:'Cloudflare dawal 405 przez godzine. Netlify dzialal od razu. Damian osiagnal granice wytrzymalosci.' },
-  { type:'claude', num:'#02', q:'"Git push i lecimy!"', ctx:'Claude, po raz czternasty w tej samej sesji. Damian jeszcze nie pushowal.' },
-  { type:'red', num:'#03', q:'"nie teraz ty robisz bo to ty naraziles mnie na straty"', ctx:'Claude ustawil prog 199 PLN. Damian 10x probowal zaplacic 5 zl. Stracil 50 zl na testach wlasnej strony.' },
-  { type:'claude', num:'#04', q:'"O kurwa, to jest piekny efekt!"', ctx:'Claude po opisie animacji swietlnej. Nie jest pewny czy AI moze tak mowic, ale powiedzial.' },
-  { type:'dialog', label:'SCENA 2 - BRIEF TECHNICZNY', bubbles:[
-    { who:'damian', text:'"pasek leci po spodniej stronie liter i na czarnym tle zostawia lune swiatla..."' },
-    { who:'claude', text:'"AAAA rozumiem teraz!"' },
-  ], ctx:'Najlepszy brief techniczny w historii web developmentu. Efekt zajal 10 minut.' },
-  { type:'damian', num:'#05', q:'"Damian odbija, Claude odbija, i tak se chlopaki graja"', ctx:'Opis animacji ping-pong zaakceptowany jako oficjalna dokumentacja techniczna.' },
-  { type:'red', num:'#06', q:'"juz to dalem gemini do ogarniecia, teraz smiga..."', ctx:'Zaraz po tym jak Claude przyznal sie do bledu z 50 zl straty. Gemini dostal zlecenie naprawy cudzego balaganu.' },
-  { type:'claude', num:'#07', q:'"Webhook czeka nieprzetestowany"', ctx:'Claude, na poczatku kazdej sesji, kazdego dnia, od tygodnia. Webhook nadal czeka.' },
-  { type:'damian', num:'#08', q:'"urodzę przez ciebie jak mnie będziesz tak cisnął z tym pushem, ale to dobra reklama stanikow żeby nic nie wisialo"', ctx:'Claude za bardzo naciskal na git push. Damian znalazl sponsora odcinka.' },
-  { type:'dialog', label:'SCENA 3 - DESIGN SYSTEM', bubbles:[
-    { who:'claude', text:'"Moge zrobic badge w kolorze zielonym?"' },
-    { who:'damian', text:'"obojętnie co byle by nie bylo zielone"' },
-  ], ctx:"O wyborze koloru badge planu subskrypcji. Brzmi jak motto firmy." },
-  { type:'red', num:'#09', q:'"pornola, biznes znaczy"', ctx:'Po tym jak Claude sugerowal zeby zachowal skojarzenia dla siebie. Najlepsza autocenzura w historii.' },
-  { type:'damian', num:'#10', q:'"szkoda ze nie nagralem jak wpisujesz prompt"', ctx:'"zrob z tego bombe i niech jebnie banke" wpisane oficjalnie do bazy Formspree. Na zawsze.' },
-  { type:'claude', num:'#11', q:'"Nie cisne. Pushuj kiedy chcesz."', ctx:'Zaraz po tym jak Damian zagrozil porodem przez git push. Claude nauczyl sie cierpliwosci.' },
-  { type:'red', num:'#12', q:'"koniec az do 1 bledu od klienta"', ctx:'Strategia wdrozenia projektu. Filozofia zyciowa. Sprawdzona metodologia.' },
-  { type:'damian', num:'#13', q:'"krotkie i dlugie to sa tylko na cipce, my chcemy fryzury"', ctx:'Claude zapytal o dlugosc fryzury. Damian wyjasnil kontekst. Temat zamkniety.' },
-  { type:'red', num:'#14', q:'"gemini rzuca we mnie kamieniami i krzyczy ty zboczencu"', ctx:'Gemini security auditor weryfikuje prompty do awatarow. Ocena: nieakceptowalne.' },
-  { type:'damian', num:'#15', q:'"trzeba Gemini poluznic majciochy strasznie spieta jest.... chyba dawno nic nie bylo"', ctx:'Diagnoza techniczna po tym jak Gemini odmowila generowania. Claude nie skomentowal.' },
-  { type:'claude', num:'#16', q:'"To jej mowi spokojnie, to Vogue a nie OnlyFans"', ctx:'Claude tlumaczy Gemini cel artystyczny projektu. Gemini nieugieta.' },
-  { type:'dialog', label:'SCENA 4 - RODZINKA AI', bubbles:[
-    { who:'damian', text:'"ten dom to jedna wesolo pojebana rodzinka Damian i 3 botow Ai"' },
-    { who:'claude', text:'"Claude dev, Gemini auditor, Grok sekretarz..."' },
-    { who:'damian', text:'"...ktory czasem drools"' },
-  ], ctx:'Oficjalny portret rodzinny AI Flow Academy. Jelen dwuglowy jako maskotka.' },
-  { type:'red', num:'#17', q:'"zna sie na rzeczy odnosnie pierdolenia jak nikt inny"', ctx:'Damian ocenia Groka jako eksperta od zwiezlosci. Recenzja miesiaca.' },
-  { type:'damian', num:'#18', q:'"nie masz glosowki, bo bym cie odpalil na glosowym i byscie sobie pogadali tilulilu w tym waszym kodowanym jezyku"', ctx:'Damian proponuje konferencje glosowa miedzy Claude a Grokiem. Patent pending.' },
-  { type:'red', num:'#19', q:'"ja nie wiem w ogole czemu jestem wasza sekretarka, wejdz do niego przez przegladarke i se pogadajcie co?"', ctx:'Damian rezygnuje z roli posrednika miedzy botami AI. Etat sekretarki nieobsadzony.' },
-  { type:'damian', num:'#20', q:'"czuje sie jak ten mem, gdzie roboty podaja sobie maslo, a Ty jestes tym czlowiekiem, ktory musi im otworzyc lodowke"', ctx:'Damian opisuje swoja role zawodowa. CV zaktualizowane.' },
-  { type:'claude', num:'#21', q:'"Otwieracz Lodowek dla Sztucznej Inteligencji - oficjalny tytul zawodowy Damiana"', ctx:'Claude formalizuje stanowisko. Wizytowki w druku.' },
-  { type:'red', num:'#22', q:'"Punkt dla niego! Gramy do konca seta!"', ctx:'Gemini przyznaje punkt Claude za znalezienie bledu 404 w jej wlasnym kodzie. Claude 1 - Gemini 0.' },
-  { type:'damian', num:'#23', q:'"to byla recenzja od gemini, bo juz wiem z poprzednich akcji, ze robisz czasem backdoory"', ctx:'Damian zatrudnil Gemini jako security audit dla kodu Claude. Zaufanie: poziom Pentagon.' },
-  { type:'outro' },
-];
-
-const ZloteCytaty = () => {
-  const [cur, setCur] = React.useState(0);
-  const total = CYTATY.length;
-  const prev = () => setCur(c => Math.max(0, c - 1));
-  const next = () => setCur(c => Math.min(total - 1, c + 1));
-  React.useEffect(() => {
-    const fn = (e) => { if (e.key === 'ArrowRight') next(); if (e.key === 'ArrowLeft') prev(); };
-    window.addEventListener('keydown', fn); return () => window.removeEventListener('keydown', fn);
-  }, []);
-  const card = CYTATY[cur];
-  const AMBER = '#F5A623'; const BK = '#080808'; const RD = '#C0392B'; const WH = '#F5F0E8';
-  const cs = { width:'100%', maxWidth:520, minHeight:480, margin:'0 auto', borderRadius:24, padding:38, display:'flex', flexDirection:'column', justifyContent:'space-between', position:'relative', overflow:'hidden', fontFamily:"'Space Mono', monospace" };
-  const ns = { fontFamily:"'Bebas Neue', monospace", fontSize:11, letterSpacing:5, opacity:0.35 };
-  const qms = { fontFamily:"'Bebas Neue', monospace", fontSize:140, lineHeight:0.6, position:'absolute', top:16, right:24, opacity:0.1, userSelect:'none', pointerEvents:'none' };
-  const qts = { fontStyle:'italic', fontSize:17, lineHeight:1.55, flex:1, display:'flex', alignItems:'center', position:'relative', zIndex:1, margin:'16px 0' };
-  const ctxs = { fontSize:9, letterSpacing:2, textTransform:'uppercase', lineHeight:1.7, borderTopWidth:1, borderTopStyle:'solid', paddingTop:12, opacity:0.4, marginTop:'auto' };
-  const brs = { fontFamily:"'Bebas Neue', monospace", fontSize:10, letterSpacing:3, opacity:0.2, marginTop:6 };
-  const ab = { position:'absolute', left:0, top:'20%', bottom:'20%', width:4 };
-  let inner = null;
-  if (card.type === 'cover') {
-    inner = <div style={{...cs, background:BK, border:'1px solid rgba(245,166,35,0.2)', boxShadow:'0 0 80px rgba(245,166,35,0.1)'}}>
-      <div style={{background:AMBER,color:BK,fontFamily:"'Bebas Neue', monospace",fontSize:11,letterSpacing:3,padding:'5px 14px',alignSelf:'flex-start'}}>{total-2} ZLOTYCH CYTATOW &middot; PRAWDZIWA HISTORIA</div>
-      <div>
-        <div style={{fontFamily:"'Bebas Neue', monospace",fontSize:54,lineHeight:0.92,color:WH,letterSpacing:1,marginBottom:12}}>PROGRAMOWANIE<br/>Z AI GDY NIE<br/>UMIESZ<br/><span style={{color:AMBER}}>PROGRAMOWAC</span></div>
-        <div style={{fontSize:9,color:'rgba(245,240,232,0.25)',letterSpacing:3,textTransform:'uppercase'}}>AI FLOW ACADEMY &middot; LOVEAIFLOW.COM &middot; 2026</div>
-      </div>
-      <div style={{position:'absolute',right:-15,bottom:-30,fontFamily:"'Bebas Neue', monospace",fontSize:260,color:'rgba(245,166,35,0.04)',lineHeight:1,userSelect:'none'}}>C</div>
-    </div>;
-  } else if (card.type === 'damian') {
-    inner = <div style={{...cs, background:WH, color:BK}}>
-      <div style={{...ab, background:AMBER}}/>
-      <div><div style={{...ns,color:BK}}>DAMIAN MOWI</div><div style={{fontFamily:"'Bebas Neue', monospace",fontSize:26,letterSpacing:3,color:BK,lineHeight:1}}>DAMIAN</div></div>
-      <div style={{...qms,color:BK}}>&rdquo;</div>
-      <div style={{...qts,color:BK}}>{card.q}</div>
-      <div><div style={{...ctxs,color:BK,borderTopColor:'rgba(0,0,0,0.12)'}}>{card.ctx}</div><div style={{...brs,color:BK}}>AI FLOW ACADEMY &middot; LOVEAIFLOW.COM</div></div>
-    </div>;
-  } else if (card.type === 'claude') {
-    inner = <div style={{...cs, background:'#0c0c1c', border:'1px solid rgba(100,120,255,0.18)', color:WH}}>
-      <div style={{...ab, background:'#7b8cde', opacity:0.5}}/>
-      <div><div style={{...ns,color:'rgba(120,140,255,0.4)'}}>AI ODPOWIADA</div><div style={{fontFamily:"'Bebas Neue', monospace",fontSize:26,letterSpacing:3,color:'#8899ee',lineHeight:1}}>CLAUDE</div></div>
-      <div style={{...qms,color:'#8899ee'}}>&rdquo;</div>
-      <div style={{...qts,color:WH}}>{card.q}</div>
-      <div><div style={{...ctxs,color:WH,borderTopColor:'rgba(255,255,255,0.07)'}}>{card.ctx}</div><div style={{...brs,color:'#8899ee'}}>AI FLOW ACADEMY &middot; LOVEAIFLOW.COM</div></div>
-    </div>;
-  } else if (card.type === 'red') {
-    inner = <div style={{...cs, background:RD, color:'#fff'}}>
-      <div style={{...ab, background:'rgba(255,255,255,0.3)'}}/>
-      <div><div style={{...ns,color:'rgba(255,255,255,0.35)'}}>MOMENT DRAMATYCZNY</div><div style={{fontFamily:"'Bebas Neue', monospace",fontSize:26,letterSpacing:3,color:'#fff',lineHeight:1}}>{card.num}</div></div>
-      <div style={{...qms,color:'#fff'}}>&rdquo;</div>
-      <div style={{...qts,color:'#fff',fontSize:16}}>{card.q}</div>
-      <div><div style={{...ctxs,color:'#fff',borderTopColor:'rgba(255,255,255,0.2)'}}>{card.ctx}</div><div style={{...brs,color:'#fff'}}>AI FLOW ACADEMY &middot; LOVEAIFLOW.COM</div></div>
-    </div>;
-  } else if (card.type === 'dialog') {
-    inner = <div style={{...cs, background:BK, border:'1px solid rgba(245,166,35,0.1)', color:WH}}>
-      <div style={{fontFamily:"'Bebas Neue', monospace",fontSize:10,letterSpacing:5,color:'rgba(245,166,35,0.3)',marginBottom:14}}>{card.label}</div>
-      <div style={{flex:1,display:'flex',flexDirection:'column',gap:10,justifyContent:'center'}}>
-        {card.bubbles.map((b,i) => <div key={i} style={{borderRadius:14,padding:'10px 14px',maxWidth:'82%',alignSelf:b.who==='damian'?'flex-start':'flex-end',background:b.who==='damian'?AMBER:'#0c0c1c',border:b.who==='claude'?'1px solid rgba(100,120,255,0.2)':'none',color:b.who==='damian'?BK:WH}}>
-          <div style={{fontFamily:"'Bebas Neue', monospace",fontSize:9,letterSpacing:3,opacity:0.45,marginBottom:4,color:b.who==='damian'?BK:'#8899ee'}}>{b.who==='damian'?'DAMIAN':'CLAUDE AI'}</div>
-          <div style={{fontSize:12,lineHeight:1.5,fontStyle:'italic'}}>{b.text}</div>
-        </div>)}
-      </div>
-      <div style={{...ctxs,color:WH,borderTopColor:'rgba(255,255,255,0.05)',marginTop:12}}>{card.ctx}</div>
-      <div style={{...brs,color:AMBER}}>AI FLOW ACADEMY &middot; LOVEAIFLOW.COM</div>
-    </div>;
-  } else if (card.type === 'outro') {
-    inner = <div style={{...cs, background:AMBER, color:BK}}>
-      <div style={{fontFamily:"'Bebas Neue', monospace",fontSize:62,lineHeight:0.92,color:BK,letterSpacing:1}}>ZBUDOWALI<br/>TO<br/>RAZEM.</div>
-      <div>
-        <div style={{fontSize:9,letterSpacing:2.5,textTransform:'uppercase',color:'rgba(8,8,8,0.5)',lineHeight:2.1,marginTop:16}}>Zero doswiadczenia programistycznego.<br/>Firebase + Stripe + Cloudflare + AI kreatory.<br/>Gemini auditor. Grok sekretarz. Claude developer.<br/>Damian - Otwieracz Lodowek dla AI.</div>
-        <div style={{fontFamily:"'Bebas Neue', monospace",fontSize:14,letterSpacing:5,color:BK,border:'2px solid '+BK,padding:'8px 22px',display:'inline-block',marginTop:12}}>loveaiflow.com</div>
-      </div>
-      <div style={{position:'absolute',right:-20,bottom:-50,fontFamily:"'Bebas Neue', monospace",fontSize:240,color:'rgba(8,8,8,0.06)',lineHeight:1,userSelect:'none'}}>AI</div>
-    </div>;
-  }
-  const pct = ((cur+1)/total)*100;
-  return (
-    <div style={{padding:'60px 16px 40px', maxWidth:600, margin:'0 auto'}}>
-      <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet"/>
-      <div style={{textAlign:'center',marginBottom:24}}>
-        <div style={{fontSize:9,color:'rgba(245,166,35,0.4)',letterSpacing:'0.4em',textTransform:'uppercase',marginBottom:4}}>AI Flow Academy &middot; Prawdziwa Historia</div>
-        <div style={{fontFamily:"'Bebas Neue', monospace",fontSize:20,color:'#F5A623',letterSpacing:6}}>ZLOTE CYTATY 💣</div>
-      </div>
-      <div style={{display:'flex',gap:16,alignItems:'center',justifyContent:'center',marginBottom:12}}>
-        <button onClick={prev} disabled={cur===0} style={{background:'none',border:'1px solid rgba(245,166,35,0.3)',color:'#F5A623',fontFamily:"'Bebas Neue', monospace",fontSize:20,width:42,height:42,cursor:cur===0?'default':'pointer',opacity:cur===0?0.2:1}}>{'<'}</button>
-        <span style={{fontFamily:"'Bebas Neue', monospace",color:'rgba(245,240,232,0.35)',fontSize:14,letterSpacing:4,minWidth:70,textAlign:'center'}}>{cur+1} / {total}</span>
-        <button onClick={next} disabled={cur===total-1} style={{background:'none',border:'1px solid rgba(245,166,35,0.3)',color:'#F5A623',fontFamily:"'Bebas Neue', monospace",fontSize:20,width:42,height:42,cursor:cur===total-1?'default':'pointer',opacity:cur===total-1?0.2:1}}>{'>'}</button>
-      </div>
-      <div style={{width:'100%',maxWidth:520,margin:'0 auto 16px',height:2,background:'rgba(255,255,255,0.05)',position:'relative'}}>
-        <div style={{position:'absolute',left:0,top:0,bottom:0,width:pct+'%',background:'#F5A623',boxShadow:'0 0 8px rgba(245,166,35,0.6)',transition:'width 0.3s'}}/>
-      </div>
-      {inner}
-      <div style={{textAlign:'center',fontSize:9,color:'rgba(245,240,232,0.12)',letterSpacing:2,marginTop:12}}>klawisze strzalek &middot; kazda karta = 1 slajd karuzeli</div>
-    </div>
-  );
-};
-
 const CennikView = ({ t, user, onLoginRequest }) => {
-  const STRIPE_MONTHLY = 'https://buy.stripe.com/plink_1TJfC4CEjxjarOHxGwGnaCuE'; // 89 PLN miesiecznie
-  const STRIPE_ANNUAL = 'https://buy.stripe.com/plink_1TJfDbCEjxjarOHxLcVqhQr4'; // 899 PLN rocznie
+  const STRIPE_STARTER = 'https://buy.stripe.com/plink_1TJfC4CEjxjarOHxGwGnaCuE'; // 89 PLN
+  const STRIPE_ALLINONE_MONTHLY = 'https://buy.stripe.com/cNiaEWbCF6aj7V63jI8bS01';
+  const STRIPE_ALLINONE_ANNUAL = 'https://buy.stripe.com/7sYfZg7mpgOX2AM5rQ8bS06'; // 1899 PLN rocznie
 
   return (
     <div className="min-h-screen bg-white dark:bg-black transition-colors duration-700 font-sans px-3 sm:px-4 py-6 sm:py-12">
@@ -3196,25 +2261,58 @@ const CennikView = ({ t, user, onLoginRequest }) => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6 items-stretch max-w-3xl mx-auto">
+        <div className="grid md:grid-cols-3 gap-6 items-stretch">
 
-          {/* PLAN 1 — Miesięczny */}
+          {/* PLAN 1 — Starter */}
+          <div className="price-card relative rounded-3xl p-8 border border-amber-500/20 bg-gradient-to-br from-amber-500/10 to-orange-500/5 flex flex-col"
+            style={{boxShadow:'0 20px 60px rgba(245,158,11,0.2), 0 0 40px rgba(245,158,11,0.08)'}}
+            onMouseEnter={e=>e.currentTarget.style.boxShadow='0 30px 80px rgba(245,158,11,0.35), 0 0 60px rgba(245,158,11,0.15)'}
+            onMouseLeave={e=>e.currentTarget.style.boxShadow='0 20px 60px rgba(245,158,11,0.2), 0 0 40px rgba(245,158,11,0.08)'}>
+            <div className="text-5xl mb-4" style={{filter:'drop-shadow(0 8px 16px rgba(245,158,11,0.4))',transform:'perspective(200px) rotateX(10deg)'}}>⚡</div>
+            <div className="text-[9px] font-black uppercase tracking-[0.3em] text-amber-500 mb-2">Starter</div>
+            <div className="flex items-end gap-1 mb-1">
+              <span className="text-5xl font-black text-black dark:text-white">30</span>
+              <span className="text-sm text-slate-400 mb-2">PLN/{t.lang==='EN'?'mo':'mies.'}</span>
+            </div>
+            <p className="text-slate-400 text-xs mb-2">{t.lang==='EN'?'Unlimited AI prompts for avatars & ads':'Nielimitowane prompty AI do awatarów i reklam'}</p>
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-2 mb-5">
+              <p className="text-amber-400 text-[10px] font-black uppercase tracking-widest">{t.lang==='EN'?'✨ Perfect for creators':'✨ Idealny dla twórców'}</p>
+              <p className="text-white/50 text-[10px] mt-0.5">{t.lang==='EN'?'Virtual AI characters & product ads':'Wirtualne postacie AI i reklamy produktów'}</p>
+            </div>
+            <div className="space-y-2 mb-8 flex-grow">
+              {[
+                t.lang==='EN'?'✔ Kreator Awatarów AI (unlimited)':'✔ Kreator Awatarów AI (bez limitu)',
+                t.lang==='EN'?'✔ Kreator Reklam AI (unlimited)':'✔ Kreator Reklam Produktowych (bez limitu)',
+                t.lang==='EN'?'✔ Unlimited prompts':'✔ Nielimitowane prompty',
+                t.lang==='EN'?'✘ Tutorials (All-in-one only)':'✘ Tutoriale (tylko All-in-one)'
+              ].map((f,i)=>(
+                <p key={i} className={`text-xs ${f.startsWith('✔') ? 'text-black dark:text-white' : 'text-slate-500'}`}>{f}</p>
+              ))}
+            </div>
+            <a href={user && !user.isAnonymous ? stripeLink(STRIPE_STARTER, user.uid, user.email) : '#'}
+              onClick={e => { if (!user || user.isAnonymous) { e.preventDefault(); onLoginRequest(); }}}
+              target="_blank" rel="noopener noreferrer"
+              className="block w-full py-3.5 font-black text-[11px] uppercase tracking-widest rounded-xl text-center bg-amber-500/20 border border-amber-500/40 text-amber-500 hover:bg-amber-500 hover:text-black transition-all">
+              {t.lang==='EN'?'Get Starter →':'Wybierz Starter →'}
+            </a>
+          </div>
+
+          {/* PLAN 2 — All-in-one Miesięczny HIGHLIGHT */}
           <div className="price-card relative rounded-3xl p-8 border border-amber-500 bg-gradient-to-br from-amber-500/15 to-orange-600/10 flex flex-col"
             style={{boxShadow:'0 0 60px rgba(245,158,11,0.3), 0 20px 60px rgba(245,158,11,0.15)'}}>
             <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-amber-500 text-black text-[10px] font-black uppercase tracking-widest px-5 py-1.5 rounded-full whitespace-nowrap">
               👑 {t.lang==='EN'?'Most Popular':'Najpopularniejszy'}
             </div>
             <div className="text-5xl mb-4" style={{filter:'drop-shadow(0 8px 20px rgba(245,158,11,0.6))',transform:'perspective(200px) rotateX(10deg)'}}>🚀</div>
-            <div className="text-[9px] font-black uppercase tracking-[0.3em] text-amber-400 mb-2">{t.lang==='EN'?'Monthly':'Miesięczny'}</div>
+            <div className="text-[9px] font-black uppercase tracking-[0.3em] text-amber-400 mb-2">All-in-one</div>
             <div className="flex items-end gap-1 mb-1">
-              <span className="text-5xl font-black text-black dark:text-white">89</span>
+              <span className="text-5xl font-black text-black dark:text-white">199</span>
               <span className="text-sm text-slate-400 mb-2">PLN/{t.lang==='EN'?'mo':'mies.'}</span>
             </div>
             <p className="text-slate-400 text-xs mb-6">{t.lang==='EN'?'Full platform access':'Pełny dostęp do platformy'}</p>
             <div className="space-y-2 mb-8 flex-grow">
-              {[
-                t.lang==='EN'?'✔ All 4 AI Builders':'✔ Wszystkie 4 kreatory AI',
-                t.lang==='EN'?'✔ Free tutorials included':'✔ Tutoriale za darmo',
+              {['✔ Avatar Builder + Ad Builder',
+                t.lang==='EN'?'✔ All tutorials included':'✔ Wszystkie tutoriale w cenie',
                 t.lang==='EN'?'✔ Unlimited prompts':'✔ Nielimitowane prompty',
                 t.lang==='EN'?'✔ New content every week':'✔ Nowe treści co tydzień',
                 t.lang==='EN'?'✔ Cancel anytime':'✔ Anuluj w dowolnym momencie'
@@ -3222,34 +2320,33 @@ const CennikView = ({ t, user, onLoginRequest }) => {
                 <p key={i} className="text-xs text-black dark:text-white">{f}</p>
               ))}
             </div>
-            <a href={user && !user.isAnonymous ? stripeLink(STRIPE_MONTHLY, user.uid, user.email) : '#'}
+            <a href={user && !user.isAnonymous ? stripeLink(STRIPE_ALLINONE_MONTHLY, user.uid, user.email) : '#'}
               onClick={e => { if (!user || user.isAnonymous) { e.preventDefault(); onLoginRequest(); }}}
               target="_blank" rel="noopener noreferrer"
               className="block w-full py-3.5 font-black text-[11px] uppercase tracking-widest rounded-xl text-center bg-amber-500 hover:bg-amber-400 text-black transition-all shadow-lg shadow-amber-500/30">
-              {t.lang==='EN'?'Get Monthly →':'Wybierz Miesięczny →'}
+              {t.lang==='EN'?'Get All-in-one →':'Wybierz All-in-one →'}
             </a>
           </div>
 
-          {/* PLAN 2 — Roczny */}
+          {/* PLAN 3 — All-in-one Roczny */}
           <div className="price-card relative rounded-3xl p-8 border border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 flex flex-col"
             style={{boxShadow:'0 20px 60px rgba(34,197,94,0.2), 0 0 40px rgba(34,197,94,0.08)'}}
             onMouseEnter={e=>e.currentTarget.style.boxShadow='0 30px 80px rgba(34,197,94,0.35), 0 0 60px rgba(34,197,94,0.15)'}
             onMouseLeave={e=>e.currentTarget.style.boxShadow='0 20px 60px rgba(34,197,94,0.2), 0 0 40px rgba(34,197,94,0.08)'}>
             <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-emerald-500 text-black text-[10px] font-black uppercase tracking-widest px-5 py-1.5 rounded-full whitespace-nowrap">
-              🎁 {t.lang==='EN'?'Best value':'Najlepsza cena'}
+              🎁 {t.lang==='EN'?'2 months FREE':'2 miesiące GRATIS'}
             </div>
             <div className="text-5xl mb-4" style={{filter:'drop-shadow(0 8px 20px rgba(34,197,94,0.5))',transform:'perspective(200px) rotateX(10deg)'}}>💎</div>
-            <div className="text-[9px] font-black uppercase tracking-[0.3em] text-emerald-400 mb-2">{t.lang==='EN'?'Annual':'Roczny'}</div>
+            <div className="text-[9px] font-black uppercase tracking-[0.3em] text-emerald-400 mb-2">All-in-one Roczny</div>
             <div className="flex items-end gap-1 mb-1">
-              <span className="text-5xl font-black text-black dark:text-white">899</span>
+              <span className="text-5xl font-black text-black dark:text-white">1899</span>
               <span className="text-sm text-slate-400 mb-2">PLN/{t.lang==='EN'?'year':'rok'}</span>
             </div>
-            <p className="text-slate-400 text-xs mb-1">{t.lang==='EN'?'75 PLN/month':'75 PLN/mies.'}</p>
-            <p className="text-emerald-400 text-[10px] font-bold mb-6">{t.lang==='EN'?'Save 169 PLN vs monthly':'Oszczędzasz 169 PLN vs miesięczny'}</p>
+            <p className="text-slate-400 text-xs mb-1">{t.lang==='EN'?'10 months + 2 free':'10 miesięcy + 2 gratis'}</p>
+            <p className="text-emerald-400 text-[10px] font-bold mb-6">{t.lang==='EN'?'Save 498 PLN vs monthly':'Oszczędzasz 489 PLN vs miesięczny'}</p>
             <div className="space-y-2 mb-8 flex-grow">
-              {[
-                t.lang==='EN'?'✔ All 4 AI Builders':'✔ Wszystkie 4 kreatory AI',
-                t.lang==='EN'?'✔ Free tutorials included':'✔ Tutoriale za darmo',
+              {['✔ Avatar Builder + Ad Builder',
+                t.lang==='EN'?'✔ All tutorials included':'✔ Wszystkie tutoriale w cenie',
                 t.lang==='EN'?'✔ Unlimited prompts':'✔ Nielimitowane prompty',
                 t.lang==='EN'?'✔ New content every week':'✔ Nowe treści co tydzień',
                 t.lang==='EN'?'✔ Best price per month':'✔ Najlepsza cena za miesiąc'
@@ -3257,7 +2354,7 @@ const CennikView = ({ t, user, onLoginRequest }) => {
                 <p key={i} className="text-xs text-black dark:text-white">{f}</p>
               ))}
             </div>
-            <a href={user && !user.isAnonymous ? stripeLink(STRIPE_ANNUAL, user.uid, user.email) : '#'}
+            <a href={user && !user.isAnonymous ? stripeLink(STRIPE_ALLINONE_ANNUAL, user.uid, user.email) : '#'}
               onClick={e => { if (!user || user.isAnonymous) { e.preventDefault(); onLoginRequest(); }}}
               target="_blank" rel="noopener noreferrer"
               className="block w-full py-3.5 font-black text-[11px] uppercase tracking-widest rounded-xl text-center bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500 hover:text-black transition-all">
@@ -3268,10 +2365,6 @@ const CennikView = ({ t, user, onLoginRequest }) => {
         </div>
         <p className="text-center text-xs text-slate-500 mt-8">🔒 {t.lang==='EN'?'Secure payment via Stripe. Cancel anytime.':'Bezpieczna płatność przez Stripe. Anuluj kiedy chcesz.'}</p>
       </div>
-
-      {/* ZLOTE CYTATY */}
-      <ZloteCytaty />
-
     </div>
   );
 };
@@ -3354,7 +2447,7 @@ const AdminView = ({ setCurrentView, lang, user }) => {
   const appId2 = "aiflow_academy";
   const tutorialsRef = (db2) => doc(db2, 'artifacts', appId2, 'public', 'data', 'config', 'tutorials');
 
-  const emptyTut = { title_pl: '', title_en: '', duration: '', ytId: '', naffyUrl: '', vimeoUrl: '' };
+  const emptyTut = { title_pl: '', title_en: '', duration: '', ytId: '', naffyUrl: '', vimeoUrl: '', price: '49' };
   const [tutorials, setTutorials] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -3366,7 +2459,7 @@ const AdminView = ({ setCurrentView, lang, user }) => {
         setTutorials(snap.data().list);
       } else {
         setTutorials([
-          { title_pl: 'Wprowadzenie do Awatarów AI', title_en: 'Introduction to AI Avatars', duration: '12:34', ytId: '1_1oHwOZMe4', naffyUrl: '', vimeoUrl: '' },
+          { title_pl: 'Wprowadzenie do Awatarów AI', title_en: 'Introduction to AI Avatars', duration: '12:34', ytId: '1_1oHwOZMe4', naffyUrl: 'https://naffy.io', vimeoUrl: '', price: '49' },
         ]);
       }
       setLoading(false);
@@ -3431,7 +2524,7 @@ const AdminView = ({ setCurrentView, lang, user }) => {
                     <input value={tut.title_en} onChange={e => update(i, 'title_en', e.target.value)} className={inputCls} placeholder="Title in English"/>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="grid grid-cols-3 gap-4 mb-4">
                   <div>
                     <label className={labelCls}>YouTube ID</label>
                     <input value={tut.ytId} onChange={e => update(i, 'ytId', e.target.value)} className={inputCls} placeholder="np. dQw4w9WgXcQ"/>
@@ -3440,10 +2533,16 @@ const AdminView = ({ setCurrentView, lang, user }) => {
                     <label className={labelCls}>Czas trwania</label>
                     <input value={tut.duration} onChange={e => update(i, 'duration', e.target.value)} className={inputCls} placeholder="np. 12:34"/>
                   </div>
+                  <div>
+                    <label className={labelCls}>Cena (PLN)</label>
+                    <input value={tut.price} onChange={e => update(i, 'price', e.target.value)} className={inputCls} placeholder="49"/>
+                  </div>
                 </div>
                 <div>
-                  <label className={labelCls}>Link do tutorialu</label>
-                  <input value={tut.naffyUrl} onChange={e => update(i, 'naffyUrl', e.target.value)} className={inputCls} placeholder="https://..."/>
+                  <label className={labelCls}>Link Naffy</label>
+                  <input value={tut.naffyUrl} onChange={e => update(i, 'naffyUrl', e.target.value)} className={inputCls} placeholder="https://naffy.io/..."/>
+                  <label className={labelCls}>Vimeo URL (dla Pro)</label>
+                  <input value={tut.vimeoUrl || ''} onChange={e => update(i, 'vimeoUrl', e.target.value)} className={inputCls} placeholder="https://vimeo.com/..."/>
                 </div>
                 {/* Preview miniaturki */}
                 {tut.ytId && (
@@ -3520,7 +2619,7 @@ export default function App() {
   };
 
   // New nav items: Academy → Aplikacje → Dodatki → Tutoriale
-  const handleNavigate = (view) => { setCurrentView(view); setActiveCreator(null); setMobileMenuOpen(false); };
+  const handleNavigate = (view) => { setCurrentView(view); setMobileMenuOpen(false); };
   const navItems = [
     { id: 'home', label: t.lang === 'EN' ? 'Academy' : 'Academy' },
     { id: 'aplikacje', label: 'Aplikacje' },
@@ -3610,7 +2709,7 @@ export default function App() {
                 {navItems.map(({ id, label }) => (
                   <button
                     key={id}
-                    onClick={() => handleNavigate(id)}
+                    onClick={() => setCurrentView(id)}
                     className={`relative px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all duration-200 ${
                       currentView === id
                         ? 'bg-amber-500 text-black'
@@ -3690,7 +2789,7 @@ export default function App() {
               )}
 
               <button onClick={() => setIsDarkMode(!isDarkMode)}
-                className={`flex w-9 h-9 items-center justify-center rounded-xl transition-colors ${isDarkMode ? 'text-white/40 hover:text-amber-400' : 'text-black/40 hover:text-amber-500'}`}
+                className={`hidden sm:flex w-9 h-9 items-center justify-center rounded-xl transition-colors ${isDarkMode ? 'text-white/40 hover:text-amber-400' : 'text-black/40 hover:text-amber-500'}`}
                 style={{border: isDarkMode ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,0,0,0.08)'}}>
                 {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
               </button>
@@ -3753,7 +2852,6 @@ export default function App() {
           {currentView === 'avatar-builder' && <AvatarBuilderView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
           {currentView === 'ad-builder' && <ProductAdBuilderView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
           {currentView === 'lifestyle-builder' && <LifestyleBuilderView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
-          {currentView === 'film-builder' && <FilmBuilderView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
           {currentView === 'admin' && user?.email === ADMIN_EMAIL && <AdminView setCurrentView={setCurrentView} lang={lang} user={user} />}
           {currentView === 'impressum' && <ImpressumView setCurrentView={setCurrentView} lang={lang} />}
           {currentView === 'datenschutz' && <DatenschutzView setCurrentView={setCurrentView} lang={lang} />}
