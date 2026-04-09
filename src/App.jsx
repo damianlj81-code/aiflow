@@ -40,7 +40,7 @@ const getYTId = (url) => {
 // =========================================================================
 // TOKEN SYSTEM
 // =========================================================================
-const TOKENS_FREE = 3;
+const TOKENS_FREE = 5; // 1 avatar + 1 ad + 1 lifestyle + 2 film
 const STRIPE_PRO_LINK = 'https://buy.stripe.com/plink_1TJfC4CEjxjarOHxGwGnaCuE'; // 89 PLN miesiecznie
 const STRIPE_STARTER_LINK = 'https://buy.stripe.com/plink_1TJfC4CEjxjarOHxGwGnaCuE'; // 30 PLN miesiecznie
 const STRIPE_ANNUAL_LINK = 'https://buy.stripe.com/plink_1TJfDbCEjxjarOHxLcVqhQr4'; // 899 PLN rocznie
@@ -63,7 +63,7 @@ async function getTokenData(db, uid) {
   const ref = doc(db, 'artifacts', appId, 'public', 'data', 'tokens', uid);
   const snap = await getDoc(ref);
   if (!snap.exists()) {
-    await setDoc(ref, { tokens: TOKENS_FREE, used: 0, createdAt: new Date().toISOString(), pro: false, starter: false });
+    await setDoc(ref, { tokens: TOKENS_FREE, tokens_avatar: 1, tokens_ad: 1, tokens_lifestyle: 1, tokens_film: 2, used: 0, createdAt: new Date().toISOString(), pro: false, starter: false });
     return { tokens: TOKENS_FREE, isPro: false, isStarter: false, isExpired: false, paymentFailed: false, daysLeft: null, plan: null };
   }
   const data = snap.data();
@@ -712,10 +712,10 @@ const AplikacjeView = ({ t, user, onLoginRequest, onCreatorChange }) => {
   const currentIdx = activeApp ? apps.findIndex(a => a.id === activeApp) : -1;
 
   const goNext = () => {
-    if (currentIdx < apps.length - 1) setActiveApp(apps[currentIdx + 1].id);
+    if (currentIdx < apps.length - 1) openApp(apps[currentIdx + 1].id);
   };
   const goPrev = () => {
-    if (currentIdx > 0) setActiveApp(apps[currentIdx - 1].id);
+    if (currentIdx > 0) openApp(apps[currentIdx - 1].id);
   };
 
   // If an app is open, render it fullscreen with side arrows + bottom back button
@@ -1414,7 +1414,7 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
           ) : !canGenerate ? (
             <div className="text-center">
               <p className="text-slate-500 text-sm mb-3">{t.lang==='EN' ? 'No tokens left.' : 'Brak tokenow. Przejdz na plan Starter.'}</p>
-              <a href={`https://buy.stripe.com/plink_1TJfC4CEjxjarOHxGwGnaCuE?client_reference_id=${user?.uid || ''}&prefilled_email=${encodeURIComponent(user?.email || '')}`}
+              <a href={`https://buy.stripe.com/plink_1TJfC4CEjxjarOHxGwGnaCuE?client_reference_id=${user?.uid || ''}`}
                 target="_blank" rel="noopener noreferrer"
                 className="inline-block px-10 py-4 bg-amber-500 hover:bg-amber-400 text-black font-black uppercase tracking-widest text-sm rounded-2xl transition-all shadow-lg shadow-amber-500/20">
                 {t.lang==='EN' ? 'Get Starter — 89 PLN/mo' : 'Kup Starter — 89 PLN/mies'}
@@ -2023,7 +2023,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
                 ) : !canGenerate ? (
                   <div className="text-center py-2">
                     <p className="text-xs text-slate-500 mb-3">{t.lang==='EN' ? 'No tokens left.' : 'Brak tokenow. Przejdz na plan Starter.'}</p>
-                    <a href={`https://buy.stripe.com/plink_1TJfC4CEjxjarOHxGwGnaCuE?client_reference_id=${user?.uid || ''}&prefilled_email=${encodeURIComponent(user?.email || '')}`}
+                    <a href={`https://buy.stripe.com/plink_1TJfC4CEjxjarOHxGwGnaCuE?client_reference_id=${user?.uid || ''}`}
                       target="_blank" rel="noopener noreferrer"
                       className="block w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-black text-sm uppercase tracking-wider text-center transition-colors">
                       {t.lang==='EN' ? 'Get Starter — 89 PLN/mo' : 'Kup Starter — 89 PLN/mies'}
@@ -2412,7 +2412,7 @@ const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
             ) : !canGenerate ? (
               <div className="text-center">
                 <p className="text-slate-500 text-sm mb-3">{t.lang==='EN' ? 'No tokens left.' : 'Brak tokenów. Przejdź na plan Starter.'}</p>
-                <a href={`https://buy.stripe.com/plink_1TJfC4CEjxjarOHxGwGnaCuE?client_reference_id=${user?.uid || ''}&prefilled_email=${encodeURIComponent(user?.email || '')}`}
+                <a href={`https://buy.stripe.com/plink_1TJfC4CEjxjarOHxGwGnaCuE?client_reference_id=${user?.uid || ''}`}
                   target="_blank" rel="noopener noreferrer"
                   className="inline-block px-10 py-4 bg-amber-500 hover:bg-amber-400 text-black font-black uppercase tracking-widest text-sm rounded-2xl transition-all shadow-lg shadow-amber-500/20">
                   {t.lang==='EN' ? 'Get Starter — 89 PLN/mo' : 'Kup Starter — 89 PLN/mies'}
@@ -3446,9 +3446,9 @@ export default function App() {
   // New nav items: Academy → Aplikacje → Dodatki → Tutoriale
   const handleNavigate = (view) => { setCurrentView(view); setActiveCreator(null); setMobileMenuOpen(false); };
   const navItems = [
-    { id: 'home', label: t.lang === 'EN' ? 'Academy' : 'Academy' },
-    { id: 'aplikacje', label: 'Aplikacje' },
-    { id: 'dodatki', label: 'Dodatki' },
+    { id: 'home', label: 'Academy' },
+    { id: 'aplikacje', label: t.lang === 'EN' ? 'Apps' : 'Aplikacje' },
+    { id: 'dodatki', label: t.lang === 'EN' ? 'Extras' : 'Dodatki' },
     { id: 'tutorials', label: t.nav_tutorials },
     { id: 'cennik', label: t.lang === 'EN' ? 'Pricing' : 'Cennik' },
   ];
