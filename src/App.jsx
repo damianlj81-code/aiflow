@@ -1476,6 +1476,13 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
   const [mood, setMood] = useState('luxury');
   const [speed, setSpeed] = useState('slow_motion');
 
+  // Tryb efektów Image-to-Video
+  const [adMode, setAdMode] = useState('prompt');
+  const [effectEnv, setEffectEnv] = useState('');
+  const [effectFalling, setEffectFalling] = useState([]);
+  const [effectColors, setEffectColors] = useState([]);
+  const [effectIntensity, setEffectIntensity] = useState(50);
+
   const GENERATORS = [
     { value: 'kling', label: 'Kling AI' },
     { value: 'runway', label: 'Runway Gen-4' },
@@ -1677,6 +1684,47 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
 
   const prompt = generatePrompt();
 
+  // Generuj prompt efektów
+  const ENV_PROMPTS = {
+    water: 'product submerged in crystal clear water, light caustics, water reflections',
+    sand: 'product on warm desert sand, soft golden shadows',
+    black_studio: 'pure black studio background, dramatic directional light',
+    white_studio: 'clean white studio, soft even lighting',
+    forest: 'lush green forest floor, dappled natural light, bokeh',
+    rain: 'product in rain, wet surface, raindrops falling around',
+    snow: 'product in snow, snowflakes falling, winter atmosphere',
+    marble: 'product on luxury marble surface, reflective floor',
+    concrete: 'product on raw concrete, urban industrial setting',
+  };
+  const FALL_PROMPTS = {
+    powder: 'powder explosion bursting around',
+    liquid_pour: 'liquid being poured over',
+    rain_drops: 'rain of particles falling on',
+    sparks: 'sparks and embers flying around',
+    petals: 'petals falling gently on',
+    glitter: 'glitter and sparkles raining on',
+    smoke: 'smoke swirling around',
+  };
+  const COLOR_MAP = {
+    golden:'golden, warm gold', silver:'silver, metallic silver', pink:'soft pink, rose',
+    red:'deep red, crimson', green:'vibrant green, emerald', blue:'electric blue, cobalt',
+    purple:'deep purple, violet', rainbow:'rainbow, multi-color', white:'pure white, pearl',
+    black:'dark black, obsidian', neon_green:'neon green, fluorescent', orange:'vivid orange',
+  };
+
+  const toggleFalling = (val) => setEffectFalling(prev => prev.includes(val) ? prev.filter(x=>x!==val) : [...prev, val]);
+  const toggleColor = (val) => setEffectColors(prev => prev.includes(val) ? prev.filter(x=>x!==val) : [...prev, val]);
+
+  const generateEffectPrompt = () => {
+    if (!effectEnv && effectFalling.length === 0) return t.lang==='EN' ? 'Select environment or effect above.' : 'Wybierz otoczenie lub efekt powyżej.';
+    const intensity = effectIntensity < 33 ? 'subtle, delicate' : effectIntensity < 66 ? 'moderate, balanced' : 'intense, dramatic';
+    const colorDesc = effectColors.length > 0 ? effectColors.map(c => COLOR_MAP[c] || c).join(' and ') : 'colorful';
+    const envPart = effectEnv ? ENV_PROMPTS[effectEnv] || '' : '';
+    const fallParts = effectFalling.map(f => `${colorDesc} ${FALL_PROMPTS[f]} the product`).join(', ');
+    const combined = [envPart, fallParts].filter(Boolean).join(', ');
+    return `Image to video. Detect the main product from the reference image and keep it exactly unchanged. Setting: ${combined}. Intensity: ${intensity}. ${speed.replace('_',' ')}, ${GENERATORS.find(g=>g.value===generator)?.label || 'Kling AI'} optimized. Product must remain identical to reference.`;
+  };
+
   const handleCopy = async () => {
     if (!productName.trim() || isProductBlocked(productName) || !canGenerate) return;
     await navigator.clipboard.writeText(prompt);
@@ -1709,7 +1757,120 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* TRYB */}
+        <div className="flex gap-3 mb-6 justify-center">
+          {[['prompt','📝',t.lang==='EN'?'Describe product':'Opisz produkt'],['effect','✨',t.lang==='EN'?'Effect on photo':'Efekt na zdjęcie']].map(([m,icon,lbl])=>(
+            <button key={m} onClick={()=>setAdMode(m)}
+              className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all border ${adMode===m?'bg-amber-500 border-amber-500 text-black':'border-black/10 dark:border-white/10 text-slate-500 hover:border-amber-500/50'}`}>
+              {icon} {lbl}
+            </button>
+          ))}
+        </div>
+
+        {/* EFEKTY IMAGE-TO-VIDEO */}
+        {adMode==='effect' && (
+          <div className="max-w-2xl mx-auto mb-6">
+            <div className="bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4 mb-4 text-center">
+              <p className="text-[10px] font-black uppercase tracking-widest text-amber-400 mb-1">💡 {t.lang==='EN'?'How to use':'Jak używać'}</p>
+              <p className="text-xs text-slate-500">{t.lang==='EN'?'Choose effects → copy prompt → upload YOUR photo to Kling/Runway → paste prompt → generate!':'Wybierz efekty → skopiuj prompt → wgraj SWOJE zdjęcie do Kling/Runway → wklej prompt → generuj!'}</p>
+            </div>
+            <div className="bg-white dark:bg-[#0a0a0a] border border-black/10 dark:border-[#1a1a1a] rounded-2xl p-5 space-y-6">
+
+              {/* SEKCJA 1 — Otoczenie */}
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-500 mb-3">🌍 {t.lang==='EN'?'Environment (optional)':'Otoczenie (opcjonalne)'}</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {[['','⬜',t.lang==='EN'?'None':'Brak'],['water','🌊',t.lang==='EN'?'Water':'Woda'],['sand','🏜️',t.lang==='EN'?'Sand':'Piasek'],['black_studio','⬛',t.lang==='EN'?'Black studio':'Czarne studio'],['white_studio','🤍',t.lang==='EN'?'White studio':'Białe studio'],['forest','🌿',t.lang==='EN'?'Forest':'Las'],['rain','🌧️',t.lang==='EN'?'Rain':'Deszcz'],['snow','❄️',t.lang==='EN'?'Snow':'Śnieg'],['marble','🏛️',t.lang==='EN'?'Marble':'Marmur'],['concrete','🧱',t.lang==='EN'?'Concrete':'Beton']].map(([val,icon,lbl])=>(
+                    <button key={val} onClick={()=>setEffectEnv(val)}
+                      className={`py-2 px-2 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all border flex items-center gap-1.5 ${effectEnv===val?'bg-amber-500 border-amber-500 text-black':'bg-slate-100 dark:bg-[#111] border-black/10 dark:border-[#222] text-slate-500 hover:border-amber-500/50'}`}>
+                      {icon} {lbl}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* SEKCJA 2 — Co spada */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-500">💫 {t.lang==='EN'?'Falling effect (multi)':'Co spada (kilka)'}</p>
+                  {effectFalling.length>0 && <button onClick={()=>setEffectFalling([])} className="text-[9px] text-slate-400 hover:text-red-400 uppercase">✕ {t.lang==='EN'?'Clear':'Wyczyść'}</button>}
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {[['powder','💥',t.lang==='EN'?'Powder explosion':'Wybuch prochu'],['liquid_pour','🥇',t.lang==='EN'?'Liquid pour':'Ciekłe polewanie'],['rain_drops','🌧️',t.lang==='EN'?'Particle rain':'Deszcz cząsteczek'],['sparks','✨',t.lang==='EN'?'Sparks':'Iskry i żar'],['petals','🌸',t.lang==='EN'?'Petals':'Płatki'],['glitter','⭐',t.lang==='EN'?'Glitter':'Brokat'],['smoke','🌫️',t.lang==='EN'?'Smoke':'Dym']].map(([val,icon,lbl])=>(
+                    <button key={val} onClick={()=>toggleFalling(val)}
+                      className={`py-2 px-3 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all border flex items-center gap-2 ${effectFalling.includes(val)?'bg-amber-500 border-amber-500 text-black':'bg-slate-100 dark:bg-[#111] border-black/10 dark:border-[#222] text-slate-500 hover:border-amber-500/50'}`}>
+                      {effectFalling.includes(val)?'✓':icon} {lbl}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* SEKCJA 3 — Kolor */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-500">🎨 {t.lang==='EN'?'Effect color (mix!)':'Kolor efektu (mieszaj!)'}</p>
+                  {effectColors.length>1 && <span className="text-[9px] text-amber-400 font-black">{effectColors.length} {t.lang==='EN'?'colors':'kolory'}</span>}
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {[['golden','🟡',t.lang==='EN'?'Golden':'Złoty'],['silver','⚪',t.lang==='EN'?'Silver':'Srebrny'],['pink','🩷',t.lang==='EN'?'Pink':'Różowy'],['red','🔴',t.lang==='EN'?'Red':'Czerwony'],['green','💚',t.lang==='EN'?'Green':'Zielony'],['blue','🔵',t.lang==='EN'?'Blue':'Niebieski'],['purple','💜',t.lang==='EN'?'Purple':'Fioletowy'],['rainbow','🌈',t.lang==='EN'?'Rainbow':'Tęczowy'],['white','🤍',t.lang==='EN'?'White':'Biały'],['black','🖤',t.lang==='EN'?'Black':'Czarny'],['neon_green','🟢',t.lang==='EN'?'Neon':'Neon'],['orange','🟠',t.lang==='EN'?'Orange':'Pomarańczowy']].map(([val,icon,lbl])=>(
+                    <button key={val} onClick={()=>toggleColor(val)}
+                      className={`py-2 px-2 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all border flex items-center gap-1 ${effectColors.includes(val)?'bg-amber-500 border-amber-500 text-black':'bg-slate-100 dark:bg-[#111] border-black/10 dark:border-[#222] text-slate-500 hover:border-amber-500/50'}`}>
+                      {effectColors.includes(val)?'✓':icon} {lbl}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Suwak */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-amber-500">🎚️ {t.lang==='EN'?'Intensity':'Intensywność'}</p>
+                  <span className="text-xs font-black text-amber-400">{effectIntensity<33?(t.lang==='EN'?'Subtle':'Delikatny'):effectIntensity<66?(t.lang==='EN'?'Balanced':'Zbalansowany'):(t.lang==='EN'?'Dramatic':'Dramatyczny')}</span>
+                </div>
+                <input type="range" min="0" max="100" value={effectIntensity} onChange={e=>setEffectIntensity(Number(e.target.value))}
+                  className="w-full h-2 rounded-full appearance-none cursor-pointer"
+                  style={{background:`linear-gradient(to right,#f59e0b ${effectIntensity}%,#374151 ${effectIntensity}%)`}}/>
+                <div className="flex justify-between text-[9px] text-slate-500 mt-1">
+                  <span>{t.lang==='EN'?'Subtle':'Delikatny'}</span><span>{t.lang==='EN'?'Dramatic':'Dramatyczny'}</span>
+                </div>
+              </div>
+
+              {/* Podgląd + Generator select */}
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-amber-500 mb-2">🎬 Generator</p>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+                  {GENERATORS.map(g=>(
+                    <button key={g.value} onClick={()=>setGenerator(g.value)}
+                      className={`py-2 px-2 rounded-xl text-xs font-bold uppercase tracking-wider border transition-all ${generator===g.value?'bg-amber-500 border-amber-500 text-black':'bg-slate-100 dark:bg-[#111] border-black/10 dark:border-[#222] text-slate-500 hover:border-amber-500/50'}`}>
+                      {g.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="bg-black/5 dark:bg-white/5 rounded-xl p-3 mb-4 min-h-[60px]">
+                  <p className="text-[9px] font-mono text-slate-500 leading-relaxed">{generateEffectPrompt()}</p>
+                </div>
+                {!isLoggedIn?(
+                  <button onClick={onLoginRequest} className="w-full py-3 rounded-xl bg-amber-500 text-black font-black text-xs uppercase tracking-widest">
+                    {t.lang==='EN'?'Log in to copy':'Zaloguj się aby skopiować'}
+                  </button>
+                ):(effectEnv===''&&effectFalling.length===0)?(
+                  <div className="w-full py-3 rounded-xl font-black text-xs uppercase tracking-widest text-center bg-slate-200 dark:bg-[#222] text-slate-400 cursor-not-allowed">
+                    {t.lang==='EN'?'Select at least 1 effect':'Wybierz co najmniej 1 efekt'}
+                  </div>
+                ):(
+                  <button onClick={async()=>{await navigator.clipboard.writeText(generateEffectPrompt());setCopied(true);setTimeout(()=>setCopied(false),2000);}}
+                    className={`w-full py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${copied?'bg-green-500 text-white':'bg-amber-500 hover:bg-amber-400 text-black'}`}>
+                    {copied?'✓ Skopiowano!':'📋 Kopiuj Prompt Efektu'}
+                  </button>
+                )}
+              </div>
+
+            </div>
+          </div>
+        )}
+
+        {/* NORMALNY TRYB */}
+        {adMode==='prompt' && <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
           {/* LEFT — Controls */}
           <div className="lg:col-span-2 space-y-4">
@@ -1893,7 +2054,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
             </div>
           </div>
 
-        </div>
+        </div>}
       </div>
     </div>
   );
