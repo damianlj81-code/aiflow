@@ -41,8 +41,8 @@ const getYTId = (url) => {
 // TOKEN SYSTEM
 // =========================================================================
 const TOKENS_FREE = 5; // 1 avatar + 1 ad + 1 lifestyle + 2 film
-const STRIPE_MONTHLY = 'https://buy.stripe.com/bJedR8ayBgOX5MY9I68bS0a'; // 89 PLN miesiecznie
-const STRIPE_ANNUAL = 'https://buy.stripe.com/7sY3cu0Y1eGP4IU5rQ8bS0b';   // 899 PLN rocznie
+const STRIPE_MONTHLY = 'https://buy.stripe.com/dRm6oG9ux6ajeju3jI8bS08'; // 89 PLN miesiecznie
+const STRIPE_ANNUAL = 'https://buy.stripe.com/fZudR89ux0PZ8ZaaMa8bS07';   // 899 PLN rocznie
 // Aliasy dla kompatybilnosci z reszta kodu
 const STRIPE_PRO_LINK = STRIPE_MONTHLY;
 const STRIPE_STARTER_LINK = STRIPE_MONTHLY;
@@ -332,7 +332,7 @@ const PricingButton = ({ plan, t, highlight, user, onLoginRequest }) => {
       onClick={e => { if (!user || user.isAnonymous) { e.preventDefault(); onLoginRequest && onLoginRequest(); }}}
       target="_blank" rel="noopener noreferrer"
       className={`block w-full py-3.5 font-black text-[11px] uppercase tracking-widest rounded-xl transition-all text-center ${highlight ? 'bg-amber-500 hover:bg-amber-400 text-black shadow-lg shadow-amber-500/20' : 'bg-black dark:bg-white text-white dark:text-black hover:bg-amber-500 hover:text-black dark:hover:bg-amber-500 dark:hover:text-black'}`}>
-      {t.lang === 'EN' ? 'Get Access →' : 'Uzyskaj dostęp →'}
+      {t.lang === 'EN' ? '🔓 Unlock Everything →' : '🔓 Odblokuj wszystko →'}
     </a>
   );
 };
@@ -1457,7 +1457,7 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
               <a href={`${STRIPE_MONTHLY}?client_reference_id=${user?.uid || ''}`}
                 target="_blank" rel="noopener noreferrer"
                 className="inline-block px-10 py-4 bg-amber-500 hover:bg-amber-400 text-black font-black uppercase tracking-widest text-sm rounded-2xl transition-all shadow-lg shadow-amber-500/20">
-                {t.lang==='EN' ? 'Get Starter — 89 PLN/mo' : 'Kup Starter — 89 PLN/mies'}
+                {t.lang==='EN' ? '🔓 Unlock Everything →' : '🔓 Odblokuj wszystko →'}
               </a>
             </div>
           ) : (
@@ -1465,11 +1465,7 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
               {copied ? (t.lang==='EN' ? 'Copied! Paste in your AI generator' : 'Skopiowano! Wklej do generatora AI') : (t.lang==='EN' ? 'Generate & Copy Prompt' : 'Generuj i Kopiuj Prompt')}
             </button>
           )}
-          {isLoggedIn && !isPro && !isStarter && tokens !== null && (
-            <p className="text-[10px] text-slate-600 uppercase tracking-widest">
-              {t.lang==='EN' ? `${tokens} free generations remaining` : `Pozostalo ${tokens} darmowych generacji`}
-            </p>
-          )}
+          
         </div>
 
       </div>
@@ -1847,7 +1843,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
                     <a href={`${STRIPE_MONTHLY}?client_reference_id=${user?.uid||''}`}
                       target="_blank" rel="noopener noreferrer"
                       className="block w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-black text-sm uppercase tracking-wider text-center">
-                      {t.lang==='EN'?'Get access — 89 PLN/mo':'Kup dostęp — 89 PLN/mies'}
+                      {t.lang==='EN'?'🔓 Unlock Everything →':'🔓 Odblokuj wszystko →'}
                     </a>
                   </div>
                 ) : (
@@ -1857,11 +1853,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
                   </button>
                 )}
 
-                {isLoggedIn && !isPro && !isStarter && tokens !== null && (
-                  <p className="text-center text-[10px] text-slate-600 mt-2">
-                    {t.lang==='EN'?`${tokens} free uses left`:`Pozostało ${tokens} darmowych użyć`}
-                  </p>
-                )}
+                
 
                 <div className="mt-4 p-3 bg-slate-100 dark:bg-[#111] rounded-xl">
                   <p className="text-[10px] text-slate-500 leading-relaxed">
@@ -2233,7 +2225,7 @@ const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
                 <a href={`${STRIPE_MONTHLY}?client_reference_id=${user?.uid || ''}`}
                   target="_blank" rel="noopener noreferrer"
                   className="inline-block px-10 py-4 bg-amber-500 hover:bg-amber-400 text-black font-black uppercase tracking-widest text-sm rounded-2xl transition-all shadow-lg shadow-amber-500/20">
-                  {t.lang==='EN' ? 'Get Starter — 89 PLN/mo' : 'Kup Starter — 89 PLN/mies'}
+                  {t.lang==='EN' ? '🔓 Unlock Everything →' : '🔓 Odblokuj wszystko →'}
                 </a>
               </div>
             ) : (
@@ -2241,11 +2233,7 @@ const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
                 {copied ? (t.lang==='EN' ? 'Copied! Paste in your AI generator' : 'Skopiowano! Wklej do generatora AI') : (t.lang==='EN' ? 'Generate & Copy Prompt' : 'Generuj i Kopiuj Prompt')}
               </button>
             )}
-            {isLoggedIn && !isPro && !isStarter && tokens !== null && (
-              <p className="text-[10px] text-slate-600 uppercase tracking-widest">
-                {t.lang==='EN' ? `${tokens} free generations remaining` : `Pozostało ${tokens} darmowych generacji`}
-              </p>
-            )}
+            
           </div>
 
         </div>
@@ -2275,6 +2263,7 @@ const FilmBuilderView = ({ t, user, onLoginRequest }) => {
       getTokenData(db, user.uid).then(({ tokens, isPro, isStarter }) => {
         setTokens(tokens); setIsPro(isPro); setIsStarter(isStarter);
       });
+      getCreatorTokens(db, user.uid, 'film').then(t => setCreatorToken(t));
     }
   }, [user]);
   const canGenerate = isPro || isStarter || (creatorToken !== null && creatorToken > 0);
@@ -2627,7 +2616,7 @@ const FilmBuilderView = ({ t, user, onLoginRequest }) => {
               <a href={`${STRIPE_MONTHLY}?client_reference_id=${user?.uid || ''}`}
                 target="_blank" rel="noopener noreferrer"
                 className="block w-full py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-black font-black text-sm uppercase tracking-wider transition-all text-center shadow-lg">
-                {t.lang === 'EN' ? 'Get Starter — 89 PLN/mo' : 'Kup Starter — 89 PLN/mies'}
+                {t.lang === 'EN' ? '🔓 Unlock Everything →' : '🔓 Odblokuj wszystko →'}
               </a>
             ) : (
               <button onClick={handleGenerateFrames} disabled={loadingFrame === 'frames'}
@@ -2687,7 +2676,7 @@ const FilmBuilderView = ({ t, user, onLoginRequest }) => {
                 <a href={`${STRIPE_MONTHLY}?client_reference_id=${user?.uid || ''}`}
                   target="_blank" rel="noopener noreferrer"
                   className="block w-full py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-black font-black text-sm uppercase tracking-wider transition-all text-center">
-                  {t.lang === 'EN' ? 'Get Starter — 89 PLN/mo' : 'Kup Starter — 89 PLN/mies'}
+                  {t.lang === 'EN' ? '🔓 Unlock Everything →' : '🔓 Odblokuj wszystko →'}
                 </a>
               ) : (
                 <button onClick={handleGenerateAnims} disabled={loadingFrame === 'anims'}
@@ -2974,7 +2963,7 @@ const CennikView = ({ t, user, onLoginRequest }) => {
               onClick={e => { if (!user || user.isAnonymous) { e.preventDefault(); onLoginRequest(); }}}
               target="_blank" rel="noopener noreferrer"
               className="block w-full py-3.5 font-black text-[11px] uppercase tracking-widest rounded-xl text-center bg-amber-500 hover:bg-amber-400 text-black transition-all shadow-lg shadow-amber-500/30">
-              {t.lang==='EN'?'Get Monthly →':'Wybierz Miesięczny →'}
+              {t.lang==='EN'?'🔓 Unlock Everything →':'🔓 Odblokuj wszystko →'}
             </a>
             )}
           </div>
@@ -3010,7 +2999,7 @@ const CennikView = ({ t, user, onLoginRequest }) => {
               onClick={e => { if (!user || user.isAnonymous) { e.preventDefault(); onLoginRequest(); }}}
               target="_blank" rel="noopener noreferrer"
               className="block w-full py-3.5 font-black text-[11px] uppercase tracking-widest rounded-xl text-center bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 hover:bg-emerald-500 hover:text-black transition-all">
-              {t.lang==='EN'?'Get Annual →':'Wybierz Roczny →'}
+              {t.lang==='EN'?'⚡ Best Value — Go Annual →':'⚡ Najlepsza cena — Roczny →'}
             </a>
           </div>
 
