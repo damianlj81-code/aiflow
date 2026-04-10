@@ -1313,7 +1313,7 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
       (!isMale && char.nails !== 'none') ? char.nails : '',
       char.topClothing,
       char.bottomClothing,
-      char.legwear !== '' ? char.legwear : '',
+      (!isMale && char.legwear !== '') ? char.legwear : '',
       char.shoes,
       char.tattoo !== 'none' ? char.tattoo : '',
       clothingSuffix,
