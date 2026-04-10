@@ -139,9 +139,19 @@ async function useTokenForCreator(db, uid, creatorId) {
 async function getCreatorTokens(db, uid, creatorId) {
   const ref = doc(db, 'artifacts', appId, 'public', 'data', 'tokens', uid);
   const snap = await getDoc(ref);
-  if (!snap.exists()) return 0;
+  if (!snap.exists()) {
+    // Nowy user - inicjalizujemy tokeny
+    await setDoc(ref, { tokens: TOKENS_FREE, tokens_avatar: 1, tokens_ad: 1, tokens_lifestyle: 1, tokens_film: 2, used: 0, createdAt: new Date().toISOString(), pro: false, starter: false });
+    return creatorId === 'film' ? 2 : 1;
+  }
   const field = `tokens_${creatorId}`;
-  return snap.data()[field] ?? 0;
+  const val = snap.data()[field];
+  // Stary user bez per-kreator tokenów - dajemy mu 1
+  if (val === undefined) {
+    await updateDoc(ref, { tokens_avatar: 1, tokens_ad: 1, tokens_lifestyle: 1, tokens_film: 2 });
+    return creatorId === 'film' ? 2 : 1;
+  }
+  return val;
 }
 
 const translations = {
