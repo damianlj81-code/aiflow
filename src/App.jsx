@@ -41,8 +41,8 @@ const getYTId = (url) => {
 // TOKEN SYSTEM
 // =========================================================================
 const TOKENS_FREE = 5; // 1 avatar + 1 ad + 1 lifestyle + 2 film
-const STRIPE_MONTHLY = 'https://buy.stripe.com/plink_1T7hJcCEjxjarOHxYmzkNNPR'; // TEST 50 centow miesiecznie
-const STRIPE_ANNUAL = 'https://buy.stripe.com/plink_1T7hFOCEjxjarOHxOs0gb4W2';   // TEST 1 euro rocznie
+const STRIPE_MONTHLY = 'https://buy.stripe.com/dRm6oG9ux6ajeju3jI8bS08'; // 89 PLN miesiecznie
+const STRIPE_ANNUAL = 'https://buy.stripe.com/fZudR89ux0PZ8ZaaMa8bS07';   // 899 PLN rocznie
 // Aliasy dla kompatybilnosci z reszta kodu
 const STRIPE_PRO_LINK = STRIPE_MONTHLY;
 const STRIPE_STARTER_LINK = STRIPE_MONTHLY;
@@ -2917,7 +2917,7 @@ const ZloteCytaty = () => {
 
 const CennikView = ({ t, user, onLoginRequest }) => {
   const isAdmin = user?.email === ADMIN_EMAIL;
-  const STRIPE_MONTHLY = 'https://buy.stripe.com/plink_1T7hJcCEjxjarOHxYmzkNNPR'; // TEST 50 centow miesiecznie
+  const STRIPE_MONTHLY = 'https://buy.stripe.com/dRm6oG9ux6ajeju3jI8bS08'; // 89 PLN miesiecznie
   const STRIPE_ANNUAL = 'https://buy.stripe.com/plink_1TJfDbCEjxjarOHxLcVqhQr4'; // 899 PLN rocznie
 
   return (
