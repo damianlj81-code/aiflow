@@ -1547,11 +1547,11 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
   };
 
   const CAMERA_MOVES = {
-    ground_to_product: 'camera starts low at ground level and slowly moves up toward the product, dramatic reveal',
-    orbit_360: 'camera slowly orbits 360 degrees around the product',
-    pullback: 'camera starts close on product detail then pulls back to reveal full product',
-    tilt_up: 'camera tilts upward from product base to top',
-    static: 'locked static shot, all movement in effects and lighting',
+    dolly_in: 'slow cinematic dolly-in from far wide shot toward the product, camera moves forward getting closer',
+    orbit_360: 'camera slowly orbits 360 degrees around the product, smooth circular motion',
+    pullback: 'camera starts in extreme close-up of product detail then slowly pulls back to reveal full product',
+    crane_up: 'camera starts at ground level looking up then slowly cranes upward revealing the full product from bottom to top',
+    static: 'locked static tripod shot, no camera movement, all movement in effects and lighting',
   };
 
 
@@ -1714,7 +1714,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
                 <div className={sectionClass}>
                   <p className={headerClass}>🎥 {t.lang==='EN'?'Camera Movement':'Ruch Kamery'}</p>
                   <div className="grid grid-cols-2 gap-2 mb-4">
-                    {[['ground_to_product','⬆️',t.lang==='EN'?'Ground to product':'Od ziemi do produktu'],['orbit_360','🔄',t.lang==='EN'?'Orbit 360°':'Orbita 360°'],['pullback','◀️',t.lang==='EN'?'Pull back':'Oddalenie'],['tilt_up','↕️',t.lang==='EN'?'Tilt up':'Obrót w górę'],['static','⏸️',t.lang==='EN'?'Static':'Statyczny']].map(([val,icon,lbl])=>(
+                    {[['dolly_in','🎥',t.lang==='EN'?'Dolly in (zoom in)':'Zbliżenie (dolly)'],['orbit_360','🔄',t.lang==='EN'?'Orbit 360°':'Orbita 360°'],['pullback','◀️',t.lang==='EN'?'Pull back (zoom out)':'Oddalenie'],['crane_up','⬆️',t.lang==='EN'?'Crane up (bottom to top)':'Kranowanie (dół do góry)'],['static','⏸️',t.lang==='EN'?'Static':'Statyczny']].map(([val,icon,lbl])=>(
                       <button key={val} onClick={()=>setCameraMove(cameraMove===val?'':val)}
                         className={`py-2.5 px-3 rounded-xl text-xs font-black uppercase tracking-wider border transition-all ${cameraMove===val?'bg-amber-500 border-amber-500 text-black':'bg-slate-100 dark:bg-[#111] border-black/10 dark:border-[#222] text-slate-500 hover:border-amber-500/50'}`}>
                         {icon} {lbl}
