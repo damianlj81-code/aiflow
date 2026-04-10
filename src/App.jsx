@@ -41,8 +41,8 @@ const getYTId = (url) => {
 // TOKEN SYSTEM
 // =========================================================================
 const TOKENS_FREE = 5; // 1 avatar + 1 ad + 1 lifestyle + 2 film
-const STRIPE_MONTHLY = 'https://buy.stripe.com/bJedR8ayBgOX5MY9I68bS0a'; // 89 PLN miesiecznie
-const STRIPE_ANNUAL = 'https://buy.stripe.com/7sY3cu0Y1eGP4IU5rQ8bS0b';   // 899 PLN rocznie
+const STRIPE_MONTHLY = 'https://buy.stripe.com/dRm6oG9ux6ajeju3jI8bS08'; // 89 PLN miesiecznie
+const STRIPE_ANNUAL = 'https://buy.stripe.com/fZudR89ux0PZ8ZaaMa8bS07';   // 899 PLN rocznie
 // Aliasy dla kompatybilnosci z reszta kodu
 const STRIPE_PRO_LINK = STRIPE_MONTHLY;
 const STRIPE_STARTER_LINK = STRIPE_MONTHLY;
@@ -1509,7 +1509,6 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
   const [cameraSpeed, setCameraSpeed] = useState(5);
 
   // --- ZAKŁADKA 2: EFEKTY ---
-  const [effectEnv, setEffectEnv] = useState('');
   const [effectFalling, setEffectFalling] = useState([]);
   const [effectColors, setEffectColors] = useState([]);
   const [effectIntensity, setEffectIntensity] = useState(50);
@@ -1523,14 +1522,20 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
     water: 'product submerged in crystal clear water, light caustics, water reflections',
     milk: 'product in white creamy milk, smooth milky surface, soft light',
     oil: 'product in glossy oil, rainbow reflections, viscous liquid',
+    wet_street: 'product on wet urban street, rain reflections, puddles around',
     // Suche
     concrete: 'product on raw concrete, urban industrial texture',
     brick: 'product on red brick wall texture, rough surface',
     sand: 'product on desert sand, warm golden grains',
+    beach_sand: 'product on beach sand, ocean in background, coastal atmosphere',
     metal: 'product on polished metal surface, reflective steel',
     stone: 'product on natural stone, rough rocky texture',
     marble_white: 'product on white marble, luxury veined surface',
     marble_black: 'product on black marble, dark premium surface',
+    // Naturalne
+    forest: 'product on forest floor, moss and leaves, dappled natural light, trees around',
+    snow: 'product on snow covered ground, snowflakes falling, winter atmosphere, cold crisp air',
+    cliff: 'product on rocky cliff edge, dramatic landscape, sky background',
   };
 
   const LIGHTINGS = {
@@ -1549,24 +1554,16 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
     static: 'locked static shot, all movement in effects and lighting',
   };
 
-  const ENV_PROMPTS = {
-    water: 'surrounded by water environment',
-    sand: 'placed on sandy ground with wind',
-    black_studio: 'pure black studio background',
-    white_studio: 'clean white studio background',
-    forest: 'lush green forest setting',
-    rain: 'rain falling around product',
-    snow: 'snowflakes falling, winter atmosphere',
-    marble: 'luxury marble surface',
-    concrete: 'raw concrete urban setting',
-  };
+
 
   const FALL_PROMPTS = {
     powder: 'powder explosion bursting around',
-    liquid_pour: 'liquid being poured over',
-    rain_drops: 'rain of particles falling on',
+    liquid_pour: 'liquid gold or silver being poured over',
+    sparkling_rain: 'rain of sparkling glitter particles falling on',
+    rain: 'natural rain falling on, wet droplets on surface',
+    snow_fall: 'snow falling gently on, soft snowflakes surrounding',
     sparks: 'sparks and embers flying around',
-    petals: 'petals falling gently on',
+    petals: 'flower petals falling gently on',
     glitter: 'glitter and sparkles raining on',
     smoke: 'smoke swirling around',
   };
@@ -1595,7 +1592,6 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
       parts.push(CAMERA_MOVES[cameraMove] + ', ' + speedDesc);
     }
     // Efekty z zakładki 2
-    if (effectEnv && ENV_PROMPTS[effectEnv]) parts.push(ENV_PROMPTS[effectEnv]);
     if (effectFalling.length > 0) {
       const colorDesc = effectColors.length > 0 ? effectColors.map(c => COLOR_MAP[c] || c).join(' and ') : 'colorful';
       const intensity = effectIntensity < 33 ? 'subtle' : effectIntensity < 66 ? 'moderate' : 'intense';
@@ -1683,7 +1679,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
                   <p className={headerClass}>🏔️ {t.lang==='EN'?'Surface':'Podłoże'}</p>
                   <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-2">{t.lang==='EN'?'Wet':'Mokre'}</p>
                   <div className="grid grid-cols-3 gap-2 mb-3">
-                    {[['water','💧',t.lang==='EN'?'Water':'Woda'],['milk','🥛',t.lang==='EN'?'Milk':'Mleko'],['oil','🫙',t.lang==='EN'?'Oil':'Olej']].map(([val,icon,lbl])=>(
+                    {[['water','💧',t.lang==='EN'?'Water':'Woda'],['milk','🥛',t.lang==='EN'?'Milk':'Mleko'],['oil','🫙',t.lang==='EN'?'Oil':'Olej'],['wet_street','🌧️',t.lang==='EN'?'Wet street':'Mokra ulica']].map(([val,icon,lbl])=>(
                       <button key={val} onClick={()=>setSurface(surface===val?'':val)}
                         className={`py-2.5 rounded-xl text-xs font-black uppercase tracking-wider border transition-all ${surface===val?'bg-amber-500 border-amber-500 text-black':'bg-slate-100 dark:bg-[#111] border-black/10 dark:border-[#222] text-slate-500 hover:border-amber-500/50'}`}>
                         {icon} {lbl}
@@ -1692,7 +1688,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
                   </div>
                   <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-2">{t.lang==='EN'?'Dry':'Suche'}</p>
                   <div className="grid grid-cols-3 gap-2">
-                    {[['concrete','🧱',t.lang==='EN'?'Concrete':'Beton'],['brick','🔴',t.lang==='EN'?'Brick':'Cegła'],['sand','🏜️',t.lang==='EN'?'Sand':'Piasek'],['metal','⚙️',t.lang==='EN'?'Metal':'Metal'],['stone','🪨',t.lang==='EN'?'Stone':'Kamień'],['marble_white','🤍',t.lang==='EN'?'White marble':'Marmur biały'],['marble_black','🖤',t.lang==='EN'?'Black marble':'Marmur czarny']].map(([val,icon,lbl])=>(
+                    {[['concrete','🧱',t.lang==='EN'?'Concrete':'Beton'],['brick','🔴',t.lang==='EN'?'Brick':'Cegła'],['sand','🏜️',t.lang==='EN'?'Sand':'Piasek'],['beach_sand','🏖️',t.lang==='EN'?'Beach':'Plaża'],['metal','⚙️',t.lang==='EN'?'Metal':'Metal'],['stone','🪨',t.lang==='EN'?'Stone':'Kamień'],['marble_white','🤍',t.lang==='EN'?'White marble':'Marmur biały'],['marble_black','🖤',t.lang==='EN'?'Black marble':'Marmur czarny'],['forest','🌿',t.lang==='EN'?'Forest':'Las'],['snow','❄️',t.lang==='EN'?'Snow':'Śnieg'],['cliff','🏔️',t.lang==='EN'?'Cliff':'Urwisko']].map(([val,icon,lbl])=>(
                       <button key={val} onClick={()=>setSurface(surface===val?'':val)}
                         className={`py-2.5 rounded-xl text-xs font-black uppercase tracking-wider border transition-all ${surface===val?'bg-amber-500 border-amber-500 text-black':'bg-slate-100 dark:bg-[#111] border-black/10 dark:border-[#222] text-slate-500 hover:border-amber-500/50'}`}>
                         {icon} {lbl}
@@ -1748,19 +1744,6 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
             {adTab==='effects' && (
               <div className="space-y-4">
 
-                {/* Otoczenie */}
-                <div className={sectionClass}>
-                  <p className={headerClass}>🌍 {t.lang==='EN'?'Environment (optional)':'Otoczenie (opcjonalne)'}</p>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[['','⬜',t.lang==='EN'?'None':'Brak'],['water','🌊',t.lang==='EN'?'Water':'Woda'],['sand','🏜️',t.lang==='EN'?'Sand':'Piasek'],['black_studio','⬛',t.lang==='EN'?'Black':'Czarne studio'],['white_studio','🤍',t.lang==='EN'?'White':'Białe studio'],['forest','🌿',t.lang==='EN'?'Forest':'Las'],['rain','🌧️',t.lang==='EN'?'Rain':'Deszcz'],['snow','❄️',t.lang==='EN'?'Snow':'Śnieg'],['marble','🏛️',t.lang==='EN'?'Marble':'Marmur'],['concrete','🧱',t.lang==='EN'?'Concrete':'Beton']].map(([val,icon,lbl])=>(
-                      <button key={val} onClick={()=>setEffectEnv(val)}
-                        className={`py-2 px-2 rounded-xl text-[11px] font-black uppercase tracking-wider border transition-all ${effectEnv===val?'bg-amber-500 border-amber-500 text-black':'bg-slate-100 dark:bg-[#111] border-black/10 dark:border-[#222] text-slate-500 hover:border-amber-500/50'}`}>
-                        {icon} {lbl}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
                 {/* Co spada */}
                 <div className={sectionClass}>
                   <div className="flex items-center justify-between mb-3">
@@ -1768,7 +1751,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
                     {effectFalling.length>0 && <button onClick={()=>setEffectFalling([])} className="text-[9px] text-slate-400 hover:text-red-400 uppercase">✕</button>}
                   </div>
                   <div className="grid grid-cols-2 gap-2">
-                    {[['powder','💥',t.lang==='EN'?'Powder':'Proch'],['liquid_pour','🥇',t.lang==='EN'?'Liquid pour':'Ciekłe'],['rain_drops','🌧️',t.lang==='EN'?'Particle rain':'Deszcz cząsteczek'],['sparks','✨',t.lang==='EN'?'Sparks':'Iskry'],['petals','🌸',t.lang==='EN'?'Petals':'Płatki'],['glitter','⭐',t.lang==='EN'?'Glitter':'Brokat'],['smoke','🌫️',t.lang==='EN'?'Smoke':'Dym']].map(([val,icon,lbl])=>(
+                    {[['powder','💥',t.lang==='EN'?'Powder explosion':'Wybuch prochu'],['liquid_pour','🥇',t.lang==='EN'?'Gold/Silver pour':'Złote/Srebrne polewanie'],['sparkling_rain','✨',t.lang==='EN'?'Sparkling rain':'Błyszczący deszcz'],['rain','🌧️',t.lang==='EN'?'Rain':'Deszcz'],['snow_fall','❄️',t.lang==='EN'?'Snow':'Śnieg'],['sparks','🔥',t.lang==='EN'?'Sparks':'Iskry'],['petals','🌸',t.lang==='EN'?'Petals':'Płatki'],['glitter','⭐',t.lang==='EN'?'Glitter':'Brokat'],['smoke','🌫️',t.lang==='EN'?'Smoke':'Dym']].map(([val,icon,lbl])=>(
                       <button key={val} onClick={()=>toggleFalling(val)}
                         className={`py-2 px-3 rounded-xl text-[11px] font-black uppercase tracking-wider border transition-all flex items-center gap-2 ${effectFalling.includes(val)?'bg-amber-500 border-amber-500 text-black':'bg-slate-100 dark:bg-[#111] border-black/10 dark:border-[#222] text-slate-500 hover:border-amber-500/50'}`}>
                         {effectFalling.includes(val)?'✓':icon} {lbl}
