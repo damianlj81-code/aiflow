@@ -1566,6 +1566,9 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
     petals: 'flower petals falling gently on',
     glitter: 'glitter and sparkles raining on',
     smoke: 'smoke swirling around',
+    melting: 'product slowly melting and dissolving in slow motion, liquid drips forming',
+    floating: 'product floating and hovering in zero gravity, slow rotation in mid-air',
+    shatter: 'product dramatically shattering into pieces then reassembling in reverse',
   };
 
   const COLOR_MAP = {
@@ -1751,7 +1754,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
                     {effectFalling.length>0 && <button onClick={()=>setEffectFalling([])} className="text-[9px] text-slate-400 hover:text-red-400 uppercase">✕</button>}
                   </div>
                   <div className="grid grid-cols-2 gap-2">
-                    {[['powder','💥',t.lang==='EN'?'Powder explosion':'Wybuch prochu'],['liquid_pour','🥇',t.lang==='EN'?'Gold/Silver pour':'Złote/Srebrne polewanie'],['sparkling_rain','✨',t.lang==='EN'?'Sparkling rain':'Błyszczący deszcz'],['rain','🌧️',t.lang==='EN'?'Rain':'Deszcz'],['snow_fall','❄️',t.lang==='EN'?'Snow':'Śnieg'],['sparks','🔥',t.lang==='EN'?'Sparks':'Iskry'],['petals','🌸',t.lang==='EN'?'Petals':'Płatki'],['glitter','⭐',t.lang==='EN'?'Glitter':'Brokat'],['smoke','🌫️',t.lang==='EN'?'Smoke':'Dym']].map(([val,icon,lbl])=>(
+                    {[['powder','💥',t.lang==='EN'?'Powder explosion':'Wybuch prochu'],['liquid_pour','🥇',t.lang==='EN'?'Gold/Silver pour':'Złote/Srebrne polewanie'],['sparkling_rain','✨',t.lang==='EN'?'Sparkling rain':'Błyszczący deszcz'],['rain','🌧️',t.lang==='EN'?'Rain':'Deszcz'],['snow_fall','❄️',t.lang==='EN'?'Snow':'Śnieg'],['sparks','🔥',t.lang==='EN'?'Sparks':'Iskry'],['petals','🌸',t.lang==='EN'?'Petals':'Płatki'],['glitter','⭐',t.lang==='EN'?'Glitter':'Brokat'],['smoke','🌫️',t.lang==='EN'?'Smoke':'Dym'],['melting','🫠',t.lang==='EN'?'Melting':'Topnienie'],['floating','🛸',t.lang==='EN'?'Zero gravity float':'Unoszenie (0G)'],['shatter','💎',t.lang==='EN'?'Shatter & rebuild':'Rozbicie i odbudowa']].map(([val,icon,lbl])=>(
                       <button key={val} onClick={()=>toggleFalling(val)}
                         className={`py-2 px-3 rounded-xl text-[11px] font-black uppercase tracking-wider border transition-all flex items-center gap-2 ${effectFalling.includes(val)?'bg-amber-500 border-amber-500 text-black':'bg-slate-100 dark:bg-[#111] border-black/10 dark:border-[#222] text-slate-500 hover:border-amber-500/50'}`}>
                         {effectFalling.includes(val)?'✓':icon} {lbl}
