@@ -1594,7 +1594,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
       const colorDesc = effectColors.length > 0 ? effectColors.map(c => COLOR_MAP[c] || c).join(' and ') : 'colorful';
       const intensity = effectIntensity < 33 ? 'subtle' : effectIntensity < 66 ? 'moderate' : 'intense';
       const fallParts = effectFalling.map(f => `${colorDesc} ${FALL_PROMPTS[f]} the product`).join(', ');
-      parts.push(fallParts + \`, ${intensity} intensity\`);
+      parts.push(fallParts + `, ${intensity} intensity`);
     }
     if (parts.length === 0) return t.lang==='EN' ? 'Fill in at least one option above.' : 'Uzupełnij co najmniej jedną opcję powyżej.';
     return 'Cinematic product video. ' + parts.join(', ') + '. Photorealistic 4K, professional commercial quality.';
