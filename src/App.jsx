@@ -41,12 +41,14 @@ const getYTId = (url) => {
 // TOKEN SYSTEM
 // =========================================================================
 const TOKENS_FREE = 5; // 1 avatar + 1 ad + 1 lifestyle + 2 film
-const STRIPE_PRO_LINK = 'https://buy.stripe.com/plink_1TJfC4CEjxjarOHxGwGnaCuE'; // 89 PLN miesiecznie
-const STRIPE_STARTER_LINK = 'https://buy.stripe.com/plink_1TJfC4CEjxjarOHxGwGnaCuE'; // 30 PLN miesiecznie
-const STRIPE_ANNUAL_LINK = 'https://buy.stripe.com/plink_1TJfDbCEjxjarOHxLcVqhQr4'; // 899 PLN rocznie
-const STRIPE_PRO_LINK_TEST = 'https://buy.stripe.com/dRm6oGeOR6aj3EQcUi8bS04'; // 2 PLN test admin
+const STRIPE_MONTHLY = 'https://buy.stripe.com/plink_1T7hJcCEjxjarOHxYmzkNNPR'; // TEST 50 centow miesiecznie
+const STRIPE_ANNUAL = 'https://buy.stripe.com/plink_1T7hFOCEjxjarOHxOs0gb4W2';   // TEST 1 euro rocznie
+// Aliasy dla kompatybilnosci z reszta kodu
+const STRIPE_PRO_LINK = STRIPE_MONTHLY;
+const STRIPE_STARTER_LINK = STRIPE_MONTHLY;
+const STRIPE_ANNUAL_LINK = STRIPE_ANNUAL;
 const ADMIN_EMAIL = 'damianlj@live.com';
-const stripeLink = (baseUrl, uid, email) => { const base = email === ADMIN_EMAIL ? STRIPE_PRO_LINK_TEST : baseUrl; return uid ? `${base}?client_reference_id=${uid}` : base; };
+const stripeLink = (baseUrl, uid, email) => { return uid ? `${baseUrl}?client_reference_id=${uid}` : baseUrl; };
 
 const getSubscriptionStatus = (data) => {
   if (!data || (!data.pro && !data.starter)) return { active: false, reason: 'no_plan' };
@@ -681,10 +683,12 @@ const TutorialsView = ({ t, user, onLoginRequest, onNavigate }) => {
 // =========================================================================
 // NEW: DODATKI VIEW - External tools grouped by category
 // =========================================================================
-const AplikacjeView = ({ t, user, onLoginRequest, onCreatorChange }) => {
+const AplikacjeView = ({ t, user, onLoginRequest, onCreatorChange, resetSignal }) => {
   const [activeApp, setActiveApp] = useState(null);
   const openApp = (id) => { setActiveApp(id); if (onCreatorChange) onCreatorChange(id); };
   const closeApp = () => { setActiveApp(null); if (onCreatorChange) onCreatorChange(null); };
+  // Gdy navbar klika Aplikacje z zewnątrz — resetujemy kreator
+  useEffect(() => { if (resetSignal) { setActiveApp(null); } }, [resetSignal]);
 
   const apps = [
     {
@@ -2902,7 +2906,8 @@ const ZloteCytaty = () => {
 };
 
 const CennikView = ({ t, user, onLoginRequest }) => {
-  const STRIPE_MONTHLY = 'https://buy.stripe.com/plink_1TJfC4CEjxjarOHxGwGnaCuE'; // 89 PLN miesiecznie
+  const isAdmin = user?.email === ADMIN_EMAIL;
+  const STRIPE_MONTHLY = 'https://buy.stripe.com/plink_1T7hJcCEjxjarOHxYmzkNNPR'; // TEST 50 centow miesiecznie
   const STRIPE_ANNUAL = 'https://buy.stripe.com/plink_1TJfDbCEjxjarOHxLcVqhQr4'; // 899 PLN rocznie
 
   return (
@@ -2951,12 +2956,18 @@ const CennikView = ({ t, user, onLoginRequest }) => {
                 <p key={i} className="text-xs text-black dark:text-white">{f}</p>
               ))}
             </div>
+            {isAdmin ? (
+              <div className="block w-full py-3.5 font-black text-[11px] uppercase tracking-widest rounded-xl text-center bg-emerald-500 text-black">
+                ✓ {t.lang==='EN'?'Admin — Lifetime Access':'Admin — Dostęp dożywotni'}
+              </div>
+            ) : (
             <a href={user && !user.isAnonymous ? stripeLink(STRIPE_MONTHLY, user.uid, user.email) : '#'}
               onClick={e => { if (!user || user.isAnonymous) { e.preventDefault(); onLoginRequest(); }}}
               target="_blank" rel="noopener noreferrer"
               className="block w-full py-3.5 font-black text-[11px] uppercase tracking-widest rounded-xl text-center bg-amber-500 hover:bg-amber-400 text-black transition-all shadow-lg shadow-amber-500/30">
               {t.lang==='EN'?'Get Monthly →':'Wybierz Miesięczny →'}
             </a>
+            )}
           </div>
 
           {/* PLAN 2 — Roczny */}
@@ -3249,7 +3260,8 @@ export default function App() {
   };
 
   // New nav items: Academy → Aplikacje → Dodatki → Tutoriale
-  const handleNavigate = (view) => { setCurrentView(view); setActiveCreator(null); setMobileMenuOpen(false); };
+  const [resetSignal, setResetSignal] = useState(0);
+  const handleNavigate = (view) => { setCurrentView(view); setActiveCreator(null); setMobileMenuOpen(false); setResetSignal(s => s + 1); };
   const navItems = [
     { id: 'home', label: 'Academy' },
     { id: 'aplikacje', label: t.lang === 'EN' ? 'Apps' : 'Aplikacje' },
@@ -3473,7 +3485,7 @@ export default function App() {
           )}
 
           {currentView === 'home' && <HomeView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
-          {currentView === 'aplikacje' && <AplikacjeView t={t} user={user} onLoginRequest={() => setShowLogin(true)} onCreatorChange={setActiveCreator} />}
+          {currentView === 'aplikacje' && <AplikacjeView t={t} user={user} onLoginRequest={() => setShowLogin(true)} onCreatorChange={setActiveCreator} resetSignal={resetSignal} />}
           {currentView === 'dodatki' && <DodatkiView t={t} onNavigate={setCurrentView} />}
           {currentView === 'tutorials' && <TutorialsView t={t} user={user} onLoginRequest={() => setShowLogin(true)} onNavigate={setCurrentView} />}
           {currentView === 'cennik' && <CennikView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
