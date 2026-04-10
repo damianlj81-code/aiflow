@@ -41,8 +41,8 @@ const getYTId = (url) => {
 // TOKEN SYSTEM
 // =========================================================================
 const TOKENS_FREE = 5; // 1 avatar + 1 ad + 1 lifestyle + 2 film
-const STRIPE_MONTHLY = 'https://buy.stripe.com/dRm6oG9ux6ajeju3jI8bS08'; // 89 PLN miesiecznie
-const STRIPE_ANNUAL = 'https://buy.stripe.com/fZudR89ux0PZ8ZaaMa8bS07';   // 899 PLN rocznie
+const STRIPE_MONTHLY = 'https://buy.stripe.com/bJedR8ayBgOX5MY9I68bS0a'; // 89 PLN miesiecznie
+const STRIPE_ANNUAL = 'https://buy.stripe.com/7sY3cu0Y1eGP4IU5rQ8bS0b';   // 899 PLN rocznie
 // Aliasy dla kompatybilnosci z reszta kodu
 const STRIPE_PRO_LINK = STRIPE_MONTHLY;
 const STRIPE_STARTER_LINK = STRIPE_MONTHLY;
