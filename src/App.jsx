@@ -1454,7 +1454,7 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
           ) : !canGenerate ? (
             <div className="text-center">
               <p className="text-slate-500 text-sm mb-3">{t.lang==='EN' ? 'No tokens left.' : 'Brak tokenow. Przejdz na plan Starter.'}</p>
-              <a href={`https://buy.stripe.com/plink_1TJfC4CEjxjarOHxGwGnaCuE?client_reference_id=${user?.uid || ''}`}
+              <a href={`${STRIPE_MONTHLY}?client_reference_id=${user?.uid || ''}`}
                 target="_blank" rel="noopener noreferrer"
                 className="inline-block px-10 py-4 bg-amber-500 hover:bg-amber-400 text-black font-black uppercase tracking-widest text-sm rounded-2xl transition-all shadow-lg shadow-amber-500/20">
                 {t.lang==='EN' ? 'Get Starter — 89 PLN/mo' : 'Kup Starter — 89 PLN/mies'}
@@ -1844,7 +1844,7 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
                 ) : !canGenerate ? (
                   <div className="text-center py-2">
                     <p className="text-xs text-slate-500 mb-3">{t.lang==='EN'?'No tokens left.':'Brak tokenów.'}</p>
-                    <a href={`https://buy.stripe.com/plink_1TJfC4CEjxjarOHxGwGnaCuE?client_reference_id=${user?.uid||''}`}
+                    <a href={`${STRIPE_MONTHLY}?client_reference_id=${user?.uid||''}`}
                       target="_blank" rel="noopener noreferrer"
                       className="block w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-black text-sm uppercase tracking-wider text-center">
                       {t.lang==='EN'?'Get access — 89 PLN/mo':'Kup dostęp — 89 PLN/mies'}
@@ -2230,7 +2230,7 @@ const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
             ) : !canGenerate ? (
               <div className="text-center">
                 <p className="text-slate-500 text-sm mb-3">{t.lang==='EN' ? 'No tokens left.' : 'Brak tokenów. Przejdź na plan Starter.'}</p>
-                <a href={`https://buy.stripe.com/plink_1TJfC4CEjxjarOHxGwGnaCuE?client_reference_id=${user?.uid || ''}`}
+                <a href={`${STRIPE_MONTHLY}?client_reference_id=${user?.uid || ''}`}
                   target="_blank" rel="noopener noreferrer"
                   className="inline-block px-10 py-4 bg-amber-500 hover:bg-amber-400 text-black font-black uppercase tracking-widest text-sm rounded-2xl transition-all shadow-lg shadow-amber-500/20">
                   {t.lang==='EN' ? 'Get Starter — 89 PLN/mo' : 'Kup Starter — 89 PLN/mies'}
@@ -2624,7 +2624,7 @@ const FilmBuilderView = ({ t, user, onLoginRequest }) => {
                 {t.lang === 'EN' ? 'Log in to generate' : 'Zaloguj się aby generować'}
               </button>
             ) : !canGenerate ? (
-              <a href={`https://buy.stripe.com/plink_1TJfC4CEjxjarOHxGwGnaCuE?client_reference_id=${user?.uid || ''}`}
+              <a href={`${STRIPE_MONTHLY}?client_reference_id=${user?.uid || ''}`}
                 target="_blank" rel="noopener noreferrer"
                 className="block w-full py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-black font-black text-sm uppercase tracking-wider transition-all text-center shadow-lg">
                 {t.lang === 'EN' ? 'Get Starter — 89 PLN/mo' : 'Kup Starter — 89 PLN/mies'}
@@ -2684,7 +2684,7 @@ const FilmBuilderView = ({ t, user, onLoginRequest }) => {
                   {t.lang === 'EN' ? 'Log in to generate' : 'Zaloguj się aby generować'}
                 </button>
               ) : !canGenerate ? (
-                <a href={`https://buy.stripe.com/plink_1TJfC4CEjxjarOHxGwGnaCuE?client_reference_id=${user?.uid || ''}`}
+                <a href={`${STRIPE_MONTHLY}?client_reference_id=${user?.uid || ''}`}
                   target="_blank" rel="noopener noreferrer"
                   className="block w-full py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-black font-black text-sm uppercase tracking-wider transition-all text-center">
                   {t.lang === 'EN' ? 'Get Starter — 89 PLN/mo' : 'Kup Starter — 89 PLN/mies'}
@@ -2917,8 +2917,7 @@ const ZloteCytaty = () => {
 
 const CennikView = ({ t, user, onLoginRequest }) => {
   const isAdmin = user?.email === ADMIN_EMAIL;
-  const STRIPE_MONTHLY = 'https://buy.stripe.com/dRm6oG9ux6ajeju3jI8bS08'; // 89 PLN miesiecznie
-  const STRIPE_ANNUAL = 'https://buy.stripe.com/plink_1TJfDbCEjxjarOHxLcVqhQr4'; // 899 PLN rocznie
+  // Używamy globalnych STRIPE_MONTHLY i STRIPE_ANNUAL zdefiniowanych na górze pliku
 
   return (
     <div className="min-h-screen bg-white dark:bg-black transition-colors duration-700 font-sans px-3 sm:px-4 py-6 sm:py-12">
