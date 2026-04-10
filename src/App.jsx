@@ -3304,8 +3304,16 @@ export default function App() {
   const handleCookies = (accepted) => { setCookiesAccepted(true); if (accepted) localStorage.setItem('cookies', '1'); };
   const handleNewsletter = async (e) => {
     e.preventDefault();
-    if (!newsletterEmail || !user) return;
-    try { await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'newsletter'), { email: newsletterEmail, date: new Date().toISOString(), consent: true }); setNewsletterSent(true); setNewsletterEmail(''); } catch (err) { console.error(err); }
+    if (!newsletterEmail) return;
+    try {
+      await fetch('https://formspree.io/f/xkoqgrng', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: newsletterEmail, _subject: 'Newsletter AI Flow Academy' })
+      });
+      setNewsletterSent(true);
+      setNewsletterEmail('');
+    } catch (err) { console.error(err); }
   };
 
   return (
