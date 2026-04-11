@@ -31,7 +31,7 @@ const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
 
 const APP_ID = 'aiflow_academy';
-const STRIPE_MONTHLY = 'https://buy.stripe.com/dRm6oG9ux6ajeju3jI8bS08';
+const STRIPE_MONTHLY = 'https://buy.stripe.com/bJedR8ayBgOX5MY9I68bS0a';
 const MAX_PORTRAIT  = 6;
 const MAX_LANDSCAPE = 10;
 
@@ -309,21 +309,50 @@ export default function TextCreator() {
   return (
     <div className="min-h-screen bg-black text-white" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
 
-      {/* NAV */}
+      {/* NAV — identyczny styl jak App.jsx */}
       <nav className="sticky top-0 z-40 bg-black/90 backdrop-blur-xl border-b" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-        <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
-          <a href="/"><img src="/logo.png" alt="AI Flow" className="h-7 w-auto" /></a>
+        <div className="max-w-[1400px] mx-auto px-4 h-16 flex items-center justify-between gap-4">
+          {/* Logo */}
+          <a href="/"><img src="/logo.png" alt="AI Flow" className="h-8 w-auto" /></a>
+
+          {/* Menu główne */}
+          <div className="hidden md:flex items-center gap-1">
+            {[
+              { label: 'Academy', href: '/#academy' },
+              { label: 'Aplikacje', href: '/#aplikacje' },
+              { label: 'Aplikacje 2', href: '/#aplikacje2', active: true },
+              { label: 'Dodatki', href: '/#dodatki' },
+              { label: 'Tutoriale', href: '/#tutorials' },
+              { label: 'Cennik', href: '/#cennik' },
+            ].map(item => (
+              <a key={item.label} href={item.href}
+                className="px-4 py-2 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all"
+                style={{
+                  background: item.active ? 'rgba(245,158,11,0.15)' : 'transparent',
+                  color: item.active ? '#f59e0b' : 'rgba(255,255,255,0.5)',
+                  border: item.active ? '1px solid rgba(245,158,11,0.3)' : '1px solid transparent',
+                }}>
+                {item.label}
+              </a>
+            ))}
+          </div>
+
+          {/* Prawa strona — user */}
           <div className="flex items-center gap-3">
             {user ? (
               <>
-                <span className="text-[10px] text-white/40 uppercase tracking-widest hidden sm:block">
-                  {user.email?.split('@')[0]}
+                <div className="hidden sm:flex flex-col items-end">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-white/60">
+                    {user.email?.split('@')[0]}
+                  </span>
                   {tokenData.isPro
-                    ? <span className="ml-2 text-amber-400"> PRO</span>
-                    : <span className="ml-2 text-white/25"> · {loadingTok ? '…' : tokenData.tokensText} tok.</span>
+                    ? <span className="text-[9px] text-amber-400 uppercase tracking-widest">PRO · Aktywny</span>
+                    : <span className="text-[9px] text-white/25 uppercase tracking-widest">{loadingTok ? '…' : tokenData.tokensText} token{tokenData.tokensText !== 1 ? 'y' : ''}</span>
                   }
-                </span>
-                <button onClick={() => signOut(auth)} className="flex items-center gap-1 text-[10px] text-white/30 hover:text-white/60 uppercase tracking-widest transition-colors">
+                </div>
+                <button onClick={() => signOut(auth)}
+                  className="flex items-center gap-1.5 text-[10px] text-white/30 hover:text-white/60 uppercase tracking-widest transition-colors px-3 py-2 rounded-lg"
+                  style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
                   <LogOut className="w-3 h-3" /> Wyloguj
                 </button>
               </>
@@ -335,6 +364,28 @@ export default function TextCreator() {
               </button>
             )}
           </div>
+        </div>
+
+        {/* Mobile menu */}
+        <div className="md:hidden flex items-center gap-1 px-4 pb-2 overflow-x-auto">
+          {[
+            { label: 'Academy', href: '/' },
+            { label: 'Aplikacje', href: '/#aplikacje' },
+            { label: 'Napisy ✦', href: '#', active: true },
+            { label: 'Dodatki', href: '/#dodatki' },
+            { label: 'Tutoriale', href: '/#tutorials' },
+            { label: 'Cennik', href: '/#cennik' },
+          ].map(item => (
+            <a key={item.label} href={item.href}
+              className="flex-shrink-0 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
+              style={{
+                background: item.active ? 'rgba(245,158,11,0.15)' : 'rgba(255,255,255,0.04)',
+                color: item.active ? '#f59e0b' : 'rgba(255,255,255,0.4)',
+                border: item.active ? '1px solid rgba(245,158,11,0.3)' : '1px solid rgba(255,255,255,0.06)',
+              }}>
+              {item.label}
+            </a>
+          ))}
         </div>
       </nav>
 
