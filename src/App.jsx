@@ -1281,6 +1281,12 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
       setCharacters(prev => prev.map((c, i) => i === idx ? { ...CHARACTER_DEFAULTS_M } : c));
       return;
     }
+    // Gdy zmienia się płeć — automatyczny reset do właściwych defaults
+    if (key === 'subject') {
+      const goingMale = val.includes('1boy') && !val.includes('1girl');
+      setCharacters(prev => prev.map((c, i) => i === idx ? (goingMale ? { ...CHARACTER_DEFAULTS_M } : { ...CHARACTER_DEFAULTS_F }) : c));
+      return;
+    }
     setCharacters(prev => prev.map((c, i) => i === idx ? { ...c, [key]: val } : c));
   };
 
