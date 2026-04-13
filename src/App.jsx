@@ -7,7 +7,7 @@ import {
   CreditCard, Building2, Sun, Moon, User, Mountain,
   Eye, Scissors, Shirt, Footprints, PersonStanding,
   Crown, Sparkles, Key, Save, Trash2, PlusCircle,
-  ChevronLeft, ChevronRight, ArrowLeft, Copy
+  ChevronLeft, ChevronRight, ArrowLeft
 } from 'lucide-react';
 
 import { initializeApp } from 'firebase/app';
@@ -3252,7 +3252,10 @@ export default function App() {
 
   // New nav items: Academy → Aplikacje → Dodatki → Tutoriale
   const [resetSignal, setResetSignal] = useState(0);
-  const handleNavigate = (view) => { setCurrentView(view); setActiveCreator(null); setMobileMenuOpen(false); setResetSignal(s => s + 1); };
+  const handleNavigate = (view) => {
+    if (view === 'text-builder') { window.location.href = '/text.html'; return; }
+    setCurrentView(view); setActiveCreator(null); setMobileMenuOpen(false); setResetSignal(s => s + 1);
+  };
   const navItems = [
     { id: 'home', label: 'Academy' },
     { id: 'aplikacje', label: t.lang === 'EN' ? 'Apps' : 'Aplikacje' },
@@ -3495,8 +3498,8 @@ export default function App() {
           {currentView === 'ad-builder' && <ProductAdBuilderView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
           {currentView === 'lifestyle-builder' && <LifestyleBuilderView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
           {currentView === 'film-builder' && <FilmBuilderView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
-          {currentView === 'aplikacje2' && <Aplikacje2View t={t} user={user} onLoginRequest={() => setShowLogin(true)} onNavigate={handleNavigate} />}
-          {currentView === 'text-builder' && <TextCreatorView t={t} user={user} onLoginRequest={() => setShowLogin(true)} onBack={() => handleNavigate('aplikacje2')} />}
+          {currentView === 'aplikacje2' && <Aplikacje2View lang={lang} onNavigate={handleNavigate} />}
+          {currentView === 'admin' && user?.email === ADMIN_EMAIL && <AdminView setCurrentView={setCurrentView} lang={lang} user={user} />}
           {currentView === 'impressum' && <ImpressumView setCurrentView={setCurrentView} lang={lang} />}
           {currentView === 'datenschutz' && <DatenschutzView setCurrentView={setCurrentView} lang={lang} />}
           {currentView === 'regulamin' && <RegulaminView setCurrentView={setCurrentView} lang={lang} />}
@@ -3545,17 +3548,22 @@ export default function App() {
               {/* Social media */}
               <div className="flex items-center gap-3">
                 {[
-                  { href: 'https://www.youtube.com/@loveaiflow', label: 'YouTube', color: '#ff0000', icon: <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg> },
-                  { href: 'https://www.instagram.com/loveaiflow', label: 'Instagram', color: '#e1306c', icon: <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg> },
-                  { href: 'https://www.linkedin.com/in/loveaiflow', label: 'LinkedIn', color: '#0077b5', icon: <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg> },
-                  { href: 'https://www.facebook.com/loveaiflow', label: 'Facebook', color: '#1877f2', icon: <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg> },
-                  { href: 'https://www.tiktok.com/@loveaiflow', label: 'TikTok', color: '#ff0050', icon: <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.75a4.85 4.85 0 0 1-1.01-.06z"/></svg> },
+                  { href:'https://www.youtube.com/@Aiflow81', label:'YouTube', color:'#ff0000',
+                    icon:<svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg> },
+                  { href:'https://www.instagram.com/aiflow.official', label:'Instagram', color:'#e1306c',
+                    icon:<svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg> },
+                  { href:'https://www.linkedin.com/in/aiflow', label:'LinkedIn', color:'#0077b5',
+                    icon:<svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg> },
+                  { href:'https://www.facebook.com/loveaiflow', label:'Facebook', color:'#1877f2',
+                    icon:<svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg> },
+                  { href:'https://www.tiktok.com/@aiflow.official', label:'TikTok', color:'#ff0050',
+                    icon:<svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.75a4.85 4.85 0 0 1-1.01-.06z"/></svg> },
                 ].map(s => (
                   <a key={s.label} href={s.href} target="_blank" rel="noopener noreferrer"
                     className="w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-110"
-                    style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.3)' }}
-                    onMouseEnter={e => { e.currentTarget.style.color = s.color; e.currentTarget.style.borderColor = s.color + '44'; e.currentTarget.style.background = s.color + '15'; }}
-                    onMouseLeave={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.3)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}>
+                    style={{background:'rgba(255,255,255,0.05)',border:'1px solid rgba(255,255,255,0.08)',color:'rgba(255,255,255,0.3)'}}
+                    onMouseEnter={e=>{e.currentTarget.style.color=s.color;e.currentTarget.style.borderColor=s.color+'44';e.currentTarget.style.background=s.color+'15';}}
+                    onMouseLeave={e=>{e.currentTarget.style.color='rgba(255,255,255,0.3)';e.currentTarget.style.borderColor='rgba(255,255,255,0.08)';e.currentTarget.style.background='rgba(255,255,255,0.05)';}}>
                     {s.icon}
                   </a>
                 ))}
@@ -3592,430 +3600,58 @@ export default function App() {
 // =========================================================================
 // APLIKACJE 2 VIEW
 // =========================================================================
-const Aplikacje2View = ({ t, user, onLoginRequest, onNavigate }) => {
+const Aplikacje2View = ({ lang, onNavigate }) => {
   const creators = [
-    {
-      id: 'text-builder',
-      emoji: '✍️',
-      title: 'Kreator Napisów',
-      subtitle: 'Generator promptów napisów AI',
-      desc: 'Twórz artystyczne napisy — kwiaty, ogień, lód, kryształ i więcej.',
-      color: '#f59e0b',
-      available: true,
-    },
-    {
-      id: null,
-      emoji: '🎨',
-      title: 'Kreator Kolorowanek',
-      subtitle: 'Generator kolorowanek AI',
-      desc: 'Twórz kolorowanki dla dzieci i dorosłych. Wkrótce dostępne.',
-      color: '#a78bfa',
-      available: false,
-    },
-    {
-      id: null,
-      emoji: '📱',
-      title: 'Kreator Social Media',
-      subtitle: 'Generator grafik AI',
-      desc: 'Twórz grafiki na Instagram, TikTok i YouTube. Wkrótce.',
-      color: '#34d399',
-      available: false,
-    },
-    {
-      id: null,
-      emoji: '🖼️',
-      title: 'Kreator Okładek',
-      subtitle: 'Generator okładek AI',
-      desc: 'Twórz profesjonalne okładki książek i albumów. Wkrótce.',
-      color: '#f472b6',
-      available: false,
-    },
+    { id: 'text-builder', emoji: '✍️', title: 'Kreator Napisów', subtitle: 'Generator promptów napisów AI', desc: 'Twórz artystyczne napisy — kwiaty, ogień, lód, kryształ i więcej.', color: '#f59e0b', available: true },
+    { id: null, emoji: '🎨', title: 'Kreator Kolorowanek', subtitle: 'Generator kolorowanek AI', desc: 'Twórz kolorowanki dla dzieci i dorosłych. Wkrótce dostępne.', color: '#a78bfa', available: false },
+    { id: null, emoji: '📱', title: 'Kreator Social Media', subtitle: 'Generator grafik AI', desc: 'Twórz grafiki na Instagram, TikTok i YouTube. Wkrótce.', color: '#34d399', available: false },
+    { id: null, emoji: '🖼️', title: 'Kreator Okładek', subtitle: 'Generator okładek AI', desc: 'Twórz profesjonalne okładki książek i albumów. Wkrótce.', color: '#f472b6', available: false },
   ];
-
   return (
     <div className="min-h-screen bg-black font-sans pt-8 pb-24">
       <div className="max-w-5xl mx-auto px-4">
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4 text-[10px] font-black uppercase tracking-[0.3em]"
             style={{background:'rgba(245,158,11,0.1)',border:'1px solid rgba(245,158,11,0.2)',color:'#f59e0b'}}>
-            🚀 Aplikacje AI
+            🚀 {lang === 'EN' ? 'AI Applications' : 'Aplikacje AI'}
           </div>
           <h1 className="text-3xl sm:text-4xl font-black uppercase tracking-tighter text-white mb-3" style={{letterSpacing:'-0.03em'}}>
-            Aplikacje <span style={{color:'#f59e0b'}}>2</span>
+            {lang === 'EN' ? 'Apps' : 'Aplikacje'} <span style={{color:'#f59e0b'}}>2</span>
           </h1>
           <p className="text-white/40 text-sm max-w-md mx-auto">
-            Profesjonalne generatory promptów AI — kliknij aby otworzyć kreator
+            {lang === 'EN' ? 'Professional AI prompt generators — click to open creator' : 'Profesjonalne generatory promptów AI — kliknij aby otworzyć kreator'}
           </p>
         </div>
-
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {creators.map((c, i) => (
             <div key={i}
-              onClick={() => c.available && onNavigate(c.id)}
-              className="relative p-6 rounded-2xl transition-all"
+              onClick={() => c.available && c.id && onNavigate(c.id)}
+              className="relative p-6 rounded-2xl transition-all duration-200"
               style={{
-                background: c.available ? `linear-gradient(135deg, ${c.color}12, ${c.color}06)` : 'rgba(255,255,255,0.02)',
-                border: `1px solid ${c.available ? c.color + '30' : 'rgba(255,255,255,0.06)'}`,
+                background: c.available ? `linear-gradient(135deg,${c.color}12,${c.color}06)` : 'rgba(255,255,255,0.02)',
+                border: `1px solid ${c.available ? c.color+'30' : 'rgba(255,255,255,0.06)'}`,
                 cursor: c.available ? 'pointer' : 'default',
-                boxShadow: c.available ? `0 0 30px ${c.color}10` : 'none',
               }}
-              onMouseEnter={e => { if (c.available) { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = `0 0 40px ${c.color}20`; }}}
-              onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = c.available ? `0 0 30px ${c.color}10` : 'none'; }}>
-
+              onMouseEnter={e => { if (c.available) e.currentTarget.style.transform='scale(1.02)'; }}
+              onMouseLeave={e => { e.currentTarget.style.transform='scale(1)'; }}>
               {!c.available && (
                 <div className="absolute top-3 right-3 px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest"
                   style={{background:'rgba(255,255,255,0.05)',color:'rgba(255,255,255,0.2)',border:'1px solid rgba(255,255,255,0.06)'}}>
-                  Wkrótce
+                  {lang === 'EN' ? 'Soon' : 'Wkrótce'}
                 </div>
               )}
-
-              <div className="text-4xl mb-4" style={{filter: c.available ? `drop-shadow(0 0 16px ${c.color}60)` : 'none', opacity: c.available ? 1 : 0.3}}>
-                {c.emoji}
-              </div>
-              <div className="text-[9px] font-black uppercase tracking-[0.3em] mb-1" style={{color: c.available ? c.color : 'rgba(255,255,255,0.2)'}}>
-                {c.subtitle}
-              </div>
-              <h3 className="text-lg font-black uppercase tracking-tight mb-2" style={{color: c.available ? '#fff' : 'rgba(255,255,255,0.25)'}}>
-                {c.title}
-              </h3>
-              <p className="text-[11px] leading-relaxed" style={{color: c.available ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.15)'}}>
-                {c.desc}
-              </p>
+              <div className="text-4xl mb-4" style={{filter:c.available?`drop-shadow(0 0 16px ${c.color}60)`:'none',opacity:c.available?1:0.3}}>{c.emoji}</div>
+              <div className="text-[9px] font-black uppercase tracking-[0.3em] mb-1" style={{color:c.available?c.color:'rgba(255,255,255,0.2)'}}>{c.subtitle}</div>
+              <h3 className="text-lg font-black uppercase tracking-tight mb-2" style={{color:c.available?'#fff':'rgba(255,255,255,0.25)'}}>{c.title}</h3>
+              <p className="text-[11px] leading-relaxed" style={{color:c.available?'rgba(255,255,255,0.45)':'rgba(255,255,255,0.15)'}}>{c.desc}</p>
               {c.available && (
-                <div className="mt-4 flex items-center gap-1 text-[10px] font-black uppercase tracking-widest" style={{color: c.color}}>
-                  Otwórz kreator <span>→</span>
+                <div className="mt-4 flex items-center gap-1 text-[10px] font-black uppercase tracking-widest" style={{color:c.color}}>
+                  {lang === 'EN' ? 'Open creator' : 'Otwórz kreator'} <span>→</span>
                 </div>
               )}
             </div>
           ))}
         </div>
-      </div>
-    </div>
-  );
-};
-
-// =========================================================================
-// TEXT CREATOR VIEW — wbudowany w App.jsx
-// =========================================================================
-const TextCreatorView = ({ t, user, onLoginRequest, onBack }) => {
-  const MAX_PORTRAIT  = 6;
-  const MAX_LANDSCAPE = 10;
-  const STRIPE_MONTHLY = 'https://buy.stripe.com/bJedR8ayBgOX5MY9I68bS0a';
-
-  const TEXT_STYLES = [
-    { id: 'floral',    emoji: '🌸', label: 'Kwiatowy',           desc: 'róże, piwonie, lilie',     color: '#f9a8d4',
-      prompt: 'made entirely of roses, peonies, and lilies in full bloom, petals and leaves forming every curve of the letter, photorealistic macro photography, soft pink and white florals, green stems intertwining, dewdrops on petals, butterflies landing on petals' },
-    { id: 'bulb',      emoji: '💡', label: 'Żarówki świąteczne', desc: 'lampki, drut, blask',       color: '#fbbf24',
-      prompt: 'constructed from glowing vintage Edison filament bulbs and copper wire, warm golden bokeh lights in background, festive string lights wrapping each curve of the letter, soft glowing halos around each bulb, retro holiday atmosphere' },
-    { id: 'botanical', emoji: '🍃', label: 'Botaniczny',         desc: 'liście, gałęzie, rośliny', color: '#86efac',
-      prompt: 'formed from intertwining botanical elements — fern fronds, eucalyptus branches, tropical leaves, moss and tiny wildflowers, lush green palette with golden hour light filtering through' },
-    { id: 'crystal',   emoji: '💎', label: 'Kryształowy',        desc: 'szkło, diament, pryzmat',  color: '#93c5fd',
-      prompt: 'sculpted from pure crystal and faceted diamond-cut glass, internal light refractions creating rainbow caustics, translucent icy-blue and violet hues, ultra-sharp reflections, luxury jewellery photography lighting' },
-    { id: 'lava',      emoji: '🔥', label: 'Lawa / Ogień',       desc: 'magma, płomienie, żar',    color: '#f97316',
-      prompt: 'forged from molten lava and roaring fire, glowing orange-red magma cracks along every surface, dark volcanic rock texture beneath, embers and sparks floating upward, dramatic rim lighting' },
-    { id: 'ice',       emoji: '🧊', label: 'Lodowy',             desc: 'lód, szron, śnieg',        color: '#bae6fd',
-      prompt: 'carved from transparent glacial ice, frosted crystalline texture with deep arctic-blue internal glow, snowflake micro-crystals on surface, ice splinter details, cold breath fog surrounding' },
-    { id: 'choco',     emoji: '🍫', label: 'Czekoladowy',        desc: 'mleczna czekolada, kakao', color: '#a16207',
-      prompt: 'sculpted from glossy milk chocolate with velvety matte cocoa powder texture, smooth ganache sheen, chocolate drips flowing down edges, caramel highlight on curves' },
-    { id: 'moss',      emoji: '🌿', label: 'Mech / Leśny',       desc: 'mech, las, natura',        color: '#4ade80',
-      prompt: 'completely covered in lush green forest moss and tiny mushrooms, lichen textures across entire surface, embedded acorns and pine needles, soft dappled forest light' },
-    { id: 'gold',      emoji: '✨', label: 'Złoty luksusowy',    desc: '24k złoto, blask, luksus', color: '#f59e0b',
-      prompt: 'cast in solid 24-karat gold with mirror-polished surface, intricate engraved filigree detailing, dramatic studio specular highlights, dark velvet background' },
-  ];
-
-  const TEXT_BACKGROUNDS = [
-    { id: 'white',  label: 'Białe studio',      prompt: 'clean white studio background, soft diffused professional light',             preview: 'linear-gradient(135deg,#fff,#f0f0f0)' },
-    { id: 'black',  label: 'Czarne eleganckie', prompt: 'deep black elegant background, dramatic chiaroscuro lighting',                 preview: 'linear-gradient(135deg,#111,#2a2a2a)' },
-    { id: 'pastel', label: 'Pastelowe',         prompt: 'soft pastel blurred background in complementary hues, dreamy bokeh',           preview: 'linear-gradient(135deg,#fce7f3,#ddd6fe,#bfdbfe)' },
-    { id: 'marble', label: 'Marmur',            prompt: 'luxurious white Carrara marble surface with subtle grey veining',             preview: 'linear-gradient(135deg,#f5f5f5,#d4d4d4)' },
-    { id: 'wood',   label: 'Drewno',            prompt: 'warm rustic oak wood planks with natural grain texture, soft side lighting',   preview: 'linear-gradient(135deg,#92400e,#b45309)' },
-  ];
-
-  const LCOLORS = ['#f59e0b','#fb923c','#f472b6','#a78bfa','#34d399','#60a5fa','#4ade80','#e879f9','#facc15','#f87171'];
-
-  const [text, setText]         = React.useState('');
-  const [format, setFormat]     = React.useState('portrait');
-  const [selStyle, setSelStyle] = React.useState(null);
-  const [selBg, setSelBg]       = React.useState(null);
-  const [prompt, setPrompt]     = React.useState('');
-  const [copied, setCopied]     = React.useState(false);
-  const promptRef = React.useRef(null);
-  const canvasRef = React.useRef(null);
-
-  const maxChars = format === 'portrait' ? MAX_PORTRAIT : MAX_LANDSCAPE;
-  const trimmed  = text.trim();
-  const canGen   = trimmed.length >= 1 && trimmed.length <= maxChars && selStyle && selBg;
-
-  React.useEffect(() => {
-    if (trimmed.length > maxChars) setText(t => t.slice(0, maxChars));
-  }, [format]);
-
-  React.useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const portrait = format === 'portrait';
-    const W = portrait ? 198 : 352;
-    const H = portrait ? 352 : 198;
-    canvas.width = W; canvas.height = H;
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#0c0c0c';
-    ctx.fillRect(0, 0, W, H);
-    ctx.strokeStyle = 'rgba(245,158,11,0.35)';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(0.5, 0.5, W - 1, H - 1);
-    const letters = trimmed.replace(/\s/g, '').split('').filter(Boolean);
-    if (!letters.length) {
-      ctx.fillStyle = 'rgba(255,255,255,0.18)';
-      ctx.font = '500 12px system-ui';
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText('wpisz tekst…', W / 2, H / 2);
-      return;
-    }
-    const n = letters.length;
-    const cellSize = portrait ? Math.min(W * 0.72, (H * 0.84) / n) : Math.min(H * 0.72, (W * 0.84) / n);
-    const fontSize = Math.max(14, Math.floor(cellSize * 0.74));
-    ctx.font = `900 ${fontSize}px system-ui, sans-serif`;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    if (portrait) {
-      const totalH = n * cellSize;
-      const startY = (H - totalH) / 2 + cellSize / 2;
-      const xSwing = Math.min(W * 0.32, fontSize * (n - 1) * 0.28);
-      const startX = W / 2 - xSwing / 2;
-      letters.forEach((letter, i) => {
-        const tv = n === 1 ? 0.5 : i / (n - 1);
-        const x = n === 1 ? W / 2 : startX + tv * xSwing;
-        const y = startY + i * cellSize;
-        const col = LCOLORS[i % LCOLORS.length];
-        ctx.save(); ctx.globalAlpha = 0.13; ctx.fillStyle = col;
-        ctx.beginPath(); ctx.arc(x, y, fontSize * 0.54, 0, Math.PI * 2); ctx.fill(); ctx.restore();
-        ctx.save(); ctx.globalAlpha = 0.28; ctx.fillStyle = '#000';
-        ctx.fillText(letter, x + 1.5, y + 2); ctx.restore();
-        ctx.fillStyle = col; ctx.globalAlpha = 1; ctx.fillText(letter, x, y);
-      });
-    } else {
-      const totalW = n * cellSize;
-      const startX = (W - totalW) / 2 + cellSize / 2;
-      const ySwing = Math.min(H * 0.32, fontSize * (n - 1) * 0.28);
-      const startY = H / 2 - ySwing / 2;
-      letters.forEach((letter, i) => {
-        const tv = n === 1 ? 0.5 : i / (n - 1);
-        const x = startX + i * cellSize;
-        const y = n === 1 ? H / 2 : startY + tv * ySwing;
-        const col = LCOLORS[i % LCOLORS.length];
-        ctx.save(); ctx.globalAlpha = 0.13; ctx.fillStyle = col;
-        ctx.beginPath(); ctx.arc(x, y, fontSize * 0.54, 0, Math.PI * 2); ctx.fill(); ctx.restore();
-        ctx.save(); ctx.globalAlpha = 0.28; ctx.fillStyle = '#000';
-        ctx.fillText(letter, x + 1.5, y + 2); ctx.restore();
-        ctx.fillStyle = col; ctx.globalAlpha = 1; ctx.fillText(letter, x, y);
-      });
-    }
-    ctx.save(); ctx.globalAlpha = 0.35; ctx.fillStyle = '#fbbf24';
-    ctx.font = '600 10px system-ui'; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
-    ctx.fillText(portrait ? '9:16' : '16:9', W - 8, H - 7); ctx.restore();
-  }, [trimmed, format]);
-
-  function buildPrompt(text, style, bg, fmt) {
-    const letters = text.trim().toUpperCase().split('');
-    const isMulti = letters.length > 1;
-    const arrangement = fmt === 'portrait'
-      ? 'arranged diagonally from upper-left to lower-right, stacked vertically, each letter slightly offset to the right, filling the vertical 9:16 frame'
-      : 'arranged diagonally from upper-left to lower-right along a horizontal axis, each letter slightly lower than the previous, filling the wide 16:9 frame';
-    const subject = isMulti
-      ? `the letters ${letters.join(', ')} spelling "${text.toUpperCase()}", ${arrangement}`
-      : `a single large decorative letter "${text.toUpperCase()}" centered and filling the frame`;
-    const ar = fmt === 'portrait' ? '--ar 9:16' : '--ar 16:9';
-    return `Photorealistic 3D render of ${subject}, each letter ${style.prompt}, placed on ${bg.prompt}. Every letter is clearly legible and three-dimensional. ${fmt === 'portrait' ? 'Vertical portrait' : 'Wide horizontal'} composition. Shot with 85mm macro lens, studio product photography. No text overlay, no watermark. Ultra-detailed, 8K resolution, ${ar} --style raw --v 6.1`;
-  }
-
-  function handleGenerate() {
-    if (!canGen) return;
-    const p = buildPrompt(text, selStyle, selBg, format);
-    setPrompt(p);
-    setTimeout(() => promptRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
-  }
-
-  async function handleCopy() {
-    if (!prompt) return;
-    try {
-      await navigator.clipboard.writeText(prompt);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
-    } catch {
-      const el = document.getElementById('tc-prompt-text');
-      if (el) { const r = document.createRange(); r.selectNode(el); window.getSelection().removeAllRanges(); window.getSelection().addRange(r); }
-    }
-  }
-
-  return (
-    <div className="min-h-screen bg-black text-white font-sans">
-      {/* Back button */}
-      <div className="max-w-5xl mx-auto px-4 pt-6">
-        <button onClick={onBack}
-          className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-amber-400 transition-colors mb-6">
-          <ArrowLeft className="w-4 h-4" /> Powrót do Aplikacje 2
-        </button>
-      </div>
-
-      {/* Hero */}
-      <div className="max-w-5xl mx-auto px-4 pb-6 text-center">
-        <div className="text-5xl mb-4" style={{filter:'drop-shadow(0 0 30px rgba(245,158,11,0.5))'}}>✍️</div>
-        <h1 className="text-3xl sm:text-4xl font-black uppercase tracking-tighter mb-2" style={{letterSpacing:'-0.03em'}}>
-          Kreator <span style={{color:'#f59e0b'}}>Napisów</span>
-        </h1>
-        <p className="text-white/40 text-sm max-w-md mx-auto">
-          Generuj prompty do artystycznych liter — wklej do Midjourney, Ideogram lub Kling
-        </p>
-      </div>
-
-      <div className="max-w-5xl mx-auto px-4 pb-24 space-y-10">
-
-        {/* KROK 1 */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-black text-black flex-shrink-0" style={{background:'linear-gradient(135deg,#f59e0b,#d97706)'}}>1</div>
-            <h2 className="text-sm font-black uppercase tracking-[0.2em] text-white/80">Format i tekst</h2>
-          </div>
-          <div className="flex gap-3 mb-6">
-            {[
-              { id: 'portrait',  emoji: '📱', label: '9:16 Pionowy',  sub: 'TikTok / Reels · max 6 znaków' },
-              { id: 'landscape', emoji: '🖥️', label: '16:9 Poziomy',  sub: 'YouTube / desktop · max 10 znaków' },
-            ].map(f => (
-              <button key={f.id} onClick={() => setFormat(f.id)}
-                className="flex-1 py-3 px-4 rounded-xl flex items-center gap-3 transition-all text-left"
-                style={{
-                  background: format === f.id ? 'rgba(245,158,11,0.1)' : 'rgba(255,255,255,0.03)',
-                  border: `1px solid ${format === f.id ? 'rgba(245,158,11,0.45)' : 'rgba(255,255,255,0.08)'}`,
-                }}>
-                <span className="text-xl leading-none">{f.emoji}</span>
-                <div className="min-w-0">
-                  <div className="text-xs font-black uppercase tracking-wider text-white">{f.label}</div>
-                  <div className="text-[10px] text-white/35 truncate">{f.sub}</div>
-                </div>
-                {format === f.id && <div className="ml-auto w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0" style={{background:'#f59e0b'}}><Check className="w-2.5 h-2.5 text-black" /></div>}
-              </button>
-            ))}
-          </div>
-          <div className="flex flex-col sm:flex-row gap-6 items-start">
-            <div className="flex-shrink-0 flex flex-col items-center gap-2">
-              <p className="text-[10px] text-white/30 uppercase tracking-widest font-bold">Podgląd układu</p>
-              <canvas ref={canvasRef} style={{borderRadius:'10px',display:'block',maxWidth:'100%'}} />
-            </div>
-            <div className="flex-1 flex flex-col gap-4 justify-center" style={{paddingTop:'1.5rem'}}>
-              <input
-                type="text" maxLength={maxChars}
-                placeholder={format === 'portrait' ? 'np. A, Ania, LOVE' : 'np. AIFLOW, SUMMER'}
-                value={text}
-                onChange={e => setText(e.target.value.replace(/[^a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ0-9]/g, '').slice(0, maxChars))}
-                className="w-full bg-white/5 border rounded-xl px-5 py-4 text-3xl font-black uppercase text-center text-white outline-none transition-all"
-                style={{letterSpacing:'0.25em',borderColor:trimmed?'rgba(245,158,11,0.45)':'rgba(255,255,255,0.1)'}}
-              />
-              <div className="flex justify-between px-1">
-                <p className="text-white/25 text-[10px]">{format==='portrait'?'1 litera / inicjał / imię (max 6)':'Imię, słowo lub fraza (max 10)'}</p>
-                <span className="text-white/25 text-[10px] font-bold">{trimmed.length}/{maxChars}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* KROK 2 */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-black text-black flex-shrink-0" style={{background:'linear-gradient(135deg,#f59e0b,#d97706)'}}>2</div>
-            <h2 className="text-sm font-black uppercase tracking-[0.2em] text-white/80">Styl litery</h2>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {TEXT_STYLES.map(s => (
-              <button key={s.id} onClick={() => setSelStyle(s)}
-                className="relative p-4 rounded-xl text-left transition-all hover:scale-[1.02]"
-                style={{background:selStyle?.id===s.id?`${s.color}14`:'rgba(255,255,255,0.03)',border:`1px solid ${selStyle?.id===s.id?s.color+'55':'rgba(255,255,255,0.08)'}`}}>
-                <div className="text-2xl mb-1">{s.emoji}</div>
-                <div className="text-xs font-black uppercase tracking-wider text-white">{s.label}</div>
-                <div className="text-[10px] text-white/35 mt-0.5">{s.desc}</div>
-                {selStyle?.id===s.id && <div className="absolute top-2 right-2 w-4 h-4 rounded-full flex items-center justify-center" style={{background:s.color}}><Check className="w-2.5 h-2.5 text-black" /></div>}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* KROK 3 */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-black text-black flex-shrink-0" style={{background:'linear-gradient(135deg,#f59e0b,#d97706)'}}>3</div>
-            <h2 className="text-sm font-black uppercase tracking-[0.2em] text-white/80">Tło</h2>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-            {TEXT_BACKGROUNDS.map(bg => (
-              <button key={bg.id} onClick={() => setSelBg(bg)}
-                className="p-3 rounded-xl text-left transition-all hover:scale-[1.02]"
-                style={{background:selBg?.id===bg.id?'rgba(245,158,11,0.1)':'rgba(255,255,255,0.03)',border:`1px solid ${selBg?.id===bg.id?'rgba(245,158,11,0.45)':'rgba(255,255,255,0.08)'}`}}>
-                <div className="w-full h-8 rounded-md mb-2" style={{background:bg.preview,border:'1px solid rgba(255,255,255,0.06)'}} />
-                <div className="text-[10px] font-black uppercase tracking-wider text-white">{bg.label}</div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* GENERUJ */}
-        <div className="text-center">
-          <button onClick={handleGenerate} disabled={!canGen}
-            className="inline-flex items-center gap-3 px-10 py-4 rounded-2xl font-black text-sm uppercase tracking-[0.2em] transition-all"
-            style={{
-              background:canGen?'linear-gradient(135deg,#f59e0b,#d97706)':'rgba(255,255,255,0.05)',
-              color:canGen?'#000':'rgba(255,255,255,0.2)',
-              boxShadow:canGen?'0 0 40px rgba(245,158,11,0.3),0 8px 20px rgba(245,158,11,0.15)':'none',
-              cursor:canGen?'pointer':'not-allowed',
-            }}>
-            <Sparkles className="w-4 h-4" />
-            Generuj prompt
-          </button>
-        </div>
-
-        {/* WYNIK */}
-        {prompt && (
-          <div ref={promptRef} className="rounded-2xl p-6 space-y-4" style={{background:'rgba(245,158,11,0.04)',border:'1px solid rgba(245,158,11,0.2)'}}>
-            <div className="flex items-center justify-between flex-wrap gap-3">
-              <div>
-                <p className="text-[10px] uppercase tracking-[0.3em] font-black text-amber-400">Gotowy prompt</p>
-                <p className="text-[10px] text-white/30 mt-0.5">Kliknij w pole aby zaznaczyć, lub użyj przycisku</p>
-              </div>
-              <button onClick={handleCopy}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-black text-[11px] uppercase tracking-widest transition-all"
-                style={{
-                  background:copied?'rgba(34,197,94,0.15)':'rgba(245,158,11,0.15)',
-                  border:`1px solid ${copied?'rgba(34,197,94,0.4)':'rgba(245,158,11,0.4)'}`,
-                  color:copied?'#4ade80':'#fbbf24',
-                }}>
-                {copied?<><Check className="w-3.5 h-3.5" /> Skopiowano!</>:<><Copy className="w-3.5 h-3.5" /> Kopiuj prompt</>}
-              </button>
-            </div>
-            <textarea
-              id="tc-prompt-text"
-              readOnly value={prompt}
-              onClick={e => e.target.select()}
-              className="w-full text-white/80 text-sm leading-relaxed font-mono rounded-xl p-4 resize-none outline-none cursor-text"
-              style={{background:'rgba(0,0,0,0.4)',border:'1px solid rgba(255,255,255,0.08)',minHeight:'120px'}}
-            />
-            <div className="flex flex-wrap gap-2 pt-2 border-t" style={{borderColor:'rgba(255,255,255,0.06)'}}>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{background:'rgba(255,255,255,0.05)',color:'rgba(255,255,255,0.4)'}}>{format==='portrait'?'📱 9:16':'🖥️ 16:9'}</span>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{background:'rgba(255,255,255,0.05)',color:'rgba(255,255,255,0.4)'}}>✍️ {text.toUpperCase()}</span>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{background:'rgba(255,255,255,0.05)',color:'rgba(255,255,255,0.4)'}}>{selStyle?.emoji} {selStyle?.label}</span>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider" style={{background:'rgba(255,255,255,0.05)',color:'rgba(255,255,255,0.4)'}}>🖼️ {selBg?.label}</span>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                {name:'Midjourney',url:'https://midjourney.com',emoji:'🎨'},
-                {name:'Ideogram',url:'https://ideogram.ai',emoji:'🔤'},
-                {name:'Kling AI',url:'https://kling.ai',emoji:'🎬'},
-              ].map(tool => (
-                <a key={tool.name} href={tool.url} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all hover:scale-105"
-                  style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',color:'rgba(255,255,255,0.5)'}}>
-                  <span>{tool.emoji}</span> {tool.name}
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
