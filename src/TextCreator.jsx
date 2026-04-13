@@ -399,7 +399,7 @@ export default function TextCreator() {
               {[
                 { name: 'Midjourney', url: 'https://midjourney.com', emoji: '🎨' },
                 { name: 'Ideogram',   url: 'https://ideogram.ai',    emoji: '🔤' },
-                { name: 'Kling AI',   url: 'https://kling.ai',       emoji: '🎬' },
+                { name: 'NanoBanana', url: 'https://nanobanana.ai',   emoji: '🍌' },
               ].map(t => (
                 <a key={t.name} href={t.url} target="_blank" rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all hover:scale-105"
