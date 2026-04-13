@@ -3601,55 +3601,124 @@ export default function App() {
 // APLIKACJE 2 VIEW
 // =========================================================================
 const Aplikacje2View = ({ lang, onNavigate }) => {
-  const creators = [
-    { id: 'text-builder', emoji: '✍️', title: 'Kreator Napisów', subtitle: 'Generator promptów napisów AI', desc: 'Twórz artystyczne napisy — kwiaty, ogień, lód, kryształ i więcej.', color: '#f59e0b', available: true },
-    { id: null, emoji: '🎨', title: 'Kreator Kolorowanek', subtitle: 'Generator kolorowanek AI', desc: 'Twórz kolorowanki dla dzieci i dorosłych. Wkrótce dostępne.', color: '#a78bfa', available: false },
-    { id: null, emoji: '📱', title: 'Kreator Social Media', subtitle: 'Generator grafik AI', desc: 'Twórz grafiki na Instagram, TikTok i YouTube. Wkrótce.', color: '#34d399', available: false },
-    { id: null, emoji: '🖼️', title: 'Kreator Okładek', subtitle: 'Generator okładek AI', desc: 'Twórz profesjonalne okładki książek i albumów. Wkrótce.', color: '#f472b6', available: false },
+  const apps2 = [
+    {
+      id: 'text-builder',
+      icon: '✍️',
+      title: lang === 'EN' ? 'Text Creator' : 'Kreator Napisów',
+      subtitle: lang === 'EN' ? 'AI Text Prompt Generator' : 'Generator Promptów Napisów AI',
+      desc: lang === 'EN' ? 'Create artistic letter prompts — flowers, fire, ice, crystal and more.' : 'Twórz artystyczne napisy — kwiaty, ogień, lód, kryształ i więcej.',
+      color: 'from-amber-500/20 via-yellow-500/10 to-orange-500/20',
+      border: 'border-amber-500/30',
+      glow: 'rgba(245,158,11,0.3)',
+      badge: lang === 'EN' ? 'TEXT STUDIO' : 'STUDIO NAPISÓW',
+      available: true,
+    },
+    {
+      id: null,
+      icon: '🎨',
+      title: lang === 'EN' ? 'Coloring Book Creator' : 'Kreator Kolorowanek',
+      subtitle: lang === 'EN' ? 'AI Coloring Book Generator' : 'Generator Kolorowanek AI',
+      desc: lang === 'EN' ? 'Create coloring books for kids and adults. Coming soon.' : 'Twórz kolorowanki dla dzieci i dorosłych. Wkrótce dostępne.',
+      color: 'from-purple-500/20 via-pink-500/10 to-blue-500/20',
+      border: 'border-purple-500/30',
+      glow: 'rgba(168,85,247,0.3)',
+      badge: lang === 'EN' ? 'COMING SOON' : 'WKRÓTCE',
+      available: false,
+    },
+    {
+      id: null,
+      icon: '📱',
+      title: lang === 'EN' ? 'Social Media Creator' : 'Kreator Social Media',
+      subtitle: lang === 'EN' ? 'AI Social Media Generator' : 'Generator Grafik AI',
+      desc: lang === 'EN' ? 'Create graphics for Instagram, TikTok and YouTube. Coming soon.' : 'Twórz grafiki na Instagram, TikTok i YouTube. Wkrótce.',
+      color: 'from-cyan-500/20 via-teal-500/10 to-emerald-500/20',
+      border: 'border-cyan-500/30',
+      glow: 'rgba(6,182,212,0.3)',
+      badge: lang === 'EN' ? 'COMING SOON' : 'WKRÓTCE',
+      available: false,
+    },
+    {
+      id: null,
+      icon: '🖼️',
+      title: lang === 'EN' ? 'Cover Creator' : 'Kreator Okładek',
+      subtitle: lang === 'EN' ? 'AI Cover Generator' : 'Generator Okładek AI',
+      desc: lang === 'EN' ? 'Create professional book and album covers. Coming soon.' : 'Twórz profesjonalne okładki książek i albumów. Wkrótce.',
+      color: 'from-orange-500/20 via-red-500/10 to-yellow-500/20',
+      border: 'border-orange-500/30',
+      glow: 'rgba(249,115,22,0.3)',
+      badge: lang === 'EN' ? 'COMING SOON' : 'WKRÓTCE',
+      available: false,
+    },
   ];
+
   return (
-    <div className="min-h-screen bg-black font-sans pt-8 pb-24">
-      <div className="max-w-5xl mx-auto px-4">
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-4 text-[10px] font-black uppercase tracking-[0.3em]"
-            style={{background:'rgba(245,158,11,0.1)',border:'1px solid rgba(245,158,11,0.2)',color:'#f59e0b'}}>
-            🚀 {lang === 'EN' ? 'AI Applications' : 'Aplikacje AI'}
+    <div className="min-h-screen bg-white dark:bg-black transition-colors duration-700 font-sans px-3 sm:px-4 py-6 sm:py-12">
+      <style>{`
+        @keyframes float3d {
+          0%, 100% { transform: perspective(600px) rotateX(8deg) rotateY(-2deg) translateY(0px); }
+          50% { transform: perspective(600px) rotateX(4deg) rotateY(2deg) translateY(-8px); }
+        }
+        .card3d-a2 {
+          transform: perspective(600px) rotateX(8deg) rotateY(-2deg);
+          transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        .card3d-a2:hover {
+          transform: perspective(600px) rotateX(2deg) rotateY(0deg) translateY(-12px) scale(1.02);
+        }
+        .card3d-a2-disabled {
+          transform: perspective(600px) rotateX(8deg) rotateY(-2deg);
+          opacity: 0.45;
+        }
+      `}</style>
+      <div className="max-w-5xl mx-auto">
+        <div className="mb-12 text-center">
+          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[10px] font-bold uppercase tracking-[0.3em] px-4 py-2 rounded-full mb-4">
+            <Sparkles className="w-3 h-3" />
+            {lang === 'EN' ? 'AI Applications' : 'Aplikacje AI'}
           </div>
-          <h1 className="text-3xl sm:text-4xl font-black uppercase tracking-tighter text-white mb-3" style={{letterSpacing:'-0.03em'}}>
-            {lang === 'EN' ? 'Apps' : 'Aplikacje'} <span style={{color:'#f59e0b'}}>2</span>
+          <h1 className="text-4xl md:text-6xl font-black text-black dark:text-white uppercase tracking-tighter mb-4">
+            {lang === 'EN' ? 'Apps' : 'Aplikacje'} <span className="text-amber-500">2</span>
           </h1>
-          <p className="text-white/40 text-sm max-w-md mx-auto">
-            {lang === 'EN' ? 'Professional AI prompt generators — click to open creator' : 'Profesjonalne generatory promptów AI — kliknij aby otworzyć kreator'}
+          <p className="text-slate-500 max-w-lg mx-auto text-sm">
+            {lang === 'EN' ? 'Professional AI prompt generators — click to open creator.' : 'Profesjonalne generatory promptów AI — kliknij aby otworzyć kreator.'}
           </p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {creators.map((c, i) => (
-            <div key={i}
-              onClick={() => c.available && c.id && onNavigate(c.id)}
-              className="relative p-6 rounded-2xl transition-all duration-200"
-              style={{
-                background: c.available ? `linear-gradient(135deg,${c.color}12,${c.color}06)` : 'rgba(255,255,255,0.02)',
-                border: `1px solid ${c.available ? c.color+'30' : 'rgba(255,255,255,0.06)'}`,
-                cursor: c.available ? 'pointer' : 'default',
-              }}
-              onMouseEnter={e => { if (c.available) e.currentTarget.style.transform='scale(1.02)'; }}
-              onMouseLeave={e => { e.currentTarget.style.transform='scale(1)'; }}>
-              {!c.available && (
-                <div className="absolute top-3 right-3 px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest"
-                  style={{background:'rgba(255,255,255,0.05)',color:'rgba(255,255,255,0.2)',border:'1px solid rgba(255,255,255,0.06)'}}>
-                  {lang === 'EN' ? 'Soon' : 'Wkrótce'}
+
+        <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
+          {apps2.map((app, i) => (
+            <button
+              key={i}
+              onClick={() => app.available && app.id && onNavigate(app.id)}
+              className={`${app.available ? 'card3d-a2' : 'card3d-a2-disabled'} relative rounded-3xl p-8 border bg-gradient-to-br ${app.color} ${app.border} text-left group ${app.available ? 'cursor-pointer' : 'cursor-default'}`}
+              style={{ boxShadow: app.available ? `0 20px 60px ${app.glow}, 0 4px 20px rgba(0,0,0,0.3)` : '0 4px 20px rgba(0,0,0,0.15)' }}
+            >
+              {/* Badge */}
+              <div className="absolute top-4 right-4 text-[8px] font-black uppercase tracking-[0.2em] px-2 py-1 rounded-full"
+                style={{ background: 'rgba(245,158,11,0.15)', border: '1px solid rgba(245,158,11,0.3)', color: '#f59e0b' }}>
+                {app.badge}
+              </div>
+              {/* 3D Icon */}
+              <div className="mb-6">
+                <Icon3D emoji={app.icon} size="lg" />
+              </div>
+              {/* Content */}
+              <h2 className="text-2xl font-black text-black dark:text-white uppercase tracking-tighter mb-1">{app.title}</h2>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-500 mb-3">{app.subtitle}</p>
+              <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed mb-6">{app.desc}</p>
+              {/* Open button */}
+              {app.available && (
+                <div className="flex items-center gap-2 text-amber-500 font-black text-[11px] uppercase tracking-widest group-hover:gap-3 transition-all">
+                  {lang === 'EN' ? 'Open Creator' : 'Otwórz Kreator'}
+                  <ChevronRight className="w-4 h-4" />
                 </div>
               )}
-              <div className="text-4xl mb-4" style={{filter:c.available?`drop-shadow(0 0 16px ${c.color}60)`:'none',opacity:c.available?1:0.3}}>{c.emoji}</div>
-              <div className="text-[9px] font-black uppercase tracking-[0.3em] mb-1" style={{color:c.available?c.color:'rgba(255,255,255,0.2)'}}>{c.subtitle}</div>
-              <h3 className="text-lg font-black uppercase tracking-tight mb-2" style={{color:c.available?'#fff':'rgba(255,255,255,0.25)'}}>{c.title}</h3>
-              <p className="text-[11px] leading-relaxed" style={{color:c.available?'rgba(255,255,255,0.45)':'rgba(255,255,255,0.15)'}}>{c.desc}</p>
-              {c.available && (
-                <div className="mt-4 flex items-center gap-1 text-[10px] font-black uppercase tracking-widest" style={{color:c.color}}>
-                  {lang === 'EN' ? 'Open creator' : 'Otwórz kreator'} <span>→</span>
-                </div>
+              {/* Glow overlay on hover */}
+              {app.available && (
+                <div className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-400 pointer-events-none"
+                  style={{ background: `radial-gradient(circle at 50% 0%, ${app.glow} 0%, transparent 70%)` }} />
               )}
-            </div>
+            </button>
           ))}
         </div>
       </div>
