@@ -3208,7 +3208,8 @@ const AdminView = ({ setCurrentView, lang, user }) => {
 
 
 export default function App() {
-  const [currentView, setCurrentView] = useState('home');
+  const initView = () => { const p = new URLSearchParams(window.location.search).get('view'); return p || 'home'; };
+  const [currentView, setCurrentView] = useState(initView);
   const [isDarkMode, setIsDarkMode] = useState(true);
   const [activeCreator, setActiveCreator] = useState(null);
   const [user, setUser] = useState(null);
