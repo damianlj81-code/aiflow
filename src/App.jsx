@@ -3253,7 +3253,10 @@ export default function App() {
   // New nav items: Academy → Aplikacje → Dodatki → Tutoriale
   const [resetSignal, setResetSignal] = useState(0);
   const handleNavigate = (view) => {
-    if (view === 'text-builder') { window.location.href = '/text.html'; return; }
+    if (view === 'text-builder')     { window.location.href = '/text.html';     return; }
+    if (view === 'coloring-builder') { window.location.href = '/coloring.html'; return; }
+    if (view === 'merch-builder')    { window.location.href = '/merch.html';    return; }
+    if (view === 'aplikacje2')       { window.location.href = '/text.html';     return; }
     setCurrentView(view); setActiveCreator(null); setMobileMenuOpen(false); setResetSignal(s => s + 1);
   };
   const navItems = [
@@ -3619,24 +3622,24 @@ const Aplikacje2View = ({ lang, onNavigate }) => {
       icon: '🎨',
       title: lang === 'EN' ? 'Coloring Book Creator' : 'Kreator Kolorowanek',
       subtitle: lang === 'EN' ? 'AI Coloring Book Generator' : 'Generator Kolorowanek AI',
-      desc: lang === 'EN' ? 'Create coloring book prompts for kids and adults. Coming soon.' : 'Twórz prompty kolorowanek dla dzieci i dorosłych. Wkrótce dostępne.',
+      desc: lang === 'EN' ? 'Create coloring book prompts for kids and adults — dinosaurs, animals, cars, mandalas and more.' : 'Twórz prompty kolorowanek dla dzieci i dorosłych — dinozaury, zwierzęta, auta, mandala i więcej.',
       color: 'from-purple-500/20 via-pink-500/10 to-blue-500/20',
       border: 'border-purple-500/30',
       glow: 'rgba(168,85,247,0.3)',
-      badge: lang === 'EN' ? 'COMING SOON' : 'WKRÓTCE',
-      available: false,
+      badge: lang === 'EN' ? 'COLORING STUDIO' : 'STUDIO KOLOROWANEK',
+      available: true,
     },
     {
-      id: null,
+      id: 'merch-builder',
       icon: '👕',
       title: lang === 'EN' ? 'T-Shirt Creator' : 'Kreator Koszulek',
       subtitle: lang === 'EN' ? 'AI Merch Prompt Generator' : 'Generator Grafik na Koszulki AI',
-      desc: lang === 'EN' ? 'Create print-ready graphics for t-shirts and merch. Coming soon.' : 'Twórz grafiki do druku na koszulki i bluzy. Wkrótce.',
+      desc: lang === 'EN' ? 'Create print-ready graphics for t-shirts and merch — Amazon Merch, Redbubble, Printful.' : 'Twórz grafiki do druku na koszulki i bluzy — Amazon Merch, Redbubble, Printful.',
       color: 'from-cyan-500/20 via-teal-500/10 to-emerald-500/20',
       border: 'border-cyan-500/30',
       glow: 'rgba(6,182,212,0.3)',
-      badge: lang === 'EN' ? 'COMING SOON' : 'WKRÓTCE',
-      available: false,
+      badge: lang === 'EN' ? 'MERCH STUDIO' : 'STUDIO MERCH',
+      available: true,
     },
     {
       id: null,
