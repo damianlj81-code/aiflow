@@ -3499,6 +3499,8 @@ export default function App() {
           {currentView === 'lifestyle-builder' && <LifestyleBuilderView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
           {currentView === 'film-builder' && <FilmBuilderView t={t} user={user} onLoginRequest={() => setShowLogin(true)} />}
           {currentView === 'aplikacje2' && <Aplikacje2View lang={lang} onNavigate={handleNavigate} />}
+          {currentView === 'coloring-builder' && <ColoringCreatorView t={t} user={user} onLoginRequest={() => setShowLogin(true)} onBack={() => handleNavigate('aplikacje2')} />}
+          {currentView === 'merch-builder' && <MerchCreatorView t={t} user={user} onLoginRequest={() => setShowLogin(true)} onBack={() => handleNavigate('aplikacje2')} />}
           {currentView === 'admin' && user?.email === ADMIN_EMAIL && <AdminView setCurrentView={setCurrentView} lang={lang} user={user} />}
           {currentView === 'impressum' && <ImpressumView setCurrentView={setCurrentView} lang={lang} />}
           {currentView === 'datenschutz' && <DatenschutzView setCurrentView={setCurrentView} lang={lang} />}
@@ -3619,24 +3621,24 @@ const Aplikacje2View = ({ lang, onNavigate }) => {
       icon: '🎨',
       title: lang === 'EN' ? 'Coloring Book Creator' : 'Kreator Kolorowanek',
       subtitle: lang === 'EN' ? 'AI Coloring Book Generator' : 'Generator Kolorowanek AI',
-      desc: lang === 'EN' ? 'Create coloring books for kids and adults. Coming soon.' : 'Twórz kolorowanki dla dzieci i dorosłych. Wkrótce dostępne.',
+      desc: lang === 'EN' ? 'Create coloring book prompts for kids and adults — dinosaurs, animals, cars, mandalas and more.' : 'Twórz prompty kolorowanek dla dzieci i dorosłych — dinozaury, zwierzęta, auta, mandala i więcej.',
       color: 'from-purple-500/20 via-pink-500/10 to-blue-500/20',
       border: 'border-purple-500/30',
       glow: 'rgba(168,85,247,0.3)',
-      badge: lang === 'EN' ? 'COMING SOON' : 'WKRÓTCE',
-      available: false,
+      badge: lang === 'EN' ? 'COLORING STUDIO' : 'STUDIO KOLOROWANEK',
+      available: true,
     },
     {
-      id: null,
-      icon: '📱',
-      title: lang === 'EN' ? 'Social Media Creator' : 'Kreator Social Media',
-      subtitle: lang === 'EN' ? 'AI Social Media Generator' : 'Generator Grafik AI',
-      desc: lang === 'EN' ? 'Create graphics for Instagram, TikTok and YouTube. Coming soon.' : 'Twórz grafiki na Instagram, TikTok i YouTube. Wkrótce.',
+      id: 'merch-builder',
+      icon: '👕',
+      title: lang === 'EN' ? 'T-Shirt Creator' : 'Kreator Koszulek',
+      subtitle: lang === 'EN' ? 'AI Merch Prompt Generator' : 'Generator Grafik na Koszulki AI',
+      desc: lang === 'EN' ? 'Create print-ready graphics for t-shirts, hoodies and merch — Amazon Merch, Redbubble, Printful.' : 'Twórz grafiki do druku na koszulki i bluzy — Amazon Merch, Redbubble, Printful.',
       color: 'from-cyan-500/20 via-teal-500/10 to-emerald-500/20',
       border: 'border-cyan-500/30',
       glow: 'rgba(6,182,212,0.3)',
-      badge: lang === 'EN' ? 'COMING SOON' : 'WKRÓTCE',
-      available: false,
+      badge: lang === 'EN' ? 'MERCH STUDIO' : 'STUDIO MERCH',
+      available: true,
     },
     {
       id: null,
@@ -3726,5 +3728,509 @@ const Aplikacje2View = ({ lang, onNavigate }) => {
   );
 };
 
+// =========================================================================
+// COLORING CREATOR VIEW
+// =========================================================================
+const ColoringCreatorView = ({ t, user, onLoginRequest, onBack }) => {
+  const lang = t?.lang || 'PL';
+
+  const CATEGORIES = [
+    // Zwierzęta
+    { id: 'dino',      emoji: '🦖', label: 'Dinozaury',        group: 'dzieci',
+      prompts: ['a fierce T-Rex roaring in a jungle clearing','a friendly Triceratops eating plants in a prehistoric forest','a group of baby dinosaurs hatching from eggs','a Brachiosaurus reaching for leaves in a swamp','a Stegosaurus walking through a volcanic landscape','a Pterodactyl flying over a prehistoric sea','a Velociraptor running through tall ferns','a Diplodocus in a river surrounded by palm trees'] },
+    { id: 'pets',      emoji: '🐶', label: 'Zwierzęta domowe', group: 'dzieci',
+      prompts: ['a fluffy puppy playing with a ball in a garden','a kitten sleeping in a cozy basket','a rabbit hopping through a flower meadow','a hamster running on a wheel in its cage','a parrot sitting on a branch in a sunny room','a goldfish swimming in a bowl with colorful pebbles','a guinea pig eating a carrot in a grassy field','a dog fetching a stick in a park'] },
+    { id: 'wild',      emoji: '🦁', label: 'Dzikie zwierzęta', group: 'dzieci',
+      prompts: ['a lion sitting proudly on a rock at sunset','an elephant spraying water with its trunk in a river','a giraffe eating leaves from a tall acacia tree','a zebra running across the African savanna','a polar bear walking on arctic ice','a dolphin jumping out of ocean waves','a wolf howling at the moon in a snowy forest','a tiger hiding in tall grass in the jungle'] },
+    { id: 'ocean',     emoji: '🌊', label: 'Ocean / Podwodny', group: 'dzieci',
+      prompts: ['a colorful clownfish swimming near sea anemones','a sea turtle gliding through coral reef','an octopus hiding between rocks on the ocean floor','a whale swimming with a pod in the deep ocean','a seahorse floating near underwater plants','a group of tropical fish in a vibrant coral reef','a crab walking on the sandy ocean floor','a jellyfish drifting in the open sea'] },
+    { id: 'birds',     emoji: '🦜', label: 'Ptaki',            group: 'dzieci',
+      prompts: ['a colorful parrot perched on a tropical branch','an owl sitting on a tree branch at night','a flamingo standing in shallow water at sunset','a peacock spreading its magnificent tail feathers','a hummingbird hovering near a flower','a penguin walking on ice with its family','an eagle soaring high above mountain peaks','a swan gliding on a calm lake'] },
+    { id: 'insects',   emoji: '🦋', label: 'Owady / Motyle',   group: 'dzieci',
+      prompts: ['a beautiful butterfly landing on a sunflower','a ladybug climbing a green leaf','a bee collecting nectar from a flower','a dragonfly hovering above a pond','a caterpillar crawling on a branch','a group of ants carrying food to their nest','a firefly glowing in a dark forest at night','a grasshopper sitting in a summer meadow'] },
+    { id: 'dragons',   emoji: '🐉', label: 'Smoki / Fantasy',  group: 'mlodzież',
+      prompts: ['a majestic dragon perched on a castle tower breathing fire','a young dragon learning to fly over a mountain valley','a water dragon emerging from a misty lake','an ice dragon in a frozen tundra landscape','a forest dragon curled around an ancient tree','a dragon and a knight facing each other in a dramatic standoff','a dragon hatchling breaking out of a golden egg','a dragon soaring above storm clouds at night'] },
+    { id: 'mermaids',  emoji: '🧜', label: 'Syreny / Bajki',   group: 'mlodzież',
+      prompts: ['a mermaid sitting on a rock watching the sunset over the ocean','a mermaid exploring a sunken shipwreck with curious fish','a mermaid swimming with dolphins in crystal blue water','a mermaid discovering a treasure chest on the ocean floor','a mermaid and a sea horse in a underwater garden','a mermaid combing her hair on a moonlit beach','a group of mermaids dancing around a coral castle','a mermaid rescuing a sailor from a storm'] },
+    // Pojazdy
+    { id: 'cars',      emoji: '🚗', label: 'Samochody klasyczne', group: 'mlodzież',
+      prompts: ['a vintage 1960s muscle car on an open highway at sunset','a classic 1950s convertible parked on a beach','a retro racing car speeding on a track','an old-school pickup truck on a dusty country road','a classic sports car in a mountain hairpin turn','a vintage hot rod at a retro car show with crowds','a 1970s van with psychedelic paint job on a road trip','a classic European sports car on a cobblestone city street'] },
+    { id: 'trucks',    emoji: '🚛', label: 'Ciężarówki / Monster', group: 'mlodzież',
+      prompts: ['a monster truck crushing cars in an arena full of fans','a big rig semi-truck on an interstate highway at night','a fire truck racing through city streets with sirens','a construction dump truck at a busy building site','a military tank rolling through a forest','a space shuttle on its transport vehicle','a vintage steam locomotive pulling freight through mountains','an off-road 4x4 truck conquering muddy terrain'] },
+    { id: 'space',     emoji: '🚀', label: 'Kosmos / Rakiety',  group: 'mlodzież',
+      prompts: ['a rocket launching into space with fire and smoke trails','an astronaut floating in space with Earth in background','a space station orbiting Earth with solar panels deployed','an alien planet with two moons and strange vegetation','a Mars rover exploring a red rocky landscape','a black hole with swirling galaxy around it','astronauts planting a flag on the Moon','a futuristic spaceship flying through an asteroid field'] },
+    { id: 'castles',   emoji: '🏰', label: 'Zamki / Rycerze',  group: 'mlodzież',
+      prompts: ['a medieval knight in full armor on horseback outside a castle','a princess in a tower window of a fairy tale castle','a dragon attacking a medieval castle with brave knights defending','a wizard in a tower room surrounded by spell books and potions','a medieval village market day outside castle walls','a knight fighting a giant ogre in a forest clearing','a royal banquet hall with knights and nobles at a long table','a castle siege with catapults and archers on the walls'] },
+    // Dorośli
+    { id: 'mandala',   emoji: '🔮', label: 'Mandala',          group: 'dorośli',
+      prompts: ['an intricate geometric mandala with circular symmetry and fine details','a floral mandala with lotus petals and delicate inner patterns','a celestial mandala with stars, moons and cosmic geometric forms','a nature mandala incorporating leaves, vines and flowers in perfect symmetry','a tribal mandala with bold geometric shapes and repetitive border patterns','a butterfly mandala where wings form perfect geometric symmetry','an ocean mandala with waves, shells and sea creatures in circular form','a sacred geometry mandala with overlapping circles and star polygons'] },
+    { id: 'flowers',   emoji: '🌸', label: 'Kwiaty / Botanika', group: 'dorośli',
+      prompts: ['a detailed botanical illustration of roses in full bloom with leaves','a wreath of wildflowers including daisies, poppies and cornflowers','a tropical bouquet with hibiscus, bird of paradise and palm leaves','a Victorian-style floral arrangement with intricate detail','a field of lavender stretching to the horizon at sunset','a close-up of a sunflower with detailed petals and seeds','cherry blossom branches with intricate petal detail and falling blossoms','a garden scene with roses climbing a stone arch'] },
+    { id: 'architecture', emoji: '🏛️', label: 'Architektura',  group: 'dorośli',
+      prompts: ['the Eiffel Tower with intricate lattice ironwork detail','a beautiful Victorian house with ornate trim and wraparound porch','a Moroccan riad courtyard with intricate tilework and fountain','a Japanese pagoda surrounded by cherry blossoms','a Gothic cathedral with detailed flying buttresses and stained glass','a cozy cottage in an English country garden','a Mediterranean village perched on a cliff overlooking the sea','a futuristic city skyline with flowing organic architecture'] },
+    { id: 'fantasy_adults', emoji: '⚔️', label: 'Fantasy / Dorośli', group: 'dorośli',
+      prompts: ['a dark fantasy warrior in ornate armor before an epic battle','a mystical forest with ancient trees and glowing fairy lights','a powerful sorceress casting a complex spell surrounded by magical energy','a detailed map of a fantasy kingdom with mountains, forests and cities','a phoenix rising from flames with intricate feather detail','an elven city built in the branches of enormous ancient trees','a detailed dungeon scene with torches, columns and ancient treasures','a cosmic goddess floating among stars and nebulae'] },
+    // Święta
+    { id: 'christmas', emoji: '🎄', label: 'Boże Narodzenie',  group: 'święta',
+      prompts: ['Santa Claus in his sleigh with reindeer flying over a snowy village','a decorated Christmas tree with ornaments, lights and presents underneath','a cozy Christmas scene with fireplace, stockings and falling snow outside','elves in Santa\'s workshop busy making toys','a snowman family in a winter landscape with scarves and hats','children opening presents on Christmas morning with excited expressions','a Christmas market with stalls, lights and happy shoppers in snow','a nativity scene with detailed figures of Mary, Joseph and baby Jesus'] },
+    { id: 'easter',    emoji: '🐣', label: 'Wielkanoc',        group: 'święta',
+      prompts: ['a basket filled with decorated Easter eggs and spring flowers','a cute Easter bunny delivering colorful eggs in a spring garden','children on an Easter egg hunt in a flower-filled meadow','a baby chick hatching from a decorated Easter egg','a spring landscape with tulips, daffodils and Easter decorations','an Easter table with decorated eggs, hot cross buns and spring flowers','a bunny family celebrating Easter in a meadow','traditional Easter basket with bread, eggs and spring herbs'] },
+    { id: 'halloween', emoji: '🎃', label: 'Halloween',        group: 'święta',
+      prompts: ['a haunted house on a hill under a full moon with bats flying','trick-or-treaters in costumes at a spooky decorated door','a witch flying on a broomstick over a dark forest at night','pumpkins carved with various expressions lined up on steps','a graveyard scene with ghosts, tombstones and a full moon','a black cat sitting on a fence post under a harvest moon','a spooky forest with gnarled trees, owls and glowing eyes','children at a Halloween party with costumes and decorations'] },
+    { id: 'newyear',   emoji: '🎆', label: 'Nowy Rok',         group: 'święta',
+      prompts: ['fireworks exploding over a city skyline at midnight','people celebrating New Year in a city square with confetti and balloons','a champagne toast with fireworks visible through a window','a clock showing midnight with party decorations and streamers','Times Square style New Year celebration with crowds and lights','a family watching fireworks from a hilltop at midnight','a New Year party table with glasses, decorations and countdown clock','couples dancing at an elegant New Year Eve gala with balloons dropping'] },
+    { id: 'valentine', emoji: '❤️', label: 'Walentynki',       group: 'święta',
+      prompts: ['a romantic couple in a garden surrounded by roses and hearts','a heart-shaped box of chocolates with roses and ribbon','a couple sharing a meal at a candlelit table with heart decorations','love letters and flowers arranged with hearts and ribbons','two swans forming a heart shape on a calm lake','a cozy scene with hot chocolate, candles and heart decorations by a fireplace','a teddy bear holding a heart in a flower-filled scene','a romantic picnic in a park with hearts, flowers and a blanket'] },
+  ];
+
+  const DIFFICULTY = [
+    { id: 'tiny',   emoji: '👶', label: lang==='EN'?'Tiny Tots (2-4 yrs)':'Maluszki (2-4 lata)',   desc: lang==='EN'?'Very thick lines, simple shapes':'Bardzo grube linie, proste kształty',
+      prompt: 'very simple thick bold black outlines, minimal details, designed for toddlers ages 2-4, large simple shapes, no tiny details, clear uncluttered composition, easy to color' },
+    { id: 'kids',   emoji: '🧒', label: lang==='EN'?'Kids (4-8 yrs)':'Dzieci (4-8 lat)',           desc: lang==='EN'?'Thick lines, simple details':'Grube linie, proste szczegóły',
+      prompt: 'simple thick black outlines, basic details, designed for young children ages 4-8, clear shapes with some simple inner details, friendly and cute style' },
+    { id: 'junior', emoji: '🧑', label: lang==='EN'?'Junior (8-12 yrs)':'Junior (8-12 lat)',       desc: lang==='EN'?'Medium lines, more details':'Średnie linie, więcej detali',
+      prompt: 'medium weight black outlines, moderate detail level, designed for children ages 8-12, good balance of simple areas and detailed sections, engaging composition' },
+    { id: 'teen',   emoji: '🧑‍🎓', label: lang==='EN'?'Teen (12-16 yrs)':'Młodzież (12-16 lat)', desc: lang==='EN'?'Fine lines, detailed':'Cienkie linie, szczegółowe',
+      prompt: 'fine detailed black outlines, intricate details, designed for teenagers, complex composition with many elements to color, highly detailed illustration style' },
+    { id: 'adult',  emoji: '🎨', label: lang==='EN'?'Adult':'Dorośli',                             desc: lang==='EN'?'Very fine, intricate':'Bardzo szczegółowe, zawiłe',
+      prompt: 'very fine intricate black outlines, highly detailed complex illustration, designed for adults, dense composition with many small details, professional coloring book quality' },
+  ];
+
+  const GROUPS = [
+    { id: 'all',      label: lang==='EN'?'Wszystkie':'Wszystkie' },
+    { id: 'dzieci',   label: lang==='EN'?'Dla dzieci':'Dla dzieci' },
+    { id: 'mlodzież', label: lang==='EN'?'Młodzież':'Młodzież' },
+    { id: 'dorośli',  label: lang==='EN'?'Dorośli':'Dorośli' },
+    { id: 'święta',   label: lang==='EN'?'Święta':'Święta' },
+  ];
+
+  const [selCategory, setSelCategory] = React.useState(null);
+  const [selDifficulty, setSelDifficulty] = React.useState(null);
+  const [activeGroup, setActiveGroup] = React.useState('all');
+  const [prompt, setPrompt] = React.useState('');
+  const [copied, setCopied] = React.useState(false);
+  const promptRef = React.useRef(null);
+
+  const filteredCategories = activeGroup === 'all' ? CATEGORIES : CATEGORIES.filter(c => c.group === activeGroup);
+  const canGen = selCategory && selDifficulty;
+
+  function buildColoringPrompt(cat, diff) {
+    const randomScene = cat.prompts[Math.floor(Math.random() * cat.prompts.length)];
+    return `Black and white coloring book page illustration of ${randomScene}. ${diff.prompt}. Pure white background, clean crisp black lines only, no grey shading, no color fills, no gradients, no shadows — only black outlines on white background. Professional coloring book style, print-ready for 8.5x11 inch page. --ar 3:4 --style raw --v 6.1`;
+  }
+
+  function handleGenerate() {
+    if (!canGen) return;
+    const p = buildColoringPrompt(selCategory, selDifficulty);
+    setPrompt(p);
+    setTimeout(() => promptRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+  }
+
+  async function handleCopy() {
+    if (!prompt) return;
+    try { await navigator.clipboard.writeText(prompt); setCopied(true); setTimeout(() => setCopied(false), 2500); }
+    catch { const el = document.getElementById('coloring-prompt'); if (el) { const r = document.createRange(); r.selectNode(el); window.getSelection().removeAllRanges(); window.getSelection().addRange(r); } }
+  }
+
+  return (
+    <div className="min-h-screen bg-white dark:bg-black font-sans">
+      <div className="max-w-5xl mx-auto px-4 pt-6 pb-24">
+        {/* Back button */}
+        <button onClick={onBack} className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-amber-400 transition-colors mb-6 dark:text-white/40">
+          <ArrowLeft className="w-4 h-4" /> {lang==='EN'?'Back to Apps 2':'Powrót do Aplikacje 2'}
+        </button>
+
+        {/* Hero */}
+        <div className="text-center mb-10">
+          <div className="text-5xl mb-4" style={{filter:'drop-shadow(0 0 30px rgba(168,85,247,0.5))'}}>🎨</div>
+          <h1 className="text-3xl sm:text-4xl font-black uppercase tracking-tighter mb-2 text-black dark:text-white">
+            {lang==='EN'?'Coloring Book':'Kreator'} <span style={{color:'#a78bfa'}}>{lang==='EN'?'Creator':'Kolorowanek'}</span>
+          </h1>
+          <p className="text-slate-500 text-sm max-w-md mx-auto">{lang==='EN'?'Generate coloring book prompts for Midjourney or Ideogram — ready to print on Amazon KDP':'Generuj prompty kolorowanek do Midjourney lub Ideogram — gotowe do druku na Amazon KDP'}</p>
+          <div className="flex items-center justify-center gap-3 mt-3 text-[10px] text-white/40 dark:text-white/40 text-slate-400">
+            <span>✅ {lang==='EN'?'Each prompt = unique random scene':'Każdy prompt = unikalna losowa scena'}</span>
+            <span>·</span>
+            <span>✅ {lang==='EN'?'Ready for KDP 8.5x11':'Gotowe na KDP 8.5x11'}</span>
+          </div>
+        </div>
+
+        <div className="space-y-10">
+          {/* KROK 1: KATEGORIA */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-black text-black flex-shrink-0" style={{background:'linear-gradient(135deg,#a78bfa,#7c3aed)'}}>1</div>
+              <h2 className="text-sm font-black uppercase tracking-[0.2em] text-black dark:text-white">{lang==='EN'?'Choose category':'Wybierz kategorię'}</h2>
+            </div>
+            {/* Group filter */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              {GROUPS.map(g => (
+                <button key={g.id} onClick={() => setActiveGroup(g.id)}
+                  className="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all"
+                  style={{
+                    background: activeGroup===g.id ? '#a78bfa' : 'rgba(167,139,250,0.1)',
+                    color: activeGroup===g.id ? '#000' : '#a78bfa',
+                    border: `1px solid ${activeGroup===g.id ? '#a78bfa' : 'rgba(167,139,250,0.3)'}`,
+                  }}>
+                  {g.label}
+                </button>
+              ))}
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {filteredCategories.map(cat => (
+                <button key={cat.id} onClick={() => setSelCategory(cat)}
+                  className="relative p-4 rounded-xl text-left transition-all hover:scale-[1.02]"
+                  style={{
+                    background: selCategory?.id===cat.id ? 'rgba(167,139,250,0.15)' : 'rgba(255,255,255,0.03)',
+                    border: `1px solid ${selCategory?.id===cat.id ? 'rgba(167,139,250,0.5)' : 'rgba(255,255,255,0.08)'}`,
+                    boxShadow: selCategory?.id===cat.id ? '0 0 20px rgba(167,139,250,0.2)' : 'none',
+                  }}>
+                  <div className="text-2xl mb-1">{cat.emoji}</div>
+                  <div className="text-xs font-black uppercase tracking-wider text-black dark:text-white">{cat.label}</div>
+                  <div className="text-[9px] text-slate-400 mt-0.5">{cat.prompts.length} scen</div>
+                  {selCategory?.id===cat.id && (
+                    <div className="absolute top-2 right-2 w-4 h-4 rounded-full flex items-center justify-center" style={{background:'#a78bfa'}}>
+                      <Check className="w-2.5 h-2.5 text-black" />
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* KROK 2: POZIOM */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-black text-black flex-shrink-0" style={{background:'linear-gradient(135deg,#a78bfa,#7c3aed)'}}>2</div>
+              <h2 className="text-sm font-black uppercase tracking-[0.2em] text-black dark:text-white">{lang==='EN'?'Choose difficulty':'Wybierz poziom trudności'}</h2>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+              {DIFFICULTY.map(d => (
+                <button key={d.id} onClick={() => setSelDifficulty(d)}
+                  className="p-3 rounded-xl text-left transition-all hover:scale-[1.02]"
+                  style={{
+                    background: selDifficulty?.id===d.id ? 'rgba(167,139,250,0.15)' : 'rgba(255,255,255,0.03)',
+                    border: `1px solid ${selDifficulty?.id===d.id ? 'rgba(167,139,250,0.5)' : 'rgba(255,255,255,0.08)'}`,
+                  }}>
+                  <div className="text-xl mb-1">{d.emoji}</div>
+                  <div className="text-[10px] font-black uppercase tracking-wider text-black dark:text-white leading-tight">{d.label}</div>
+                  <div className="text-[9px] text-slate-400 mt-1">{d.desc}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* GENERUJ */}
+          <div className="text-center space-y-3">
+            <p className="text-[10px] text-slate-400">{lang==='EN'?'Every click generates a unique random scene from the category':'Każde kliknięcie generuje unikalną losową scenę z kategorii'} 🎲</p>
+            <button onClick={handleGenerate} disabled={!canGen}
+              className="inline-flex items-center gap-3 px-10 py-4 rounded-2xl font-black text-sm uppercase tracking-[0.2em] transition-all"
+              style={{
+                background: canGen ? 'linear-gradient(135deg,#a78bfa,#7c3aed)' : 'rgba(255,255,255,0.05)',
+                color: canGen ? '#fff' : 'rgba(255,255,255,0.2)',
+                boxShadow: canGen ? '0 0 40px rgba(167,139,250,0.3),0 8px 20px rgba(167,139,250,0.15)' : 'none',
+                cursor: canGen ? 'pointer' : 'not-allowed',
+              }}>
+              <Sparkles className="w-4 h-4" />
+              {lang==='EN'?'Generate prompt 🎲':'Generuj prompt 🎲'}
+            </button>
+          </div>
+
+          {/* WYNIK */}
+          {prompt && (
+            <div ref={promptRef} className="rounded-2xl p-6 space-y-4" style={{background:'rgba(167,139,250,0.04)',border:'1px solid rgba(167,139,250,0.2)'}}>
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.3em] font-black" style={{color:'#a78bfa'}}>{lang==='EN'?'Ready prompt':'Gotowy prompt'}</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">{lang==='EN'?'Paste into Midjourney, Ideogram or NanoBanana':'Wklej do Midjourney, Ideogram lub NanoBanana'}</p>
+                </div>
+                <button onClick={handleGenerate}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all"
+                  style={{background:'rgba(167,139,250,0.1)',border:'1px solid rgba(167,139,250,0.3)',color:'#a78bfa'}}>
+                  🎲 {lang==='EN'?'New random':'Nowa losowa'}
+                </button>
+              </div>
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <div className="flex flex-wrap gap-2">
+                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold uppercase" style={{background:'rgba(255,255,255,0.05)',color:'rgba(255,255,255,0.4)'}}>{selCategory?.emoji} {selCategory?.label}</span>
+                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold uppercase" style={{background:'rgba(255,255,255,0.05)',color:'rgba(255,255,255,0.4)'}}>{selDifficulty?.emoji} {selDifficulty?.label}</span>
+                </div>
+                <button onClick={handleCopy}
+                  className="flex items-center gap-2 px-6 py-3 rounded-xl font-black text-[12px] uppercase tracking-widest transition-all"
+                  style={{
+                    background: copied ? 'rgba(34,197,94,0.15)' : 'rgba(167,139,250,0.15)',
+                    border: `1px solid ${copied ? 'rgba(34,197,94,0.4)' : 'rgba(167,139,250,0.4)'}`,
+                    color: copied ? '#4ade80' : '#a78bfa',
+                    boxShadow: copied ? '0 0 20px rgba(34,197,94,0.15)' : '0 0 20px rgba(167,139,250,0.1)',
+                  }}>
+                  {copied ? <><Check className="w-4 h-4" /> {lang==='EN'?'Copied!':'Skopiowano!'}</> : <><Copy className="w-4 h-4" /> {lang==='EN'?'Copy prompt':'Kopiuj prompt'}</>}
+                </button>
+              </div>
+              <textarea id="coloring-prompt" readOnly value={prompt} onClick={e => e.target.select()}
+                className="w-full text-sm leading-relaxed font-mono rounded-xl p-4 resize-none outline-none cursor-text text-slate-300"
+                style={{background:'rgba(0,0,0,0.4)',border:'1px solid rgba(255,255,255,0.08)',minHeight:'120px'}} />
+              <div className="grid grid-cols-3 gap-2">
+                {[{name:'Midjourney',url:'https://midjourney.com',emoji:'🎨'},{name:'Ideogram',url:'https://ideogram.ai',emoji:'🔤'},{name:'NanoBanana',url:'https://nanobanana.ai',emoji:'🍌'}].map(tool => (
+                  <a key={tool.name} href={tool.url} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all hover:scale-105"
+                    style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',color:'rgba(255,255,255,0.5)'}}>
+                    <span>{tool.emoji}</span> {tool.name}
+                  </a>
+                ))}
+              </div>
+              <div className="rounded-xl p-4 text-[10px] leading-relaxed text-slate-400" style={{background:'rgba(167,139,250,0.05)',border:'1px solid rgba(167,139,250,0.1)'}}>
+                💡 <strong style={{color:'#a78bfa'}}>KDP tip:</strong> {lang==='EN'?'Minimum 24 pages required. Each illustration + blank page behind = 2 pages. 30 illustrations = 60 pages. Standard size: 8.5 x 11 inches, 300 DPI.':'Minimum 24 strony wymagane. Każda ilustracja + pusta strona za nią = 2 strony. 30 ilustracji = 60 stron. Standardowy rozmiar: 8,5 x 11 cali, 300 DPI.'}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// =========================================================================
+// MERCH CREATOR VIEW
+// =========================================================================
+const MerchCreatorView = ({ t, user, onLoginRequest, onBack }) => {
+  const lang = t?.lang || 'PL';
+
+  const CATEGORIES = [
+    { id: 'gaming',    emoji: '🎮', label: 'Gaming',           prompts: ['a retro pixel art controller with lightning bolts','a fierce dragon wrapped around a gaming headset','a skull made of circuit boards and game controllers','a space warrior holding a laser sword in neon glow','an epic battle scene between robots in a cyber city','a wolf wearing headphones gaming in a neon room','a vintage arcade machine with fire and lightning','a cat wearing sunglasses with controller and neon background'] },
+    { id: 'gym',       emoji: '💪', label: 'Gym / Fitness',    prompts: ['a fierce lion lifting weights with motivational text space','a roaring bear with crossed dumbbells and fire','a muscular gorilla in gym pose with chains','an eagle with spread wings above crossed kettlebells','a wolf howling at moon with barbell silhouette','skull with dumbbells and roses tattoo style','a tiger breaking through chains in gym setting','a Viking warrior lifting a boulder with fierce expression'] },
+    { id: 'moto',      emoji: '🏍️', label: 'Motocykle',        prompts: ['a classic motorcycle skull with flames and roses','an eagle wings spread wide over a chopper motorcycle','a wolf riding motorcycle through a stormy night','a detailed biker skull with wings and chain border','a vintage motorcycle with rose and lightning bolt frame','a bear on motorcycle in mountain landscape silhouette','a phoenix rising from a burning motorcycle','a skeleton biker in cowboy hat on chopper at sunset'] },
+    { id: 'music',     emoji: '🎸', label: 'Muzyka / Rock',    prompts: ['an electric guitar wrapped in flames with skull head','a roaring lion wearing headphones with music notes','a skeleton playing guitar in spotlight on stage','a wolf howling with musical notes and electric guitar','a vintage microphone with roses and lightning bolt','a crow sitting on a broken guitar with moon background','a detailed tattoo style guitar with flowers and skulls','a bear DJ at turntables with neon lights'] },
+    { id: 'cats',      emoji: '🐱', label: 'Koty / Cute',      prompts: ['a cute cat wearing sunglasses with pizza slices','a funny cat astronaut floating in space with stars','a cat wizard casting spells with magical stars','a kitten sleeping in a coffee cup with steam hearts','a cat playing guitar on a crescent moon at night','a cat detective with magnifying glass in noir style','a fluffy cat sitting on a pile of books reading','a cat superhero flying over city skyline at night'] },
+    { id: 'dogs',      emoji: '🐕', label: 'Psy / Cute',       prompts: ['a golden retriever wearing sunglasses at the beach','a funny bulldog wearing a crown sitting on a throne','a dog astronaut floating in space with paw prints','a dachshund wrapped in a hot dog bun with mustard','a husky howling at northern lights in winter','a puppy wearing chef hat cooking in a kitchen','a dog detective with pipe and magnifying glass','a Labrador surfing a wave at tropical beach'] },
+    { id: 'nature',    emoji: '🌿', label: 'Natura / Boho',    prompts: ['a sun and moon face with botanical frame of wildflowers','a mountain landscape with pine trees in geometric triangle frame','a wolf silhouette howling at moon in forest of geometric trees','a deer in enchanted forest with floral mandala frame','a hummingbird with tropical flowers in boho style','a bear paw with mountain and pine tree inside','crystals and wildflowers in a circular mandala arrangement','a whale swimming through cosmic starfield with moon'] },
+    { id: 'skulls',    emoji: '💀', label: 'Skulls / Gothic',  prompts: ['a sugar skull with intricate floral patterns Day of Dead style','a skull with roses and butterfly wings gothic tattoo style','a crowned skull with snake and roses rock style','a geometric skull with galaxy inside and star frame','a skull made entirely of roses and vines botanical gothic','a Viking skull helmet with ravens and Norse runes','a skull with headphones and music notes rock and roll style','a skull butterfly with detailed wing patterns'] },
+    { id: 'vintage',   emoji: '🎭', label: 'Vintage / Retro',  prompts: ['a vintage hot air balloon over mountains in retro poster style','a retro 1950s diner scene with classic car and neon sign','a vintage travel poster style adventure mountain landscape','a classic boxing poster with retro typography frame','a vintage circus poster with elephant and acrobat','a retro space age rocket ship with atomic style design','a classic western sheriff badge with eagle and stars','a vintage botanical illustration of tropical plants'] },
+    { id: 'space_m',   emoji: '🚀', label: 'Kosmos',           prompts: ['an astronaut floating in space holding a flag with galaxy behind','a wolf silhouette on moon surface with Earth in background','a cosmic bear made of stars and nebula clouds','a retro space shuttle with sun rays and stars poster style','a skull with planets and stars cosmic gothic style','an astronaut cat floating with fish in space bubbles','a geometric wolf head with constellation map inside','planets and moons in detailed scientific illustration style'] },
+    { id: 'funny',     emoji: '😂', label: 'Humor / Memy',     prompts: ['a grumpy cat face with I hate Mondays space for text','a confused dog face with Why? expression comic style','a pizza slice wearing sunglasses on beach vacation','tacos doing karate with flames and action lines','a coffee cup with superhero cape saving the morning','a sloth hanging from branch with motivational quote space','a dinosaur doing yoga poses on yoga mat','a bear holding a giant fish trophy with champion ribbon'] },
+    { id: 'christmas_m', emoji: '🎄', label: 'Boże Narodzenie', prompts: ['a cute reindeer with Santa hat and scarf','Santa skull in holiday style with candy canes','a gnome with Christmas hat holding gift bag','a bear in ugly Christmas sweater with hot cocoa','a vintage Christmas poster style with snow village','a cat wearing Christmas hat with ornaments and stars','a retro Christmas label with pine wreath and ribbon','a snowman skull with top hat and scarf gothic style'] },
+    { id: 'halloween_m', emoji: '🎃', label: 'Halloween',       prompts: ['a cat witch on broomstick with full moon silhouette','a cute pumpkin ghost with bat wings and stars','a skull with witch hat and poison bottle gothic style','a black cat with Halloween moon and bats','a sugar skull pumpkin hybrid with floral pattern','a werewolf howling at full moon vintage style','a haunted house with bats and full moon silhouette','a skeleton witch stirring cauldron with potion stars'] },
+  ];
+
+  const STYLES = [
+    { id: 'vintage',  emoji: '🎭', label: lang==='EN'?'Vintage / Retro':'Vintage / Retro',   prompt: 'vintage retro illustration style, aged texture, limited color palette, old-school graphic design' },
+    { id: 'minimal',  emoji: '⚡', label: lang==='EN'?'Minimalist':'Minimalistyczny',         prompt: 'clean minimalist design, simple bold shapes, flat design, modern style' },
+    { id: 'bold',     emoji: '💥', label: lang==='EN'?'Bold / Grunge':'Bold / Grunge',        prompt: 'bold grunge style, rough textures, distressed edges, aggressive graphic design' },
+    { id: 'tattoo',   emoji: '⚔️', label: lang==='EN'?'Tattoo / Flash':'Tattoo / Flash',      prompt: 'traditional tattoo flash art style, bold black outlines, classic tattoo imagery' },
+    { id: 'cute',     emoji: '🥰', label: lang==='EN'?'Cute / Kawaii':'Cute / Kawaii',        prompt: 'cute kawaii cartoon style, soft rounded shapes, adorable expressions, chibi proportions' },
+    { id: 'geometric',emoji: '🔷', label: lang==='EN'?'Geometric':'Geometryczny',             prompt: 'geometric low-poly design style, sharp angular shapes, modern graphic art' },
+  ];
+
+  const LANGUAGES = [
+    { id: 'none', flag: '🚫', label: lang==='EN'?'No text':'Bez tekstu',    text: '' },
+    { id: 'pl',   flag: '🇵🇱', label: 'Polski',                             text: 'Polish language' },
+    { id: 'en',   flag: '🇬🇧', label: 'English',                            text: 'English language' },
+    { id: 'de',   flag: '🇩🇪', label: 'Deutsch',                            text: 'German language' },
+  ];
+
+  const [selCategory, setSelCategory] = React.useState(null);
+  const [selStyle, setSelStyle] = React.useState(null);
+  const [selLang, setSelLang] = React.useState(LANGUAGES[0]);
+  const [customText, setCustomText] = React.useState('');
+  const [prompt, setPrompt] = React.useState('');
+  const [copied, setCopied] = React.useState(false);
+  const promptRef = React.useRef(null);
+
+  const canGen = selCategory && selStyle;
+
+  function buildMerchPrompt(cat, style, language, text) {
+    const randomScene = cat.prompts[Math.floor(Math.random() * cat.prompts.length)];
+    const textPart = language.id !== 'none' && text.trim()
+      ? `, with the text "${text.trim()}" in bold ${language.text} typography`
+      : '';
+    return `T-shirt graphic design of ${randomScene}${textPart}. ${style.prompt}. IMPORTANT: transparent background, isolated graphic, no background, print-ready for direct garment printing (DTG), high contrast, works on both light and dark fabric, vector-style clean edges. Professional merchandise design, Amazon Merch on Demand ready. --ar 1:1 --style raw --v 6.1`;
+  }
+
+  function handleGenerate() {
+    if (!canGen) return;
+    const p = buildMerchPrompt(selCategory, selStyle, selLang, customText);
+    setPrompt(p);
+    setTimeout(() => promptRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+  }
+
+  async function handleCopy() {
+    if (!prompt) return;
+    try { await navigator.clipboard.writeText(prompt); setCopied(true); setTimeout(() => setCopied(false), 2500); }
+    catch { const el = document.getElementById('merch-prompt'); if (el) { const r = document.createRange(); r.selectNode(el); window.getSelection().removeAllRanges(); window.getSelection().addRange(r); } }
+  }
+
+  return (
+    <div className="min-h-screen bg-white dark:bg-black font-sans">
+      <div className="max-w-5xl mx-auto px-4 pt-6 pb-24">
+        <button onClick={onBack} className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-cyan-400 transition-colors mb-6">
+          <ArrowLeft className="w-4 h-4" /> {lang==='EN'?'Back to Apps 2':'Powrót do Aplikacje 2'}
+        </button>
+
+        <div className="text-center mb-10">
+          <div className="text-5xl mb-4" style={{filter:'drop-shadow(0 0 30px rgba(6,182,212,0.5))'}}>👕</div>
+          <h1 className="text-3xl sm:text-4xl font-black uppercase tracking-tighter mb-2 text-black dark:text-white">
+            {lang==='EN'?'T-Shirt':'Kreator'} <span style={{color:'#22d3ee'}}>{lang==='EN'?'Creator':'Koszulek'}</span>
+          </h1>
+          <p className="text-slate-500 text-sm max-w-md mx-auto">{lang==='EN'?'Generate print-ready graphics for Amazon Merch, Redbubble & Printful — transparent background included':'Generuj grafiki gotowe do druku dla Amazon Merch, Redbubble i Printful — przezroczyste tło w zestawie'}</p>
+          <div className="flex items-center justify-center gap-3 mt-3 text-[10px] text-slate-400">
+            <span>✅ {lang==='EN'?'Transparent background':'Przezroczyste tło'}</span>
+            <span>·</span>
+            <span>✅ {lang==='EN'?'Amazon Merch ready':'Gotowe na Amazon Merch'}</span>
+            <span>·</span>
+            <span>✅ {lang==='EN'?'PL / EN / DE text':'Tekst PL / EN / DE'}</span>
+          </div>
+        </div>
+
+        <div className="space-y-10">
+          {/* KROK 1 */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-black text-black flex-shrink-0" style={{background:'linear-gradient(135deg,#22d3ee,#0891b2)'}}>1</div>
+              <h2 className="text-sm font-black uppercase tracking-[0.2em] text-black dark:text-white">{lang==='EN'?'Choose category':'Wybierz kategorię'}</h2>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {CATEGORIES.map(cat => (
+                <button key={cat.id} onClick={() => setSelCategory(cat)}
+                  className="relative p-4 rounded-xl text-left transition-all hover:scale-[1.02]"
+                  style={{
+                    background: selCategory?.id===cat.id ? 'rgba(34,211,238,0.1)' : 'rgba(255,255,255,0.03)',
+                    border: `1px solid ${selCategory?.id===cat.id ? 'rgba(34,211,238,0.4)' : 'rgba(255,255,255,0.08)'}`,
+                  }}>
+                  <div className="text-2xl mb-1">{cat.emoji}</div>
+                  <div className="text-xs font-black uppercase tracking-wider text-black dark:text-white">{cat.label}</div>
+                  <div className="text-[9px] text-slate-400 mt-0.5">{cat.prompts.length} grafik</div>
+                  {selCategory?.id===cat.id && (
+                    <div className="absolute top-2 right-2 w-4 h-4 rounded-full flex items-center justify-center" style={{background:'#22d3ee'}}>
+                      <Check className="w-2.5 h-2.5 text-black" />
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* KROK 2 */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-black text-black flex-shrink-0" style={{background:'linear-gradient(135deg,#22d3ee,#0891b2)'}}>2</div>
+              <h2 className="text-sm font-black uppercase tracking-[0.2em] text-black dark:text-white">{lang==='EN'?'Choose style':'Wybierz styl'}</h2>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {STYLES.map(s => (
+                <button key={s.id} onClick={() => setSelStyle(s)}
+                  className="relative p-4 rounded-xl text-left transition-all hover:scale-[1.02]"
+                  style={{
+                    background: selStyle?.id===s.id ? 'rgba(34,211,238,0.1)' : 'rgba(255,255,255,0.03)',
+                    border: `1px solid ${selStyle?.id===s.id ? 'rgba(34,211,238,0.4)' : 'rgba(255,255,255,0.08)'}`,
+                  }}>
+                  <div className="text-2xl mb-1">{s.emoji}</div>
+                  <div className="text-xs font-black uppercase tracking-wider text-black dark:text-white">{s.label}</div>
+                  {selStyle?.id===s.id && (
+                    <div className="absolute top-2 right-2 w-4 h-4 rounded-full flex items-center justify-center" style={{background:'#22d3ee'}}>
+                      <Check className="w-2.5 h-2.5 text-black" />
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* KROK 3 — JĘZYK I TEKST */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-black text-black flex-shrink-0" style={{background:'linear-gradient(135deg,#22d3ee,#0891b2)'}}>3</div>
+              <h2 className="text-sm font-black uppercase tracking-[0.2em] text-black dark:text-white">{lang==='EN'?'Text (optional)':'Tekst (opcjonalnie)'}</h2>
+            </div>
+            <div className="flex gap-3 flex-wrap mb-3">
+              {LANGUAGES.map(l => (
+                <button key={l.id} onClick={() => setSelLang(l)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all"
+                  style={{
+                    background: selLang?.id===l.id ? 'rgba(34,211,238,0.15)' : 'rgba(255,255,255,0.03)',
+                    border: `1px solid ${selLang?.id===l.id ? 'rgba(34,211,238,0.45)' : 'rgba(255,255,255,0.08)'}`,
+                    color: selLang?.id===l.id ? '#22d3ee' : 'rgba(255,255,255,0.5)',
+                  }}>
+                  <span>{l.flag}</span> {l.label}
+                </button>
+              ))}
+            </div>
+            {selLang?.id !== 'none' && (
+              <input type="text" maxLength={40}
+                placeholder={lang==='EN'?'e.g. Best Dad Ever, Level Up, Stay Wild...':'np. Najlepszy Tata, Level Up, Stay Wild...'}
+                value={customText}
+                onChange={e => setCustomText(e.target.value)}
+                className="w-full bg-white/5 dark:bg-white/5 border rounded-xl px-5 py-3 text-sm font-bold text-black dark:text-white outline-none transition-all"
+                style={{borderColor: customText ? 'rgba(34,211,238,0.45)' : 'rgba(255,255,255,0.1)'}}
+              />
+            )}
+          </div>
+
+          {/* GENERUJ */}
+          <div className="text-center space-y-3">
+            <p className="text-[10px] text-slate-400">{lang==='EN'?'Every click generates a unique random design from the category':'Każde kliknięcie generuje unikalny losowy design z kategorii'} 🎲</p>
+            <button onClick={handleGenerate} disabled={!canGen}
+              className="inline-flex items-center gap-3 px-10 py-4 rounded-2xl font-black text-sm uppercase tracking-[0.2em] transition-all"
+              style={{
+                background: canGen ? 'linear-gradient(135deg,#22d3ee,#0891b2)' : 'rgba(255,255,255,0.05)',
+                color: canGen ? '#000' : 'rgba(255,255,255,0.2)',
+                boxShadow: canGen ? '0 0 40px rgba(34,211,238,0.3),0 8px 20px rgba(34,211,238,0.15)' : 'none',
+                cursor: canGen ? 'pointer' : 'not-allowed',
+              }}>
+              <Sparkles className="w-4 h-4" />
+              {lang==='EN'?'Generate prompt 🎲':'Generuj prompt 🎲'}
+            </button>
+          </div>
+
+          {/* WYNIK */}
+          {prompt && (
+            <div ref={promptRef} className="rounded-2xl p-6 space-y-4" style={{background:'rgba(34,211,238,0.04)',border:'1px solid rgba(34,211,238,0.2)'}}>
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.3em] font-black" style={{color:'#22d3ee'}}>{lang==='EN'?'Ready prompt':'Gotowy prompt'}</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">{lang==='EN'?'Paste into Midjourney, Ideogram or NanoBanana':'Wklej do Midjourney, Ideogram lub NanoBanana'}</p>
+                </div>
+                <button onClick={handleGenerate}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all"
+                  style={{background:'rgba(34,211,238,0.1)',border:'1px solid rgba(34,211,238,0.3)',color:'#22d3ee'}}>
+                  🎲 {lang==='EN'?'New random':'Nowa losowa'}
+                </button>
+              </div>
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <div className="flex flex-wrap gap-2">
+                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold uppercase" style={{background:'rgba(255,255,255,0.05)',color:'rgba(255,255,255,0.4)'}}>{selCategory?.emoji} {selCategory?.label}</span>
+                  <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold uppercase" style={{background:'rgba(255,255,255,0.05)',color:'rgba(255,255,255,0.4)'}}>{selStyle?.emoji} {selStyle?.label}</span>
+                  {selLang?.id !== 'none' && customText && <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold uppercase" style={{background:'rgba(255,255,255,0.05)',color:'rgba(255,255,255,0.4)'}}>{selLang?.flag} "{customText}"</span>}
+                </div>
+                <button onClick={handleCopy}
+                  className="flex items-center gap-2 px-6 py-3 rounded-xl font-black text-[12px] uppercase tracking-widest transition-all"
+                  style={{
+                    background: copied ? 'rgba(34,197,94,0.15)' : 'rgba(34,211,238,0.15)',
+                    border: `1px solid ${copied ? 'rgba(34,197,94,0.4)' : 'rgba(34,211,238,0.4)'}`,
+                    color: copied ? '#4ade80' : '#22d3ee',
+                    boxShadow: copied ? '0 0 20px rgba(34,197,94,0.15)' : '0 0 20px rgba(34,211,238,0.1)',
+                  }}>
+                  {copied ? <><Check className="w-4 h-4" /> {lang==='EN'?'Copied!':'Skopiowano!'}</> : <><Copy className="w-4 h-4" /> {lang==='EN'?'Copy prompt':'Kopiuj prompt'}</>}
+                </button>
+              </div>
+              <textarea id="merch-prompt" readOnly value={prompt} onClick={e => e.target.select()}
+                className="w-full text-sm leading-relaxed font-mono rounded-xl p-4 resize-none outline-none cursor-text text-slate-300"
+                style={{background:'rgba(0,0,0,0.4)',border:'1px solid rgba(255,255,255,0.08)',minHeight:'120px'}} />
+              <div className="grid grid-cols-3 gap-2">
+                {[{name:'Midjourney',url:'https://midjourney.com',emoji:'🎨'},{name:'Ideogram',url:'https://ideogram.ai',emoji:'🔤'},{name:'NanoBanana',url:'https://nanobanana.ai',emoji:'🍌'}].map(tool => (
+                  <a key={tool.name} href={tool.url} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all hover:scale-105"
+                    style={{background:'rgba(255,255,255,0.04)',border:'1px solid rgba(255,255,255,0.08)',color:'rgba(255,255,255,0.5)'}}>
+                    <span>{tool.emoji}</span> {tool.name}
+                  </a>
+                ))}
+              </div>
+              <div className="rounded-xl p-4 text-[10px] leading-relaxed text-slate-400" style={{background:'rgba(34,211,238,0.05)',border:'1px solid rgba(34,211,238,0.1)'}}>
+                💡 <strong style={{color:'#22d3ee'}}>Merch tip:</strong> {lang==='EN'?'After generating, remove background in remove.bg or Adobe Express. Upload PNG to Amazon Merch on Demand, Redbubble or Printful. Recommended: 4500 x 5400px, 300 DPI.':'Po wygenerowaniu usuń tło w remove.bg lub Adobe Express. Wgraj PNG na Amazon Merch on Demand, Redbubble lub Printful. Zalecane: 4500 x 5400px, 300 DPI.'}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 // updated Tue Mar  3 23:31:30 UTC 2026
 // pornola, biznes znaczy. 🏆
