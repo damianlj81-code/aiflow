@@ -27,15 +27,25 @@ const STYLES = [
     prompt: 'completely covered in lush green forest moss and tiny mushrooms, lichen textures across entire surface, embedded acorns and pine needles, soft dappled forest light filtering through tree canopy, earthy woodland macro photography' },
   { id: 'gold',      emoji: '✨', label: 'Złoty luksusowy',    desc: '24k złoto, blask, luksus', color: '#f59e0b',
     prompt: 'cast in solid 24-karat gold with mirror-polished surface, intricate engraved filigree detailing across every face, dramatic studio specular highlights, dark velvet background, ultra-high-end luxury jewellery product photography' },
+  { id: 'redstone',  emoji: '🪨', label: 'Czerwony kamień',    desc: 'czerwony granit, czarny marmur', color: '#ef4444',
+    prompt: 'sculpted from deep crimson red granite stone with rough natural texture, placed on polished black marble surface with subtle veining, dramatic spotlight from above, luxury stone carving, architectural photography, strong shadows, monumental feel' },
+  { id: 'whatsapp',  emoji: '💬', label: 'WhatsApp / Neon',    desc: 'jaskrawa zieleń, neon glow',     color: '#22c55e',
+    prompt: 'made of vibrant neon green glowing material, bright electric green luminescent surface like neon sign, strong green glow radiating outward, dark black background, cyberpunk energy, high contrast, backlit neon tube effect' },
+  { id: 'subscribe', emoji: '🔴', label: 'Subskrybuj',         desc: 'czerwony YouTube, biały napis',  color: '#dc2626',
+    prompt: 'bold bright red glossy material like YouTube subscribe button, smooth lacquered red surface with white reflections, clean modern design, pure white background, product shot, commercial advertising style, crisp sharp edges' },
+  { id: 'carpet',    emoji: '🪵', label: 'Dywanowy',           desc: 'perski dywan, białe litery',     color: '#a78bfa',
+    prompt: 'letters formed from ornate Persian carpet texture with intricate floral patterns in deep red, navy and gold, white fluffy letters standing out against rich carpet background, traditional Moroccan tile border, luxury textile photography' },
 ];
 
 // ─── Tła ─────────────────────────────────────────────────────────────────────
 const BACKGROUNDS = [
-  { id: 'white',  label: 'Białe studio',      prompt: 'clean white studio background, soft diffused professional light',               preview: 'linear-gradient(135deg,#fff,#f0f0f0)' },
-  { id: 'black',  label: 'Czarne eleganckie', prompt: 'deep black elegant background, dramatic chiaroscuro lighting',                   preview: 'linear-gradient(135deg,#111,#2a2a2a)' },
-  { id: 'pastel', label: 'Pastelowe',         prompt: 'soft pastel blurred background in complementary hues, dreamy bokeh',             preview: 'linear-gradient(135deg,#fce7f3,#ddd6fe,#bfdbfe)' },
-  { id: 'marble', label: 'Marmur',            prompt: 'luxurious white Carrara marble surface with subtle grey veining',               preview: 'linear-gradient(135deg,#f5f5f5,#d4d4d4)' },
-  { id: 'wood',   label: 'Drewno',            prompt: 'warm rustic oak wood planks with natural grain texture, soft side lighting',     preview: 'linear-gradient(135deg,#92400e,#b45309)' },
+  { id: 'white',       label: 'Białe studio',      prompt: 'clean white studio background, soft diffused professional light',                                 preview: 'linear-gradient(135deg,#fff,#f0f0f0)' },
+  { id: 'black',       label: 'Czarne eleganckie', prompt: 'deep black elegant background, dramatic chiaroscuro lighting',                                     preview: 'linear-gradient(135deg,#111,#2a2a2a)' },
+  { id: 'pastel',      label: 'Pastelowe',         prompt: 'soft pastel blurred background in complementary hues, dreamy bokeh',                               preview: 'linear-gradient(135deg,#fce7f3,#ddd6fe,#bfdbfe)' },
+  { id: 'marble',      label: 'Marmur biały',      prompt: 'luxurious white Carrara marble surface with subtle grey veining',                                  preview: 'linear-gradient(135deg,#f5f5f5,#d4d4d4)' },
+  { id: 'blackmarble', label: 'Marmur czarny',     prompt: 'polished black marble surface with subtle gold and grey veining, luxurious dark stone texture',    preview: 'linear-gradient(135deg,#1a1a1a,#2d2d2d)' },
+  { id: 'wood',        label: 'Drewno',            prompt: 'warm rustic oak wood planks with natural grain texture, soft side lighting',                       preview: 'linear-gradient(135deg,#92400e,#b45309)' },
+  { id: 'neon',        label: 'Neon / Cyber',      prompt: 'dark cyberpunk background with neon grid lines, deep black with purple and cyan neon glow accents', preview: 'linear-gradient(135deg,#0a0a1a,#1a0a2e)' },
 ];
 
 // ─── Prompt builder ───────────────────────────────────────────────────────────
@@ -174,45 +184,54 @@ export default function TextCreator() {
   return (
     <div className="min-h-screen bg-black text-white" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
 
-      {/* NAV */}
-      <nav className="sticky top-0 z-40 bg-black/90 backdrop-blur-xl border-b" style={{ borderColor: 'rgba(255,255,255,0.06)' }}>
-        <div className="max-w-[1400px] mx-auto px-4 h-16 flex items-center justify-between gap-4">
-          <a href="/"><img src="/logo.png" alt="AI Flow" className="h-8 w-auto" /></a>
-          <div className="hidden md:flex items-center gap-1">
-            {[
-              { label: 'Academy',     href: '/' },
-              { label: 'Aplikacje',   href: '/#aplikacje' },
-              { label: 'Dodatki',     href: '/#dodatki' },
-              { label: 'Tutoriale',   href: '/#tutorials' },
-              { label: 'Cennik',      href: '/#cennik' },
-            ].map(item => (
-              <a key={item.label} href={item.href}
-                className="px-4 py-2 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all"
-                style={{ color: 'rgba(255,255,255,0.45)', border: '1px solid transparent' }}
-                onMouseEnter={e => e.target.style.color = '#fff'}
-                onMouseLeave={e => e.target.style.color = 'rgba(255,255,255,0.45)'}>
-                {item.label}
+      {/* NAV — identyczny z App.jsx */}
+      <nav className="fixed top-0 left-0 right-0 z-50 h-16 flex items-center px-4 font-sans"
+        style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <div className="max-w-[1400px] mx-auto w-full flex items-center justify-between">
+          {/* Logo */}
+          <a href="/" className="flex items-center gap-3 cursor-pointer">
+            <img src="/logo.png" alt="AI Flow" className="h-8 w-auto" />
+          </a>
+          {/* Desktop nav */}
+          <div className="flex items-center gap-2">
+            <div className="hidden sm:flex items-center gap-1 p-1 rounded-xl"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
+              {[
+                { label: 'Academy',      href: '/',            active: false },
+                { label: 'Aplikacje',    href: '/#aplikacje',  active: false },
+                { label: 'Aplikacje 2',  href: '/#aplikacje2', active: true  },
+                { label: 'Dodatki',      href: '/#dodatki',    active: false },
+                { label: 'Tutoriale',    href: '/#tutorials',  active: false },
+                { label: 'Cennik',       href: '/#cennik',     active: false },
+              ].map(item => (
+                <a key={item.label} href={item.href}
+                  className="relative px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all duration-200"
+                  style={{ background: item.active ? '#f59e0b' : 'transparent', color: item.active ? '#000' : 'rgba(255,255,255,0.4)' }}>
+                  {item.label}
+                  {item.active && (
+                    <span className="absolute -right-1.5 top-1/2 -translate-y-1/2 w-1 h-1 bg-amber-400 rounded-full"
+                      style={{ boxShadow: '0 0 6px rgba(245,158,11,0.8)' }} />
+                  )}
+                </a>
+              ))}
+            </div>
+            {/* Mobile hamburger placeholder */}
+            <div className="sm:hidden">
+              <a href="/" className="w-9 h-9 flex items-center justify-center rounded-xl text-white/70"
+                style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
+                ☰
               </a>
-            ))}
+            </div>
           </div>
-          {/* Mobile nav */}
-          <div className="md:hidden flex items-center gap-1 overflow-x-auto">
-            {[['/', '🏠'], ['/#aplikacje', 'Apki'], ['/#cennik', 'Cennik']].map(([href, label]) => (
-              <a key={href} href={href}
-                className="flex-shrink-0 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest"
-                style={{ background: 'rgba(255,255,255,0.04)', color: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                {label}
-              </a>
-            ))}
-          </div>
-          <div className="flex-shrink-0">
-            <span className="text-[10px] text-amber-400 font-black uppercase tracking-widest px-3 py-1.5 rounded-lg"
-              style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.25)' }}>
-              🧪 TESTOWY
-            </span>
-          </div>
+          {/* Prawa strona — przycisk logowania */}
+          <a href="/" className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 text-black text-[10px] font-black uppercase tracking-widest hover:bg-amber-400 transition-all">
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span className="hidden sm:block">Zaloguj</span>
+          </a>
         </div>
       </nav>
+      {/* Spacer pod fixed nav */}
+      <div style={{ height: '64px' }} />
 
       {/* HERO */}
       <div className="max-w-5xl mx-auto px-4 pt-12 pb-6 text-center">
@@ -322,7 +341,7 @@ export default function TextCreator() {
 
         {/* KROK 3 */}
         <Section step="3" title="Tło">
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {BACKGROUNDS.map(bg => (
               <button key={bg.id} onClick={() => setSelBg(bg)}
                 className="p-3 rounded-xl text-left transition-all hover:scale-[1.02]"
