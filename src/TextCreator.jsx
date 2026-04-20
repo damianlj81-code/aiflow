@@ -740,6 +740,7 @@ export default function App2() {
       const result = await signInWithPopup(auth, googleProvider);
       const data = await getTokenData(result.user.uid);
       setTokenData(data);
+      return data; // zwracamy data żeby można było użyć od razu
     } catch (e) { console.error(e); }
   }
 
@@ -778,7 +779,16 @@ export default function App2() {
       {showPaywall && (
         <PaywallOverlay
           isLoggedIn={!!user}
-          onLogin={async () => { await handleLogin(); setShowPaywall(false); if (paywallCreator) handleSelectCreator(paywallCreator); }}
+          onLogin={async () => {
+            const data = await handleLogin();
+            if (!data) return;
+            setShowPaywall(false);
+            if (paywallCreator) {
+              const tokenKey = { napisy: 'text', kolorowanki: 'coloring', koszulki: 'merch' }[paywallCreator];
+              const hasAccess = data.isPro || (data[`tokens_${tokenKey}`] ?? 0) > 0;
+              if (hasAccess) setView(paywallCreator);
+            }
+          }}
         />
       )}
       {view === 'menu'        && <MainMenu onSelect={handleSelectCreator} loadingTokens={user && !tokenData} />}
