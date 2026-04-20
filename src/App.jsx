@@ -2951,6 +2951,7 @@ const CennikView = ({ t, user, onLoginRequest }) => {
                 ✓ {t.lang==='EN'?'Admin — Lifetime Access':'Admin — Dostęp dożywotni'}
               </div>
             ) : (
+            <>
             <a href={user && !user.isAnonymous ? stripeLink(STRIPE_MONTHLY, user.uid, user.email) : '#'}
               onClick={e => { if (!user || user.isAnonymous) { e.preventDefault(); onLoginRequest(); }}}
               target="_blank" rel="noopener noreferrer"
@@ -2960,6 +2961,7 @@ const CennikView = ({ t, user, onLoginRequest }) => {
             <p className="text-center text-[10px] text-amber-400/70 mt-3 font-bold">
               🎁 {t.lang==='EN' ? 'Have a promo code? Enter it at checkout.' : 'Masz kod promocyjny? Wpisz go przy płatności.'}
             </p>
+            </>
             )}
           </div>
 
