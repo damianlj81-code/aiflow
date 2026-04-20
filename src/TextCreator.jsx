@@ -17,37 +17,34 @@ const firebaseConfig = {
   appId: "1:397056782057:web:8eb4ff5bd4fcbc7f0aca78",
 };
 
-const FIREBASE_NAME = 'aiflow-text';
-const firebaseApp = getApps().find(a => a.name === FIREBASE_NAME) || initializeApp(firebaseConfig, FIREBASE_NAME);
+const firebaseApp = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(firebaseApp);
 const db = getFirestore(firebaseApp);
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
 const appId = 'aiflow_academy';
-const TOKENS_TEXT = 1; // 1 darmowy token dla każdego kreatora
 const STRIPE_MONTHLY = 'https://buy.stripe.com/bJe00icGJgOX6R22fE8bS0c';
 const STRIPE_ANNUAL  = 'https://buy.stripe.com/cNieVc369buD3EQ07w8bS0d';
 
 // ─── TOKEN FUNCTIONS ──────────────────────────────────────────────────────────
 async function getTokenData(uid) {
+  if (!uid) return null;
   const ref = doc(db, 'artifacts', appId, 'public', 'data', 'tokens', uid);
   const snap = await getDoc(ref);
-  if (!snap.exists()) {
-    await setDoc(ref, { tokens: 5, tokens_avatar: 1, tokens_ad: 1, tokens_lifestyle: 1, tokens_film: 2, tokens_text: TOKENS_TEXT, tokens_coloring: TOKENS_TEXT, tokens_merch: TOKENS_TEXT, used: 0, createdAt: new Date().toISOString(), pro: false, starter: false });
-    return { isPro: false, isStarter: false, tokens_text: TOKENS_TEXT, tokens_coloring: TOKENS_TEXT, tokens_merch: TOKENS_TEXT };
+  if (snap.exists()) {
+    const data = snap.data();
+    const now = new Date();
+    const expiresAt = data.expiresAt?.seconds
+      ? new Date(data.expiresAt.seconds * 1000)
+      : data.expiresAt ? new Date(data.expiresAt) : null;
+    const isExpired = expiresAt ? now > expiresAt : false;
+    const isPro = (data.pro === true || data.starter === true) && !isExpired;
+    return { ...data, isPro };
+  } else {
+    const newData = { uid, tokens_text: 1, tokens_coloring: 1, tokens_merch: 1, pro: false, used: 0, createdAt: new Date().toISOString() };
+    await setDoc(ref, newData);
+    return { ...newData, isPro: false };
   }
-  const data = snap.data();
-  const now = new Date();
-  const expiresAt = data.expiresAt?.seconds ? new Date(data.expiresAt.seconds * 1000) : data.expiresAt ? new Date(data.expiresAt) : null;
-  const isExpired = expiresAt ? now > expiresAt : false;
-  const isPro = data.pro === true && !isExpired;
-  const isStarter = data.starter === true && !isExpired;
-  // Stary user bez tokenów text — dajemy po 1
-  if (data.tokens_text === undefined) {
-    await updateDoc(ref, { tokens_text: TOKENS_TEXT, tokens_coloring: TOKENS_TEXT, tokens_merch: TOKENS_TEXT });
-    return { isPro, isStarter, tokens_text: TOKENS_TEXT, tokens_coloring: TOKENS_TEXT, tokens_merch: TOKENS_TEXT };
-  }
-  return { isPro, isStarter, tokens_text: data.tokens_text ?? 0, tokens_coloring: data.tokens_coloring ?? 0, tokens_merch: data.tokens_merch ?? 0 };
 }
 
 async function useCreatorToken(uid, creatorKey) {
@@ -752,21 +749,17 @@ export default function App2() {
     setView('menu');
   }
 
-  async function handleSelectCreator(id) {
-    const tokenKey = { napisy: 'text', kolorowanki: 'coloring', koszulki: 'merch' }[id];
+  function handleSelectCreator(id) {
     if (!user) { setPaywallCreator(id); setShowPaywall(true); return; }
-    const data = await getTokenData(user.uid);
-    setTokenData(data);
-    if (data.isPro || data.isStarter) { setView(id); return; }
-    const tokenCount = data[`tokens_${tokenKey}`] ?? 0;
-    if (tokenCount > 0) { setView(id); return; }
+    const tokenKey = { napisy: 'text', kolorowanki: 'coloring', koszulki: 'merch' }[id];
+    const hasAccess = tokenData?.isPro || (tokenData && (tokenData[`tokens_${tokenKey}`] ?? 0) > 0);
+    if (hasAccess) { setView(id); return; }
     setPaywallCreator(id); setShowPaywall(true);
   }
 
   async function consumeToken(creatorKey) {
     if (!user) return;
-    const data = await getTokenData(user.uid);
-    if (data.isPro || data.isStarter) return;
+    if (tokenData?.isPro) return; // Pro — nie odejmujemy
     await useCreatorToken(user.uid, creatorKey);
     const updated = await getTokenData(user.uid);
     setTokenData(updated);

@@ -41,8 +41,8 @@ const getYTId = (url) => {
 // TOKEN SYSTEM
 // =========================================================================
 const TOKENS_FREE = 5; // 1 avatar + 1 ad + 1 lifestyle + 2 film
-const STRIPE_MONTHLY = 'https://buy.stripe.com/bJedR8ayBgOX5MY9I68bS0a'; // 89 PLN miesiecznie
-const STRIPE_ANNUAL = 'https://buy.stripe.com/7sY3cu0Y1eGP4IU5rQ8bS0b';   // 899 PLN rocznie
+const STRIPE_MONTHLY = 'https://buy.stripe.com/bJe00icGJgOX6R22fE8bS0c'; // 79 PLN miesiecznie
+const STRIPE_ANNUAL  = 'https://buy.stripe.com/cNieVc369buD3EQ07w8bS0d';   // 799 PLN rocznie
 // Aliasy dla kompatybilnosci z reszta kodu
 const STRIPE_PRO_LINK = STRIPE_MONTHLY;
 const STRIPE_STARTER_LINK = STRIPE_MONTHLY;
@@ -671,7 +671,7 @@ const TutorialsView = ({ t, user, onLoginRequest, onNavigate }) => {
             style={{boxShadow:'0 0 40px rgba(245,158,11,0.05)'}}>
             <div>
               <p className="text-white font-black text-sm uppercase tracking-tight mb-1">
-                👑 {t.lang === 'EN' ? 'All tutorials + apps — from 89 PLN/mo' : 'Wszystkie tutoriale + aplikacje — od 89 zł/mies.'}
+                👑 {t.lang === 'EN' ? 'All tutorials + apps — from 79 PLN/mo' : 'Wszystkie tutoriale + aplikacje — od 79 zł/mies.'}
               </p>
               <p className="text-slate-500 text-xs">
                 {t.lang === 'EN' ? 'One subscription. Everything included. Cancel anytime.' : 'Jeden abonament. Dostęp do wszystkiego. Anuluj kiedy chcesz.'}
@@ -2931,7 +2931,7 @@ const CennikView = ({ t, user, onLoginRequest }) => {
             <div className="text-5xl mb-4" style={{filter:'drop-shadow(0 8px 20px rgba(245,158,11,0.6))',transform:'perspective(200px) rotateX(10deg)'}}>🚀</div>
             <div className="text-[9px] font-black uppercase tracking-[0.3em] text-amber-400 mb-2">{t.lang==='EN'?'Monthly':'Miesięczny'}</div>
             <div className="flex items-end gap-1 mb-1">
-              <span className="text-5xl font-black text-black dark:text-white">89</span>
+              <span className="text-5xl font-black text-black dark:text-white">79</span>
               <span className="text-sm text-slate-400 mb-2">PLN/{t.lang==='EN'?'mo':'mies.'}</span>
             </div>
             <p className="text-slate-400 text-xs mb-6">{t.lang==='EN'?'Full platform access':'Pełny dostęp do platformy'}</p>
@@ -2957,6 +2957,9 @@ const CennikView = ({ t, user, onLoginRequest }) => {
               className="block w-full py-3.5 font-black text-[11px] uppercase tracking-widest rounded-xl text-center bg-amber-500 hover:bg-amber-400 text-black transition-all shadow-lg shadow-amber-500/30">
               {t.lang==='EN'?'🔓 Unlock Everything →':'🔓 Odblokuj wszystko →'}
             </a>
+            <p className="text-center text-[10px] text-amber-400/70 mt-3 font-bold">
+              🎁 {t.lang==='EN' ? 'Have a promo code? Enter it at checkout.' : 'Masz kod promocyjny? Wpisz go przy płatności.'}
+            </p>
             )}
           </div>
 
@@ -2971,7 +2974,7 @@ const CennikView = ({ t, user, onLoginRequest }) => {
             <div className="text-5xl mb-4" style={{filter:'drop-shadow(0 8px 20px rgba(34,197,94,0.5))',transform:'perspective(200px) rotateX(10deg)'}}>💎</div>
             <div className="text-[9px] font-black uppercase tracking-[0.3em] text-emerald-400 mb-2">{t.lang==='EN'?'Annual':'Roczny'}</div>
             <div className="flex items-end gap-1 mb-1">
-              <span className="text-5xl font-black text-black dark:text-white">899</span>
+              <span className="text-5xl font-black text-black dark:text-white">799</span>
               <span className="text-sm text-slate-400 mb-2">PLN/{t.lang==='EN'?'year':'rok'}</span>
             </div>
             <p className="text-slate-400 text-xs mb-1">{t.lang==='EN'?'75 PLN/month':'75 PLN/mies.'}</p>
@@ -3268,10 +3271,10 @@ export default function App() {
   // New nav items: Academy → Aplikacje → Dodatki → Tutoriale
   const [resetSignal, setResetSignal] = useState(0);
   const handleNavigate = (view) => {
-    if (view === 'text-builder')     { window.location.href = '/text.html';     return; }
-    if (view === 'coloring-builder') { window.location.href = '/coloring.html'; return; }
-    if (view === 'merch-builder')    { window.location.href = '/merch.html';    return; }
-    if (view === 'aplikacje2')       { window.location.href = '/text.html';     return; }
+    if (view === 'text-builder')     { window.location.href = '/text.html'; return; }
+    if (view === 'coloring-builder') { window.location.href = '/text.html'; return; }
+    if (view === 'merch-builder')    { window.location.href = '/text.html'; return; }
+    if (view === 'aplikacje2')       { window.location.href = '/text.html'; return; }
     setCurrentView(view); setActiveCreator(null); setMobileMenuOpen(false); setResetSignal(s => s + 1);
   };
   const navItems = [
@@ -3401,7 +3404,7 @@ export default function App() {
                   <div className="absolute right-0 top-12 w-48 rounded-2xl overflow-hidden z-50 shadow-2xl"
                     style={{background: isDarkMode ? '#0f0f0f' : '#fff', border: isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)'}}>
                     {navItems.map(({ id, label }) => (
-                      <button key={id} onClick={() => { setCurrentView(id); setMobileMenuOpen(false); }}
+                      <button key={id} onClick={() => { handleNavigate(id); setMobileMenuOpen(false); }}
                         className={`w-full text-left px-5 py-3.5 text-[11px] font-bold uppercase tracking-widest transition-colors ${
                           currentView === id ? 'bg-amber-500 text-black' : isDarkMode ? 'text-white/60 hover:text-white hover:bg-white/5' : 'text-black/60 hover:text-black hover:bg-black/5'
                         }`}>
