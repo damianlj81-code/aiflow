@@ -614,7 +614,7 @@ const TOOLS = [
   { id: null,         emoji: '🖼️', label: 'Kreator Okładek',    subtitle: 'Generator Okładek AI',             desc: 'Profesjonalne okładki książek i albumów. Wkrótce.',                  color: '#f472b6', badge: 'WKRÓTCE',         glow: 'rgba(244,114,182,0.2)', border: 'rgba(255,255,255,0.06)' },
 ];
 
-function MainMenu({ onSelect }) {
+function MainMenu({ onSelect, loadingTokens }) {
   return (
     <div className="min-h-screen bg-black px-3 sm:px-4 py-6 sm:py-12">
       <style>{`
@@ -652,7 +652,7 @@ function MainMenu({ onSelect }) {
               <p className="text-white/40 text-xs leading-relaxed mb-6">{tool.desc}</p>
               {tool.id && (
                 <div className="flex items-center gap-2 font-black text-[11px] uppercase tracking-widest group-hover:gap-3 transition-all" style={{ color: tool.color }}>
-                  Otwórz Kreator <ChevronRight className="w-4 h-4" />
+                  {loadingTokens ? '⏳ Ładowanie...' : <>Otwórz Kreator <ChevronRight className="w-4 h-4" /></>}
                 </div>
               )}
               {tool.id && (
@@ -751,8 +751,9 @@ export default function App2() {
 
   function handleSelectCreator(id) {
     if (!user) { setPaywallCreator(id); setShowPaywall(true); return; }
+    if (!tokenData) return; // jeszcze ładuje tokeny — czekamy
     const tokenKey = { napisy: 'text', kolorowanki: 'coloring', koszulki: 'merch' }[id];
-    const hasAccess = tokenData?.isPro || (tokenData && (tokenData[`tokens_${tokenKey}`] ?? 0) > 0);
+    const hasAccess = tokenData?.isPro || (tokenData[`tokens_${tokenKey}`] ?? 0) > 0;
     if (hasAccess) { setView(id); return; }
     setPaywallCreator(id); setShowPaywall(true);
   }
@@ -780,7 +781,7 @@ export default function App2() {
           onLogin={async () => { await handleLogin(); setShowPaywall(false); if (paywallCreator) handleSelectCreator(paywallCreator); }}
         />
       )}
-      {view === 'menu'        && <MainMenu onSelect={handleSelectCreator} />}
+      {view === 'menu'        && <MainMenu onSelect={handleSelectCreator} loadingTokens={user && !tokenData} />}
       {view === 'napisy'      && <NapisyView     onBack={() => setView('menu')} user={user} onConsumeToken={() => consumeToken('text')}     tokenData={tokenData} onPaywall={() => setShowPaywall(true)} />}
       {view === 'kolorowanki' && <KolorowankaView onBack={() => setView('menu')} user={user} onConsumeToken={() => consumeToken('coloring')} tokenData={tokenData} onPaywall={() => setShowPaywall(true)} />}
       {view === 'koszulki'    && <KoszulkaView   onBack={() => setView('menu')} user={user} onConsumeToken={() => consumeToken('merch')}    tokenData={tokenData} onPaywall={() => setShowPaywall(true)} />}
