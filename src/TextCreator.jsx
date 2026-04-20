@@ -1,12 +1,67 @@
 // TextCreator.jsx — Hub Aplikacje 2
 // AI Flow Academy | loveaiflow.com
-// Kreatory: Napisy, Kolorowanki, Koszulki
+// Kreatory: Napisy, Kolorowanki, Koszulki — z systemem tokenów i Firebase Auth
 
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Copy, Check, Sparkles, ArrowLeft, ChevronRight } from 'lucide-react';
+import { initializeApp } from 'firebase/app';
+import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
+import { getFirestore, doc, getDoc, setDoc, updateDoc, increment } from 'firebase/firestore';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCkwadV6OAvNW8NASmZ6qYh7zKV1xBLnss",
+  authDomain: "aiflow-academy.firebaseapp.com",
+  projectId: "aiflow-academy",
+  storageBucket: "aiflow-academy.firebasestorage.app",
+  messagingSenderId: "397056782057",
+  appId: "1:397056782057:web:8eb4ff5bd4fcbc7f0aca78",
+};
+const firebaseApp = initializeApp(firebaseConfig, 'text-creator');
+const auth = getAuth(firebaseApp);
+const db = getFirestore(firebaseApp);
+const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: 'select_account' });
+const appId = 'aiflow_academy';
+const TOKENS_TEXT = 1; // 1 darmowy token dla każdego kreatora
+const STRIPE_MONTHLY = 'https://buy.stripe.com/bJedR8ayBgOX5MY9I68bS0a';
+const STRIPE_ANNUAL  = 'https://buy.stripe.com/7sY3cu0Y1eGP4IU5rQ8bS0b';
+
+// ─── TOKEN FUNCTIONS ──────────────────────────────────────────────────────────
+async function getTokenData(uid) {
+  const ref = doc(db, 'artifacts', appId, 'public', 'data', 'tokens', uid);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) {
+    await setDoc(ref, { tokens: 5, tokens_avatar: 1, tokens_ad: 1, tokens_lifestyle: 1, tokens_film: 2, tokens_text: TOKENS_TEXT, tokens_coloring: TOKENS_TEXT, tokens_merch: TOKENS_TEXT, used: 0, createdAt: new Date().toISOString(), pro: false, starter: false });
+    return { isPro: false, isStarter: false, tokens_text: TOKENS_TEXT, tokens_coloring: TOKENS_TEXT, tokens_merch: TOKENS_TEXT };
+  }
+  const data = snap.data();
+  const now = new Date();
+  const expiresAt = data.expiresAt?.seconds ? new Date(data.expiresAt.seconds * 1000) : data.expiresAt ? new Date(data.expiresAt) : null;
+  const isExpired = expiresAt ? now > expiresAt : false;
+  const isPro = data.pro === true && !isExpired;
+  const isStarter = data.starter === true && !isExpired;
+  // Stary user bez tokenów text — dajemy po 1
+  if (data.tokens_text === undefined) {
+    await updateDoc(ref, { tokens_text: TOKENS_TEXT, tokens_coloring: TOKENS_TEXT, tokens_merch: TOKENS_TEXT });
+    return { isPro, isStarter, tokens_text: TOKENS_TEXT, tokens_coloring: TOKENS_TEXT, tokens_merch: TOKENS_TEXT };
+  }
+  return { isPro, isStarter, tokens_text: data.tokens_text ?? 0, tokens_coloring: data.tokens_coloring ?? 0, tokens_merch: data.tokens_merch ?? 0 };
+}
+
+async function useCreatorToken(uid, creatorKey) {
+  const ref = doc(db, 'artifacts', appId, 'public', 'data', 'tokens', uid);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return false;
+  const data = snap.data();
+  if (data.pro === true || data.starter === true) return true;
+  const field = `tokens_${creatorKey}`;
+  if ((data[field] ?? 0) <= 0) return false;
+  await updateDoc(ref, { [field]: increment(-1), used: increment(1) });
+  return true;
+}
 
 // ─── NAV ─────────────────────────────────────────────────────────────────────
-function Nav() {
+function Nav({ user, onLogin, onLogout }) {
   return (
     <>
       <nav className="fixed top-0 left-0 right-0 z-50 h-16 flex items-center px-4"
@@ -34,10 +89,19 @@ function Nav() {
           <div className="sm:hidden">
             <a href="/" className="w-9 h-9 flex items-center justify-center rounded-xl text-white/70" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>☰</a>
           </div>
-          <a href="/?view=cennik" className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 text-black text-[10px] font-black uppercase tracking-widest hover:bg-amber-400 transition-all">
-            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            <span className="hidden sm:block">Zaloguj</span>
-          </a>
+          {user && !user.isAnonymous ? (
+            <div className="flex items-center gap-2">
+              <span className="hidden sm:block text-[10px] text-white/40 font-bold truncate max-w-[120px]">{user.email || user.displayName}</span>
+              <button onClick={onLogout} className="flex items-center gap-2 px-4 py-2 rounded-xl text-black text-[10px] font-black uppercase tracking-widest transition-all" style={{ background: '#f59e0b' }}>
+                Wyloguj
+              </button>
+            </div>
+          ) : (
+            <button onClick={onLogin} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 text-black text-[10px] font-black uppercase tracking-widest hover:bg-amber-400 transition-all">
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <span className="hidden sm:block">Zaloguj</span>
+            </button>
+          )}
         </div>
       </nav>
       <div style={{ height: '64px' }} />
@@ -173,7 +237,7 @@ function LetterCanvas({ text, format }) {
   return <canvas ref={ref} style={{ borderRadius: '10px', display: 'block', maxWidth: '100%' }} />;
 }
 
-function NapisyView({ onBack }) {
+function NapisyView({ onBack, user, onConsumeToken, tokenData, onPaywall }) {
   const [text, setText] = useState('');
   const [format, setFormat] = useState('portrait');
   const [selStyle, setSelStyle] = useState(null);
@@ -194,6 +258,7 @@ function NapisyView({ onBack }) {
     const subject = isMulti ? `the letters ${letters.join(', ')} spelling "${trimmed.toUpperCase()}", ${arr}` : `a single large decorative letter "${trimmed.toUpperCase()}" centered`;
     const ar = format === 'portrait' ? '--ar 9:16' : '--ar 16:9';
     setPrompt(`Photorealistic 3D render of ${subject}, each letter ${selStyle.prompt}, placed on ${selBg.prompt}. Every letter is clearly legible and three-dimensional. Shot with 85mm macro lens, studio product photography. No text overlay, no watermark. Ultra-detailed, 8K resolution, ${ar} --style raw --v 6.1`);
+    onConsumeToken && onConsumeToken();
     setTimeout(() => promptRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
   }
 
@@ -310,7 +375,7 @@ const COL_GROUPS = [
   { id: 'mlodzież', label: 'Młodzież' }, { id: 'dorośli', label: 'Dorośli' }, { id: 'święta', label: 'Święta' },
 ];
 
-function KolorowankaView({ onBack }) {
+function KolorowankaView({ onBack, user, onConsumeToken, tokenData, onPaywall }) {
   const [selCat, setSelCat] = useState(null);
   const [selDiff, setSelDiff] = useState(null);
   const [group, setGroup] = useState('all');
@@ -323,6 +388,7 @@ function KolorowankaView({ onBack }) {
     if (!canGen) return;
     const scene = selCat.prompts[Math.floor(Math.random() * selCat.prompts.length)];
     setPrompt(`Black and white coloring book page illustration of ${scene}. ${selDiff.prompt}. Pure white background, clean crisp black lines only, no grey shading, no color fills, no gradients, no shadows — only black outlines on white background. Professional coloring book style, print-ready for 8.5x11 inch KDP page. --ar 3:4 --style raw --v 6.1`);
+    onConsumeToken && onConsumeToken();
     setTimeout(() => promptRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
   }
 
@@ -425,7 +491,7 @@ const MERCH_LANGS = [
   { id: 'de',   flag: '🇩🇪', label: 'Deutsch',   text: 'German language' },
 ];
 
-function KoszulkaView({ onBack }) {
+function KoszulkaView({ onBack, user, onConsumeToken, tokenData, onPaywall }) {
   const [selCat, setSelCat] = useState(null);
   const [selStyle, setSelStyle] = useState(null);
   const [selLang, setSelLang] = useState(MERCH_LANGS[0]);
@@ -439,6 +505,7 @@ function KoszulkaView({ onBack }) {
     const scene = selCat.prompts[Math.floor(Math.random() * selCat.prompts.length)];
     const textPart = selLang.id !== 'none' && customText.trim() ? `, with the text "${customText.trim()}" in bold ${selLang.text} typography` : '';
     setPrompt(`T-shirt graphic design of ${scene}${textPart}. ${selStyle.prompt}. IMPORTANT: transparent background, isolated graphic, no background, print-ready for direct garment printing (DTG), high contrast, works on both light and dark fabric, vector-style clean edges. Professional merchandise design, Amazon Merch on Demand ready. --ar 1:1 --style raw --v 6.1`);
+    onConsumeToken && onConsumeToken();
     setTimeout(() => promptRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
   }
 
@@ -578,18 +645,125 @@ function MainMenu({ onSelect }) {
   );
 }
 
+// ─── PAYWALL ─────────────────────────────────────────────────────────────────
+function PaywallOverlay({ onLogin, isLoggedIn }) {
+  return (
+    <div className="fixed inset-0 z-40 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)' }}>
+      <div className="max-w-md w-full rounded-3xl p-8 text-center space-y-6" style={{ background: '#0f0f0f', border: '1px solid rgba(245,158,11,0.3)', boxShadow: '0 0 60px rgba(245,158,11,0.15)' }}>
+        <div className="text-5xl">🔒</div>
+        <div>
+          <h2 className="text-2xl font-black uppercase tracking-tighter text-white mb-2">
+            {isLoggedIn ? 'Wykorzystałeś darmowy token' : 'Zaloguj się aby kontynuować'}
+          </h2>
+          <p className="text-white/40 text-sm">
+            {isLoggedIn
+              ? 'Darmowy prompt został wykorzystany. Kup plan Pro żeby generować bez limitów.'
+              : 'Zaloguj się aby otrzymać 1 darmowy prompt w każdym kreatorze.'}
+          </p>
+        </div>
+        {isLoggedIn ? (
+          <div className="space-y-3">
+            <a href={STRIPE_MONTHLY} target="_blank" rel="noopener noreferrer"
+              className="block w-full py-4 rounded-2xl font-black text-sm uppercase tracking-widest text-black transition-all hover:scale-105"
+              style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)', boxShadow: '0 0 30px rgba(245,158,11,0.3)' }}>
+              Pro 79 zł / miesiąc
+            </a>
+            <a href={STRIPE_ANNUAL} target="_blank" rel="noopener noreferrer"
+              className="block w-full py-4 rounded-2xl font-black text-sm uppercase tracking-widest text-white/70 transition-all hover:text-white"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
+              Pro 799 zł / rok — oszczędzasz 149 zł
+            </a>
+          </div>
+        ) : (
+          <button onClick={onLogin} className="w-full py-4 rounded-2xl font-black text-sm uppercase tracking-widest text-black transition-all hover:scale-105"
+            style={{ background: 'linear-gradient(135deg,#f59e0b,#d97706)', boxShadow: '0 0 30px rgba(245,158,11,0.3)' }}>
+            Zaloguj przez Google
+          </button>
+        )}
+        <p className="text-white/20 text-[10px]">1 darmowy prompt w każdym kreatorze po zalogowaniu</p>
+      </div>
+    </div>
+  );
+}
+
 // =========================================================================
 // GŁÓWNY KOMPONENT
 // =========================================================================
 export default function App2() {
   const [view, setView] = useState('menu');
+  const [user, setUser] = useState(null);
+  const [loadingAuth, setLoadingAuth] = useState(true);
+  const [tokenData, setTokenData] = useState(null);
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [paywallCreator, setPaywallCreator] = useState(null);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, async (u) => {
+      setUser(u);
+      if (u) {
+        const data = await getTokenData(u.uid);
+        setTokenData(data);
+      } else {
+        setTokenData(null);
+      }
+      setLoadingAuth(false);
+    });
+    return () => unsub();
+  }, []);
+
+  async function handleLogin() {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const data = await getTokenData(result.user.uid);
+      setTokenData(data);
+    } catch (e) { console.error(e); }
+  }
+
+  async function handleLogout() {
+    await signOut(auth);
+    setTokenData(null);
+    setView('menu');
+  }
+
+  async function handleSelectCreator(id) {
+    const tokenKey = { napisy: 'text', kolorowanki: 'coloring', koszulki: 'merch' }[id];
+    if (!user) { setPaywallCreator(id); setShowPaywall(true); return; }
+    const data = await getTokenData(user.uid);
+    setTokenData(data);
+    if (data.isPro || data.isStarter) { setView(id); return; }
+    const tokenCount = data[`tokens_${tokenKey}`] ?? 0;
+    if (tokenCount > 0) { setView(id); return; }
+    setPaywallCreator(id); setShowPaywall(true);
+  }
+
+  async function consumeToken(creatorKey) {
+    if (!user) return;
+    const data = await getTokenData(user.uid);
+    if (data.isPro || data.isStarter) return;
+    await useCreatorToken(user.uid, creatorKey);
+    const updated = await getTokenData(user.uid);
+    setTokenData(updated);
+  }
+
+  if (loadingAuth) return (
+    <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="text-amber-400 text-sm font-black uppercase tracking-widest animate-pulse">Ładowanie...</div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-black text-white" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
-      <Nav />
-      {view === 'menu'        && <MainMenu onSelect={setView} />}
-      {view === 'napisy'      && <NapisyView onBack={() => setView('menu')} />}
-      {view === 'kolorowanki' && <KolorowankaView onBack={() => setView('menu')} />}
-      {view === 'koszulki'    && <KoszulkaView onBack={() => setView('menu')} />}
+      <Nav user={user} onLogin={handleLogin} onLogout={handleLogout} />
+      {showPaywall && (
+        <PaywallOverlay
+          isLoggedIn={!!user}
+          onLogin={async () => { await handleLogin(); setShowPaywall(false); if (paywallCreator) handleSelectCreator(paywallCreator); }}
+        />
+      )}
+      {view === 'menu'        && <MainMenu onSelect={handleSelectCreator} />}
+      {view === 'napisy'      && <NapisyView     onBack={() => setView('menu')} user={user} onConsumeToken={() => consumeToken('text')}     tokenData={tokenData} onPaywall={() => setShowPaywall(true)} />}
+      {view === 'kolorowanki' && <KolorowankaView onBack={() => setView('menu')} user={user} onConsumeToken={() => consumeToken('coloring')} tokenData={tokenData} onPaywall={() => setShowPaywall(true)} />}
+      {view === 'koszulki'    && <KoszulkaView   onBack={() => setView('menu')} user={user} onConsumeToken={() => consumeToken('merch')}    tokenData={tokenData} onPaywall={() => setShowPaywall(true)} />}
     </div>
   );
 }
