@@ -6,7 +6,7 @@ import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Copy, Check, Sparkles, ArrowLeft, ChevronRight } from 'lucide-react';
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
-import { getFirestore, doc, getDoc, setDoc, updateDoc, increment } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, runTransaction } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: "AIzaSyCkwadV6OAvNW8NASmZ6qYh7zKV1xBLnss",
@@ -16,15 +16,17 @@ const firebaseConfig = {
   messagingSenderId: "397056782057",
   appId: "1:397056782057:web:8eb4ff5bd4fcbc7f0aca78",
 };
-const firebaseApp = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+
+const FIREBASE_NAME = 'aiflow-text';
+const firebaseApp = getApps().find(a => a.name === FIREBASE_NAME) || initializeApp(firebaseConfig, FIREBASE_NAME);
 const auth = getAuth(firebaseApp);
 const db = getFirestore(firebaseApp);
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
 const appId = 'aiflow_academy';
 const TOKENS_TEXT = 1; // 1 darmowy token dla każdego kreatora
-const STRIPE_MONTHLY = 'https://buy.stripe.com/bJedR8ayBgOX5MY9I68bS0a';
-const STRIPE_ANNUAL  = 'https://buy.stripe.com/7sY3cu0Y1eGP4IU5rQ8bS0b';
+const STRIPE_MONTHLY = 'https://buy.stripe.com/bJe00icGJgOX6R22fE8bS0c';
+const STRIPE_ANNUAL  = 'https://buy.stripe.com/cNieVc369buD3EQ07w8bS0d';
 
 // ─── TOKEN FUNCTIONS ──────────────────────────────────────────────────────────
 async function getTokenData(uid) {
@@ -50,14 +52,22 @@ async function getTokenData(uid) {
 
 async function useCreatorToken(uid, creatorKey) {
   const ref = doc(db, 'artifacts', appId, 'public', 'data', 'tokens', uid);
-  const snap = await getDoc(ref);
-  if (!snap.exists()) return false;
-  const data = snap.data();
-  if (data.pro === true || data.starter === true) return true;
-  const field = `tokens_${creatorKey}`;
-  if ((data[field] ?? 0) <= 0) return false;
-  await updateDoc(ref, { [field]: increment(-1), used: increment(1) });
-  return true;
+  try {
+    return await runTransaction(db, async (transaction) => {
+      const snap = await transaction.get(ref);
+      if (!snap.exists()) return false;
+      const data = snap.data();
+      if (data.pro === true || data.starter === true) return true;
+      const field = `tokens_${creatorKey}`;
+      const currentTokens = data[field] ?? 0;
+      if (currentTokens <= 0) return false;
+      transaction.update(ref, { [field]: increment(-1), used: increment(1) });
+      return true;
+    });
+  } catch (e) {
+    console.error('Transaction failed:', e);
+    return false;
+  }
 }
 
 // ─── NAV ─────────────────────────────────────────────────────────────────────
@@ -243,23 +253,28 @@ function NapisyView({ onBack, user, onConsumeToken, tokenData, onPaywall }) {
   const [selStyle, setSelStyle] = useState(null);
   const [selBg, setSelBg] = useState(null);
   const [prompt, setPrompt] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
   const promptRef = useRef(null);
   const maxChars = format === 'portrait' ? 6 : 10;
   const trimmed = text.trim();
-  const canGen = trimmed.length >= 1 && selStyle && selBg;
+  const canGen = trimmed.length >= 1 && selStyle && selBg && !isGenerating;
 
   React.useEffect(() => { if (trimmed.length > maxChars) setText(t => t.slice(0, maxChars)); }, [format]);
 
-  function handleGenerate() {
+  async function handleGenerate() {
     if (!canGen) return;
+    setIsGenerating(true);
+    try {
     const letters = trimmed.toUpperCase().split('');
     const isMulti = letters.length > 1;
     const arr = format === 'portrait' ? 'arranged diagonally from upper-left to lower-right, stacked vertically, each letter slightly offset to the right' : 'arranged diagonally from upper-left to lower-right along a horizontal axis, each letter slightly lower';
     const subject = isMulti ? `the letters ${letters.join(', ')} spelling "${trimmed.toUpperCase()}", ${arr}` : `a single large decorative letter "${trimmed.toUpperCase()}" centered`;
     const ar = format === 'portrait' ? '--ar 9:16' : '--ar 16:9';
     setPrompt(`Photorealistic 3D render of ${subject}, each letter ${selStyle.prompt}, placed on ${selBg.prompt}. Every letter is clearly legible and three-dimensional. Shot with 85mm macro lens, studio product photography. No text overlay, no watermark. Ultra-detailed, 8K resolution, ${ar} --style raw --v 6.1`);
-    onConsumeToken && onConsumeToken();
-    setTimeout(() => promptRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+      await onConsumeToken?.();
+      setTimeout(() => promptRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+    } catch(e) { console.error(e); }
+    finally { setIsGenerating(false); }
   }
 
   return (
@@ -328,7 +343,7 @@ function NapisyView({ onBack, user, onConsumeToken, tokenData, onPaywall }) {
         <div className="text-center">
           <button onClick={handleGenerate} disabled={!canGen} className="inline-flex items-center gap-3 px-10 py-4 rounded-2xl font-black text-sm uppercase tracking-[0.2em] transition-all"
             style={{ background: canGen ? 'linear-gradient(135deg,#f59e0b,#d97706)' : 'rgba(255,255,255,0.05)', color: canGen ? '#000' : 'rgba(255,255,255,0.2)', cursor: canGen ? 'pointer' : 'not-allowed', boxShadow: canGen ? '0 0 40px rgba(245,158,11,0.3)' : 'none' }}>
-            <Sparkles className="w-4 h-4" /> Generuj prompt
+            <Sparkles className="w-4 h-4" /> {isGenerating ? 'Generowanie...' : 'Generuj prompt'}
           </button>
         </div>
         {prompt && <div ref={promptRef}><PromptOutput prompt={prompt} color="#f59e0b" id="text-prompt" /></div>}
@@ -380,16 +395,21 @@ function KolorowankaView({ onBack, user, onConsumeToken, tokenData, onPaywall })
   const [selDiff, setSelDiff] = useState(null);
   const [group, setGroup] = useState('all');
   const [prompt, setPrompt] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
   const promptRef = useRef(null);
   const filtered = group === 'all' ? COL_CATS : COL_CATS.filter(c => c.group === group);
-  const canGen = selCat && selDiff;
+  const canGen = selCat && selDiff && !isGenerating;
 
-  function handleGenerate() {
+  async function handleGenerate() {
     if (!canGen) return;
-    const scene = selCat.prompts[Math.floor(Math.random() * selCat.prompts.length)];
-    setPrompt(`Black and white coloring book page illustration of ${scene}. ${selDiff.prompt}. Pure white background, clean crisp black lines only, no grey shading, no color fills, no gradients, no shadows — only black outlines on white background. Professional coloring book style, print-ready for 8.5x11 inch KDP page. --ar 3:4 --style raw --v 6.1`);
-    onConsumeToken && onConsumeToken();
-    setTimeout(() => promptRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+    setIsGenerating(true);
+    try {
+      const scene = selCat.prompts[Math.floor(Math.random() * selCat.prompts.length)];
+      setPrompt(`Black and white coloring book page illustration of ${scene}. ${selDiff.prompt}. Pure white background, clean crisp black lines only, no grey shading, no color fills, no gradients, no shadows — only black outlines on white background. Professional coloring book style, print-ready for 8.5x11 inch KDP page. --ar 3:4 --style raw --v 6.1`);
+      await onConsumeToken?.();
+      setTimeout(() => promptRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+    } catch(e) { console.error(e); }
+    finally { setIsGenerating(false); }
   }
 
   return (
@@ -441,7 +461,7 @@ function KolorowankaView({ onBack, user, onConsumeToken, tokenData, onPaywall })
           <p className="text-[10px] text-white/30">Każde kliknięcie = unikalna losowa scena 🎲</p>
           <button onClick={handleGenerate} disabled={!canGen} className="inline-flex items-center gap-3 px-10 py-4 rounded-2xl font-black text-sm uppercase tracking-[0.2em] transition-all"
             style={{ background: canGen ? 'linear-gradient(135deg,#a78bfa,#7c3aed)' : 'rgba(255,255,255,0.05)', color: canGen ? '#fff' : 'rgba(255,255,255,0.2)', cursor: canGen ? 'pointer' : 'not-allowed', boxShadow: canGen ? '0 0 40px rgba(167,139,250,0.3)' : 'none' }}>
-            <Sparkles className="w-4 h-4" /> Generuj prompt 🎲
+            <Sparkles className="w-4 h-4" /> {isGenerating ? 'Generowanie...' : 'Generuj prompt 🎲'}
           </button>
         </div>
         {prompt && (
@@ -497,16 +517,21 @@ function KoszulkaView({ onBack, user, onConsumeToken, tokenData, onPaywall }) {
   const [selLang, setSelLang] = useState(MERCH_LANGS[0]);
   const [customText, setCustomText] = useState('');
   const [prompt, setPrompt] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
   const promptRef = useRef(null);
-  const canGen = selCat && selStyle;
+  const canGen = selCat && selStyle && !isGenerating;
 
-  function handleGenerate() {
+  async function handleGenerate() {
     if (!canGen) return;
-    const scene = selCat.prompts[Math.floor(Math.random() * selCat.prompts.length)];
-    const textPart = selLang.id !== 'none' && customText.trim() ? `, with the text "${customText.trim()}" in bold ${selLang.text} typography` : '';
-    setPrompt(`T-shirt graphic design of ${scene}${textPart}. ${selStyle.prompt}. IMPORTANT: transparent background, isolated graphic, no background, print-ready for direct garment printing (DTG), high contrast, works on both light and dark fabric, vector-style clean edges. Professional merchandise design, Amazon Merch on Demand ready. --ar 1:1 --style raw --v 6.1`);
-    onConsumeToken && onConsumeToken();
-    setTimeout(() => promptRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+    setIsGenerating(true);
+    try {
+      const scene = selCat.prompts[Math.floor(Math.random() * selCat.prompts.length)];
+      const textPart = selLang.id !== 'none' && customText.trim() ? `, with the text "${customText.trim()}" in bold ${selLang.text} typography` : '';
+      setPrompt(`T-shirt graphic design of ${scene}${textPart}. ${selStyle.prompt}. IMPORTANT: transparent background, isolated graphic, no background, print-ready for direct garment printing (DTG), high contrast, works on both light and dark fabric, vector-style clean edges. Professional merchandise design, Amazon Merch on Demand ready. --ar 1:1 --style raw --v 6.1`);
+      await onConsumeToken?.();
+      setTimeout(() => promptRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+    } catch(e) { console.error(e); }
+    finally { setIsGenerating(false); }
   }
 
   return (
@@ -566,7 +591,7 @@ function KoszulkaView({ onBack, user, onConsumeToken, tokenData, onPaywall }) {
           <p className="text-[10px] text-white/30">Każde kliknięcie = unikalny losowy design 🎲</p>
           <button onClick={handleGenerate} disabled={!canGen} className="inline-flex items-center gap-3 px-10 py-4 rounded-2xl font-black text-sm uppercase tracking-[0.2em] transition-all"
             style={{ background: canGen ? 'linear-gradient(135deg,#22d3ee,#0891b2)' : 'rgba(255,255,255,0.05)', color: canGen ? '#000' : 'rgba(255,255,255,0.2)', cursor: canGen ? 'pointer' : 'not-allowed', boxShadow: canGen ? '0 0 40px rgba(34,211,238,0.3)' : 'none' }}>
-            <Sparkles className="w-4 h-4" /> Generuj prompt 🎲
+            <Sparkles className="w-4 h-4" /> {isGenerating ? 'Generowanie...' : 'Generuj prompt 🎲'}
           </button>
         </div>
         {prompt && (
@@ -698,7 +723,9 @@ export default function App2() {
   const [paywallCreator, setPaywallCreator] = useState(null);
 
   useEffect(() => {
+    const timeout = setTimeout(() => setLoadingAuth(false), 5000); // max 5s
     const unsub = onAuthStateChanged(auth, async (u) => {
+      clearTimeout(timeout);
       setUser(u);
       if (u) {
         const data = await getTokenData(u.uid);
@@ -708,7 +735,7 @@ export default function App2() {
       }
       setLoadingAuth(false);
     });
-    return () => unsub();
+    return () => { unsub(); clearTimeout(timeout); };
   }, []);
 
   async function handleLogin() {
