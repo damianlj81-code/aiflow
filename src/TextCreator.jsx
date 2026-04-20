@@ -4,7 +4,7 @@
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Copy, Check, Sparkles, ArrowLeft, ChevronRight } from 'lucide-react';
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
 import { getFirestore, doc, getDoc, setDoc, updateDoc, increment } from 'firebase/firestore';
 
@@ -16,7 +16,7 @@ const firebaseConfig = {
   messagingSenderId: "397056782057",
   appId: "1:397056782057:web:8eb4ff5bd4fcbc7f0aca78",
 };
-const firebaseApp = initializeApp(firebaseConfig, 'text-creator');
+const firebaseApp = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(firebaseApp);
 const db = getFirestore(firebaseApp);
 const googleProvider = new GoogleAuthProvider();
