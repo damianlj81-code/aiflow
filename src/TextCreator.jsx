@@ -344,6 +344,20 @@ function NapisyView({ onBack, user, onConsumeToken, tokenData, onPaywall }) {
           </button>
         </div>
         {prompt && <div ref={promptRef}><PromptOutput prompt={prompt} color="#f59e0b" id="text-prompt" /></div>}
+
+        {/* ── GALERIA PRZYKŁADÓW ── */}
+        <div className="mt-12 mb-4">
+          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30 mb-4 text-center">✦ Przykładowe rezultaty</p>
+          <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide justify-center">
+            {['/examples/napisy1.jpg','/examples/napisy2.jpg','/examples/napisy3.jpg'].map((src, i) => (
+              <div key={i} className="flex-shrink-0 snap-start w-36 h-52 md:w-44 md:h-64 rounded-2xl overflow-hidden border border-white/10"
+                style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
+                <img src={src} alt={`Przykład napisu ${i+1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+              </div>
+            ))}
+          </div>
+        </div>
+
       </div>
     </div>
   );
@@ -375,11 +389,10 @@ const COL_CATS = [
 ];
 
 const COL_DIFF = [
-  { id: 'tiny',   emoji: '👶', label: 'Maluszki (2-4 l.)',  desc: 'Bardzo grube linie',    prompt: 'very simple thick bold black outlines, minimal details, designed for toddlers ages 2-4, large simple shapes, no tiny details' },
-  { id: 'kids',   emoji: '🧒', label: 'Dzieci (4-8 l.)',    desc: 'Grube linie',            prompt: 'simple thick black outlines, basic details, designed for young children ages 4-8, clear shapes with simple inner details' },
-  { id: 'junior', emoji: '🧑', label: 'Junior (8-12 l.)',   desc: 'Średnie linie',          prompt: 'medium weight black outlines, moderate detail level, designed for children ages 8-12, good balance of simple and detailed sections' },
-  { id: 'teen',   emoji: '🧑‍🎓', label: 'Młodzież (12-16)', desc: 'Cienkie linie',          prompt: 'fine detailed black outlines, intricate details, designed for teenagers, complex composition with many elements to color' },
-  { id: 'adult',  emoji: '🎨', label: 'Dorośli',            desc: 'Bardzo szczegółowe',     prompt: 'very fine intricate black outlines, highly detailed complex illustration, designed for adults, dense composition, professional coloring book quality' },
+  { id: 'tiny',   emoji: '👶', label: 'Maluszki (1-3 l.)',  desc: 'Bardzo grube linie',    prompt: 'very simple thick bold black outlines only, minimal details, designed for toddlers ages 1-3, large simple shapes, no tiny details, no shading, no gray fills, pure black lines on white background only' },
+  { id: 'kids',   emoji: '🧒', label: 'Dzieci (4-8 l.)',    desc: 'Grube linie',            prompt: 'simple thick black outlines only, basic details, designed for young children ages 4-8, clear shapes, no shading, no gray fills, pure black lines on white background only' },
+  { id: 'junior', emoji: '🧑', label: 'Młodzież (9-12 l.)', desc: 'Średnie linie',          prompt: 'medium weight black outlines only, moderate detail level, designed for children ages 9-12, no shading, no gray fills, no gradients, pure black lines on white background only, coloring book style' },
+  { id: 'teen',   emoji: '🧑‍🎓', label: 'Nastolatki (12-15 l.)', desc: 'Cienkie linie',   prompt: 'fine detailed black outlines only, intricate details, designed for teenagers ages 12-15, absolutely no shading, no gray fills, no gradients, pure crisp black lines on white background, professional coloring book style' },
 ];
 
 const COL_GROUPS = [
@@ -469,6 +482,20 @@ function KolorowankaView({ onBack, user, onConsumeToken, tokenData, onPaywall })
             </div>
           </div>
         )}
+
+        {/* ── GALERIA PRZYKŁADÓW ── */}
+        <div className="mt-12 mb-4">
+          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30 mb-4 text-center">✦ Przykładowe rezultaty</p>
+          <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide justify-center">
+            {['/examples/kolorowanki1.jpg','/examples/kolorowanki2.jpg','/examples/kolorowanki3.jpg'].map((src, i) => (
+              <div key={i} className="flex-shrink-0 snap-start w-36 h-52 md:w-44 md:h-64 rounded-2xl overflow-hidden border border-white/10"
+                style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
+                <img src={src} alt={`Przykład kolorowanki ${i+1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+              </div>
+            ))}
+          </div>
+        </div>
+
       </div>
     </div>
   );
@@ -599,6 +626,20 @@ function KoszulkaView({ onBack, user, onConsumeToken, tokenData, onPaywall }) {
             </div>
           </div>
         )}
+
+        {/* ── GALERIA PRZYKŁADÓW ── */}
+        <div className="mt-12 mb-4">
+          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30 mb-4 text-center">✦ Przykładowe rezultaty</p>
+          <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide justify-center">
+            {['/examples/koszulki1.jpg','/examples/koszulki2.jpg','/examples/koszulki3.jpg'].map((src, i) => (
+              <div key={i} className="flex-shrink-0 snap-start w-36 h-52 md:w-44 md:h-64 rounded-2xl overflow-hidden border border-white/10"
+                style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
+                <img src={src} alt={`Przykład koszulki ${i+1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+              </div>
+            ))}
+          </div>
+        </div>
+
       </div>
     </div>
   );

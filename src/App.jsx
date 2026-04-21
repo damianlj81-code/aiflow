@@ -1479,7 +1479,7 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
           <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30 mb-4 text-center">
             {t.lang==='EN' ? '✦ Example results' : '✦ Przykładowe rezultaty'}
           </p>
-          <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide">
+          <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide justify-center">
             {[
               '/examples/avatar1.jpg',
               '/examples/avatar2.jpg',
@@ -1877,6 +1877,23 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
           </div>
 
         </div>
+
+        {/* ── GALERIA PRZYKŁADÓW ── */}
+        <div className="mt-12 mb-4">
+          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30 mb-4 text-center">
+            {t.lang==='EN' ? '✦ Example results' : '✦ Przykładowe rezultaty'}
+          </p>
+          <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide justify-center">
+            {['/examples/reklama1.jpg','/examples/reklama2.jpg','/examples/reklama3.jpg'].map((src, i) => (
+              <div key={i} className="flex-shrink-0 snap-start w-36 h-52 md:w-44 md:h-64 rounded-2xl overflow-hidden border border-white/10"
+                style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
+                <img src={src} alt={t.lang==='EN' ? `Ad example ${i+1}` : `Przykład reklamy ${i+1}`}
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+              </div>
+            ))}
+          </div>
+        </div>
+
       </div>
     </div>
   );
@@ -2249,6 +2266,27 @@ const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
           </div>
 
         </div>
+
+        {/* ── GALERIA PRZYKŁADÓW ── */}
+        <div className="mt-12 mb-4">
+          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30 mb-4 text-center">
+            {t.lang==='EN' ? '✦ Example results' : '✦ Przykładowe rezultaty'}
+          </p>
+          <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide justify-center">
+            {[
+              '/examples/lifestyle1.jpg',
+              '/examples/lifestyle2.jpg',
+              '/examples/lifestyle3.jpg',
+            ].map((src, i) => (
+              <div key={i} className="flex-shrink-0 snap-start w-36 h-52 md:w-44 md:h-64 rounded-2xl overflow-hidden border border-white/10"
+                style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
+                <img src={src} alt={t.lang==='EN' ? `Lifestyle example ${i+1}` : `Przykład lifestyle ${i+1}`}
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+              </div>
+            ))}
+          </div>
+        </div>
+
       </div>
     </div>
   );
@@ -2763,6 +2801,22 @@ const FilmBuilderView = ({ t, user, onLoginRequest }) => {
                 ? 'Merge both animations in CapCut / Premiere → viral renovation film ready! 🎬'
                 : 'Połącz obie animacje w CapCut / Premiere → wiralowy film renowacji gotowy! 🎬'}
             </p>
+          </div>
+
+          {/* ── GALERIA PRZYKŁADÓW ── */}
+          <div className="mt-12 mb-4">
+            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30 mb-4 text-center">
+              {t.lang==='EN' ? '✦ Example results' : '✦ Przykładowe rezultaty'}
+            </p>
+            <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide justify-center">
+              {['/examples/film1.jpg','/examples/film2.jpg','/examples/film3.jpg'].map((src, i) => (
+                <div key={i} className="flex-shrink-0 snap-start w-36 h-52 md:w-44 md:h-64 rounded-2xl overflow-hidden border border-white/10"
+                  style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
+                  <img src={src} alt={t.lang==='EN' ? `Film example ${i+1}` : `Przykład filmu ${i+1}`}
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                </div>
+              ))}
+            </div>
           </div>
 
         </div>
