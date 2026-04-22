@@ -340,7 +340,7 @@ function NapisyView({ onBack, user, onConsumeToken, tokenData, onPaywall }) {
         <div className="mt-12 mb-4">
           <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30 mb-4 text-center">✦ Przykładowe rezultaty</p>
           <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide justify-center">
-            {['/examples/napisy1.jpg','/examples/napisy2.jpg','/examples/napisy3.jpg'].map((src, i) => (
+            {['/examples/napis1.jpg','/examples/napis2.jpg','/examples/napis3.jpg'].map((src, i) => (
               <div key={i} className="flex-shrink-0 snap-start w-36 h-52 md:w-44 md:h-64 rounded-2xl overflow-hidden border border-white/10"
                 style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
                 <img src={src} alt={`Przykład napisu ${i+1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" onError={e => e.currentTarget.parentElement.style.display="none"} />
