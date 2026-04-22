@@ -146,15 +146,6 @@ function PromptOutput({ prompt, onRegenerate, color = '#f59e0b', id = 'prompt-ou
       <textarea id={id} readOnly value={prompt} onClick={e => e.target.select()}
         className="w-full text-white/70 text-sm leading-relaxed font-mono rounded-xl p-4 resize-none outline-none cursor-text"
         style={{ background: 'rgba(0,0,0,0.4)', border: '1px solid rgba(255,255,255,0.08)', minHeight: '120px' }} />
-      <div className="grid grid-cols-3 gap-2">
-        {[{ name: 'Midjourney', url: 'https://midjourney.com', emoji: '🎨' }, { name: 'Ideogram', url: 'https://ideogram.ai', emoji: '🔤' }, { name: 'NanoBanana', url: 'https://nanobanana.ai', emoji: '🍌' }].map(t => (
-          <a key={t.name} href={t.url} target="_blank" rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all"
-            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)' }}>
-            {t.emoji} {t.name}
-          </a>
-        ))}
-      </div>
     </div>
   );
 }
@@ -282,7 +273,7 @@ function NapisyView({ onBack, user, onConsumeToken, tokenData, onPaywall }) {
       <div className="text-center mb-10">
         <div className="text-5xl mb-4" style={{ filter: 'drop-shadow(0 0 30px rgba(245,158,11,0.5))' }}>✍️</div>
         <h1 className="text-3xl font-black uppercase tracking-tighter mb-2 text-white">Kreator <span style={{ color: '#f59e0b' }}>Napisów</span></h1>
-        <p className="text-white/40 text-sm">Generuj prompty do artystycznych liter — wklej do Midjourney, Ideogram lub NanoBanana</p>
+        <p className="text-white/40 text-sm">Generuj prompty do artystycznych liter — wklej do swojego generatora AI</p>
       </div>
       <div className="space-y-10">
         <Step n="1" title="Format i tekst">
@@ -352,7 +343,7 @@ function NapisyView({ onBack, user, onConsumeToken, tokenData, onPaywall }) {
             {['/examples/napisy1.jpg','/examples/napisy2.jpg','/examples/napisy3.jpg'].map((src, i) => (
               <div key={i} className="flex-shrink-0 snap-start w-36 h-52 md:w-44 md:h-64 rounded-2xl overflow-hidden border border-white/10"
                 style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
-                <img src={src} alt={`Przykład napisu ${i+1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                <img src={src} alt={`Przykład napisu ${i+1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" onError={e => e.currentTarget.parentElement.style.display="none"} />
               </div>
             ))}
           </div>
@@ -430,7 +421,7 @@ function KolorowankaView({ onBack, user, onConsumeToken, tokenData, onPaywall })
       <div className="text-center mb-10">
         <div className="text-5xl mb-4" style={{ filter: 'drop-shadow(0 0 30px rgba(167,139,250,0.5))' }}>🎨</div>
         <h1 className="text-3xl font-black uppercase tracking-tighter mb-2 text-white">Kreator <span style={{ color: '#a78bfa' }}>Kolorowanek</span></h1>
-        <p className="text-white/40 text-sm">Prompty kolorowanek do Midjourney lub Ideogram — gotowe do druku na Amazon KDP</p>
+        <p className="text-white/40 text-sm">Prompty kolorowanek gotowe do druku na Amazon KDP</p>
         <p className="text-[10px] text-white/25 mt-2">✅ Każdy prompt = unikalna losowa scena &nbsp;·&nbsp; ✅ Gotowe na KDP 8.5x11</p>
       </div>
       <div className="space-y-10">
@@ -490,7 +481,7 @@ function KolorowankaView({ onBack, user, onConsumeToken, tokenData, onPaywall })
             {['/examples/kolorowanki1.jpg','/examples/kolorowanki2.jpg','/examples/kolorowanki3.jpg'].map((src, i) => (
               <div key={i} className="flex-shrink-0 snap-start w-36 h-52 md:w-44 md:h-64 rounded-2xl overflow-hidden border border-white/10"
                 style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
-                <img src={src} alt={`Przykład kolorowanki ${i+1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                <img src={src} alt={`Przykład kolorowanki ${i+1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" onError={e => e.currentTarget.parentElement.style.display="none"} />
               </div>
             ))}
           </div>
@@ -528,29 +519,41 @@ const MERCH_STYLES = [
   { id: 'geometric', emoji: '🔷', label: 'Geometryczny',     prompt: 'geometric low-poly design style, sharp angular shapes, modern graphic art' },
 ];
 
-const MERCH_LANGS = [
-  { id: 'none', flag: '🚫', label: 'Bez tekstu', text: '' },
-  { id: 'pl',   flag: '🇵🇱', label: 'Polski',    text: 'Polish language' },
-  { id: 'en',   flag: '🇬🇧', label: 'English',   text: 'English language' },
-  { id: 'de',   flag: '🇩🇪', label: 'Deutsch',   text: 'German language' },
-];
+const MERCH_TEXT_SUGGESTIONS = {
+  gaming:  ['Game Over', 'Insert Coin', 'Level Up', 'Player One', 'Respawning...', 'GG EZ', 'No Sleep Till GG'],
+  gym:     ['No Pain No Gain', 'Beast Mode', 'Lift Heavy', 'Train Hard', 'Never Skip Leg Day', 'Eat Sleep Lift'],
+  moto:    ['Born to Ride', 'Live to Ride', 'Full Throttle', 'No Cage', 'Ride or Die', 'Freedom on Wheels'],
+  music:   ['Rock Never Dies', 'Turn It Up', 'Feel the Beat', 'Born to Rock', 'Play Loud', 'Sound Is Life'],
+  cats:    ['Cat Mode On', 'Purrfect', 'Nap Champion', 'Cat Lady', 'Feed Me', 'I Work for Treats'],
+  dogs:    ['Good Boy', 'Dog Dad', 'Woof Gang', 'Adopt Don\'t Shop', 'Dog Mom', 'Treat Yourself'],
+  nature:  ['Into the Wild', 'Leave No Trace', 'Stay Wild', 'Go Outside', 'Wander More', 'Nature Heals'],
+  skulls:  ['Live Fast', 'Memento Mori', 'Death Before Decaf', 'Born Wild', 'No Fear', 'Carpe Diem'],
+  vintage: ['Est. 1969', 'Made in the 70s', 'Retro Vibes', 'Old School', 'Classic Never Dies', 'Vintage Soul'],
+  funny:   ['Send Help', 'Monday Survivor', 'Powered by Coffee', 'Adulting is Hard', 'Nope', 'I\'m Fine'],
+  xmas_m:  ['Ho Ho Ho', 'Santa\'s Favorite', 'Merry Everything', 'Tis the Season', 'Naughty List 2024'],
+  halo_m:  ['Trick or Treat', 'Spooky Season', 'Boo!', 'Creep It Real', 'Stay Spooky', 'Basic Witch'],
+};
 
 function KoszulkaView({ onBack, user, onConsumeToken, tokenData, onPaywall }) {
   const [selCat, setSelCat] = useState(null);
   const [selStyle, setSelStyle] = useState(null);
-  const [selLang, setSelLang] = useState(MERCH_LANGS[0]);
   const [customText, setCustomText] = useState('');
   const [prompt, setPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const promptRef = useRef(null);
   const canGen = selCat && selStyle && !isGenerating;
 
+  function randomText() {
+    const suggestions = selCat ? (MERCH_TEXT_SUGGESTIONS[selCat.id] || MERCH_TEXT_SUGGESTIONS.funny) : MERCH_TEXT_SUGGESTIONS.funny;
+    setCustomText(suggestions[Math.floor(Math.random() * suggestions.length)]);
+  }
+
   async function handleGenerate() {
     if (!canGen) return;
     setIsGenerating(true);
     try {
       const scene = selCat.prompts[Math.floor(Math.random() * selCat.prompts.length)];
-      const textPart = selLang.id !== 'none' && customText.trim() ? `, with the text "${customText.trim()}" in bold ${selLang.text} typography` : '';
+      const textPart = customText.trim() ? `, with the text "${customText.trim()}" in bold typography` : '';
       setPrompt(`T-shirt graphic design of ${scene}${textPart}. ${selStyle.prompt}. IMPORTANT: transparent background, isolated graphic, no background, print-ready for direct garment printing (DTG), high contrast, works on both light and dark fabric, vector-style clean edges. Professional merchandise design, Amazon Merch on Demand ready. --ar 1:1 --style raw --v 6.1`);
       await onConsumeToken?.();
       setTimeout(() => promptRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
@@ -596,20 +599,18 @@ function KoszulkaView({ onBack, user, onConsumeToken, tokenData, onPaywall }) {
           </div>
         </Step>
         <Step n="3" title="Tekst (opcjonalnie)" color="#22d3ee">
-          <div className="flex gap-3 flex-wrap mb-3">
-            {MERCH_LANGS.map(l => (
-              <button key={l.id} onClick={() => setSelLang(l)} className="flex items-center gap-2 px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all"
-                style={{ background: selLang?.id === l.id ? 'rgba(34,211,238,0.15)' : 'rgba(255,255,255,0.03)', border: `1px solid ${selLang?.id === l.id ? 'rgba(34,211,238,0.45)' : 'rgba(255,255,255,0.08)'}`, color: selLang?.id === l.id ? '#22d3ee' : 'rgba(255,255,255,0.5)' }}>
-                {l.flag} {l.label}
-              </button>
-            ))}
-          </div>
-          {selLang?.id !== 'none' && (
-            <input type="text" maxLength={40} placeholder="np. Najlepszy Tata, Level Up, Stay Wild..." value={customText}
+          <div className="flex gap-2">
+            <input type="text" maxLength={40} placeholder="np. Stay Wild, Level Up, Send Help..." value={customText}
               onChange={e => setCustomText(e.target.value)}
-              className="w-full bg-white/5 border rounded-xl px-5 py-3 text-sm font-bold text-white outline-none transition-all"
+              className="flex-1 bg-white/5 border rounded-xl px-5 py-3 text-sm font-bold text-white outline-none transition-all"
               style={{ borderColor: customText ? 'rgba(34,211,238,0.45)' : 'rgba(255,255,255,0.1)' }} />
-          )}
+            <button onClick={randomText} title="Losuj tekst"
+              className="px-4 py-3 rounded-xl font-black text-lg transition-all hover:scale-105"
+              style={{ background: 'rgba(34,211,238,0.1)', border: '1px solid rgba(34,211,238,0.3)' }}>
+              🎲
+            </button>
+          </div>
+          <p className="text-[9px] text-white/25 mt-2">Zostaw puste jeśli nie chcesz tekstu na koszulce</p>
         </Step>
         <div className="text-center space-y-2">
           <p className="text-[10px] text-white/30">Każde kliknięcie = unikalny losowy design 🎲</p>
@@ -634,7 +635,7 @@ function KoszulkaView({ onBack, user, onConsumeToken, tokenData, onPaywall }) {
             {['/examples/koszulki1.jpg','/examples/koszulki2.jpg','/examples/koszulki3.jpg'].map((src, i) => (
               <div key={i} className="flex-shrink-0 snap-start w-36 h-52 md:w-44 md:h-64 rounded-2xl overflow-hidden border border-white/10"
                 style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
-                <img src={src} alt={`Przykład koszulki ${i+1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                <img src={src} alt={`Przykład koszulki ${i+1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" onError={e => e.currentTarget.parentElement.style.display="none"} />
               </div>
             ))}
           </div>
