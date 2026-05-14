@@ -41,8 +41,8 @@ const getYTId = (url) => {
 // TOKEN SYSTEM
 // =========================================================================
 const TOKENS_FREE = 5; // 1 avatar + 1 ad + 1 lifestyle + 2 film
-const STRIPE_MONTHLY = 'https://buy.stripe.com/bJe00icGJgOX6R22fE8bS0c'; // 79 PLN miesiecznie
-const STRIPE_ANNUAL  = 'https://buy.stripe.com/cNieVc369buD3EQ07w8bS0d';   // 799 PLN rocznie
+const STRIPE_MONTHLY = 'https://buy.stripe.com/bJedR8ayBgOX5MY9I68bS0a'; // 89 PLN miesiecznie
+const STRIPE_ANNUAL = 'https://buy.stripe.com/7sY3cu0Y1eGP4IU5rQ8bS0b';   // 899 PLN rocznie
 // Aliasy dla kompatybilnosci z reszta kodu
 const STRIPE_PRO_LINK = STRIPE_MONTHLY;
 const STRIPE_STARTER_LINK = STRIPE_MONTHLY;
@@ -671,7 +671,7 @@ const TutorialsView = ({ t, user, onLoginRequest, onNavigate }) => {
             style={{boxShadow:'0 0 40px rgba(245,158,11,0.05)'}}>
             <div>
               <p className="text-white font-black text-sm uppercase tracking-tight mb-1">
-                👑 {t.lang === 'EN' ? 'All tutorials + apps — from 79 PLN/mo' : 'Wszystkie tutoriale + aplikacje — od 79 zł/mies.'}
+                👑 {t.lang === 'EN' ? 'All tutorials + apps — from 89 PLN/mo' : 'Wszystkie tutoriale + aplikacje — od 89 zł/mies.'}
               </p>
               <p className="text-slate-500 text-xs">
                 {t.lang === 'EN' ? 'One subscription. Everything included. Cancel anytime.' : 'Jeden abonament. Dostęp do wszystkiego. Anuluj kiedy chcesz.'}
@@ -1474,26 +1474,6 @@ const AvatarBuilderView = ({ t, user, onLoginRequest }) => {
           
         </div>
 
-        {/* ── GALERIA PRZYKŁADÓW ── */}
-        <div className="mt-12 mb-4">
-          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30 mb-4 text-center">
-            {t.lang==='EN' ? '✦ Example results' : '✦ Przykładowe rezultaty'}
-          </p>
-          <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide justify-center">
-            {[
-              '/examples/avatar1.jpg',
-              '/examples/avatar2.jpg',
-              '/examples/avatar3.jpg',
-            ].map((src, i) => (
-              <div key={i} className="flex-shrink-0 snap-start w-36 h-52 md:w-44 md:h-64 rounded-2xl overflow-hidden border border-white/10"
-                style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
-                <img src={src} alt={t.lang==='EN' ? `Avatar example ${i+1}` : `Przykład awatara ${i+1}`}
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
-              </div>
-            ))}
-          </div>
-        </div>
-
       </div>
     </div>
   );
@@ -1877,23 +1857,6 @@ const ProductAdBuilderView = ({ t, user, onLoginRequest }) => {
           </div>
 
         </div>
-
-        {/* ── GALERIA PRZYKŁADÓW ── */}
-        <div className="mt-12 mb-4">
-          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30 mb-4 text-center">
-            {t.lang==='EN' ? '✦ Example results' : '✦ Przykładowe rezultaty'}
-          </p>
-          <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide justify-center">
-            {['/examples/reklama1.jpg','/examples/reklama2.jpg','/examples/reklama3.jpg'].map((src, i) => (
-              <div key={i} className="flex-shrink-0 snap-start w-36 h-52 md:w-44 md:h-64 rounded-2xl overflow-hidden border border-white/10"
-                style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
-                <img src={src} alt={t.lang==='EN' ? `Ad example ${i+1}` : `Przykład reklamy ${i+1}`}
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
-              </div>
-            ))}
-          </div>
-        </div>
-
       </div>
     </div>
   );
@@ -1951,6 +1914,7 @@ const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
 
   // Postac 2 (para)
   const [pairMode, setPairMode] = useState(false);
+  const [facePrompt2, setFacePrompt2] = useState('');
   const [gender2, setGender2]   = useState('female');
   const [activity2, setActivity2] = useState('relaxing in sun');
   const [outfit2, setOutfit2]   = useState('minimal triangle bikini, beach fashion');
@@ -2064,11 +2028,24 @@ const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
     const face = facePrompt.trim();
     const char1 = buildChar(gender1, status1, activity1, outfit1, mood1);
     const char2 = pairMode ? buildChar(gender2, status2, activity2, outfit2, mood2) : null;
-    const scene = pairMode
-      ? `${char1} and ${char2}`
-      : char1;
-    const base = `Ultra realistic cinematic scene, ${scene}, on a ${place} at ${country}. Time: ${time}, weather: ${weather}. Luxury lifestyle photography, depth of field, sharp focus, 4K, dramatic lighting. Camera: ${camera}. editorial style, tasteful, professional model shoot.`;
-    return face ? `${face}, ${base}` : base;
+
+    let scene;
+    if (pairMode) {
+      const g1 = gender1 === 'male' ? 'man' : 'woman';
+      const g2 = gender2 === 'male' ? 'man' : 'woman';
+      // Gdy dwie kobiety lub dwóch mężczyzn — wyraźnie oddzielamy
+      if (g1 === g2) {
+        scene = `two ${g1}s together: first ${g1}: ${char1}; second ${g1}: ${char2}; both in the same scene, photographed together`;
+      } else {
+        scene = `${char1} together with ${char2}, couple photography`;
+      }
+    } else {
+      scene = char1;
+    }
+
+    const faceStr = face ? `${face}. ` : '';
+    const face2Str = (pairMode && facePrompt2.trim()) ? ` Second person appearance: ${facePrompt2.trim()}.` : '';
+    return `${faceStr}Ultra realistic cinematic scene, ${scene}${face2Str}, on a ${place} at ${country}. Time: ${time}, weather: ${weather}. Luxury lifestyle photography, depth of field, sharp focus, 4K, dramatic lighting. Camera: ${camera}. editorial style, tasteful, professional model shoot.`;
   };
 
   const buildWeek = () => {
@@ -2211,6 +2188,12 @@ const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
                   <Sel label={t.lang==='EN'?'Outfit':'Strój'} value={outfit2} set={setOutfit2} opts={gender2==='male' ? OPTS_MALE.outfit : OPTS_FEMALE.outfit}/>
                   <Sel label={t.lang==='EN'?'Mood':'Nastrój'} value={mood2} set={setMood2} opts={MOOD_OPTS}/>
                 </div>
+                <div className="mt-3">
+                  <label className={labelClass}>👤 {t.lang==='EN' ? 'Face / Appearance Person 2 (optional)' : 'Twarz / Wygląd Osoby 2 (opcjonalnie)'}</label>
+                  <textarea rows={2} value={facePrompt2} onChange={e => setFacePrompt2(e.target.value)}
+                    placeholder={t.lang==='EN' ? 'Paste face prompt for person 2...' : 'Wklej prompt twarzy dla osoby 2...'}
+                    className="w-full bg-slate-100 dark:bg-[#111] border border-black/10 dark:border-[#222] rounded-xl px-3 py-2.5 text-sm text-black dark:text-white focus:outline-none focus:border-cyan-500 transition-colors resize-none" />
+                </div>
               </div>
             )}
           </div>
@@ -2266,27 +2249,6 @@ const LifestyleBuilderView = ({ t, user, onLoginRequest }) => {
           </div>
 
         </div>
-
-        {/* ── GALERIA PRZYKŁADÓW ── */}
-        <div className="mt-12 mb-4">
-          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30 mb-4 text-center">
-            {t.lang==='EN' ? '✦ Example results' : '✦ Przykładowe rezultaty'}
-          </p>
-          <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide justify-center">
-            {[
-              '/examples/lifestyle1.jpg',
-              '/examples/lifestyle2.jpg',
-              '/examples/lifestyle3.jpg',
-            ].map((src, i) => (
-              <div key={i} className="flex-shrink-0 snap-start w-36 h-52 md:w-44 md:h-64 rounded-2xl overflow-hidden border border-white/10"
-                style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
-                <img src={src} alt={t.lang==='EN' ? `Lifestyle example ${i+1}` : `Przykład lifestyle ${i+1}`}
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
-              </div>
-            ))}
-          </div>
-        </div>
-
       </div>
     </div>
   );
@@ -2803,22 +2765,6 @@ const FilmBuilderView = ({ t, user, onLoginRequest }) => {
             </p>
           </div>
 
-          {/* ── GALERIA PRZYKŁADÓW ── */}
-          <div className="mt-12 mb-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30 mb-4 text-center">
-              {t.lang==='EN' ? '✦ Example results' : '✦ Przykładowe rezultaty'}
-            </p>
-            <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide justify-center">
-              {['/examples/film1.jpg','/examples/film2.jpg','/examples/film3.jpg'].map((src, i) => (
-                <div key={i} className="flex-shrink-0 snap-start w-36 h-52 md:w-44 md:h-64 rounded-2xl overflow-hidden border border-white/10"
-                  style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.4)' }}>
-                  <img src={src} alt={t.lang==='EN' ? `Film example ${i+1}` : `Przykład filmu ${i+1}`}
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
-                </div>
-              ))}
-            </div>
-          </div>
-
         </div>
       </div>
     </div>
@@ -3005,7 +2951,7 @@ const CennikView = ({ t, user, onLoginRequest }) => {
             <div className="text-5xl mb-4" style={{filter:'drop-shadow(0 8px 20px rgba(245,158,11,0.6))',transform:'perspective(200px) rotateX(10deg)'}}>🚀</div>
             <div className="text-[9px] font-black uppercase tracking-[0.3em] text-amber-400 mb-2">{t.lang==='EN'?'Monthly':'Miesięczny'}</div>
             <div className="flex items-end gap-1 mb-1">
-              <span className="text-5xl font-black text-black dark:text-white">79</span>
+              <span className="text-5xl font-black text-black dark:text-white">89</span>
               <span className="text-sm text-slate-400 mb-2">PLN/{t.lang==='EN'?'mo':'mies.'}</span>
             </div>
             <p className="text-slate-400 text-xs mb-6">{t.lang==='EN'?'Full platform access':'Pełny dostęp do platformy'}</p>
@@ -3025,17 +2971,12 @@ const CennikView = ({ t, user, onLoginRequest }) => {
                 ✓ {t.lang==='EN'?'Admin — Lifetime Access':'Admin — Dostęp dożywotni'}
               </div>
             ) : (
-            <>
             <a href={user && !user.isAnonymous ? stripeLink(STRIPE_MONTHLY, user.uid, user.email) : '#'}
               onClick={e => { if (!user || user.isAnonymous) { e.preventDefault(); onLoginRequest(); }}}
               target="_blank" rel="noopener noreferrer"
               className="block w-full py-3.5 font-black text-[11px] uppercase tracking-widest rounded-xl text-center bg-amber-500 hover:bg-amber-400 text-black transition-all shadow-lg shadow-amber-500/30">
               {t.lang==='EN'?'🔓 Unlock Everything →':'🔓 Odblokuj wszystko →'}
             </a>
-            <p className="text-center text-[10px] text-amber-400/70 mt-3 font-bold">
-              🎁 {t.lang==='EN' ? 'Have a promo code? Enter it at checkout.' : 'Masz kod promocyjny? Wpisz go przy płatności.'}
-            </p>
-            </>
             )}
           </div>
 
@@ -3050,7 +2991,7 @@ const CennikView = ({ t, user, onLoginRequest }) => {
             <div className="text-5xl mb-4" style={{filter:'drop-shadow(0 8px 20px rgba(34,197,94,0.5))',transform:'perspective(200px) rotateX(10deg)'}}>💎</div>
             <div className="text-[9px] font-black uppercase tracking-[0.3em] text-emerald-400 mb-2">{t.lang==='EN'?'Annual':'Roczny'}</div>
             <div className="flex items-end gap-1 mb-1">
-              <span className="text-5xl font-black text-black dark:text-white">799</span>
+              <span className="text-5xl font-black text-black dark:text-white">899</span>
               <span className="text-sm text-slate-400 mb-2">PLN/{t.lang==='EN'?'year':'rok'}</span>
             </div>
             <p className="text-slate-400 text-xs mb-1">{t.lang==='EN'?'75 PLN/month':'75 PLN/mies.'}</p>
@@ -3139,24 +3080,10 @@ const RegulaminView = ({ setCurrentView, lang }) => (
       <LegalH>1. {lang === 'EN' ? 'Provider' : 'Uslugodawca'}</LegalH>
       <LegalP>DDC — Dienstleistungen Damian Chlad, Garteler Weg 38, 27711 Osterholz-Scharmbeck, Niemcy. E-Mail: info@loveaiflow.com</LegalP>
       <LegalH>2. {lang === 'EN' ? 'Services' : 'Zakres uslug'}</LegalH>
-      <LegalP>{lang === 'EN' ? 'AI Flow Academy offers educational materials and prompt creators (Avatar Builder, Ad Builder, Text Creator, Coloring Book Creator, T-Shirt Creator). These tools create ready-to-use text prompts — they do not generate images or visual content directly. Full access requires a Pro plan.' : 'AI Flow Academy oferuje materialy edukacyjne z zakresu AI oraz kreatory promptow (Kreator Awatarow, Kreator Reklam, Kreator Napisow, Kreator Kolorowanek, Kreator Koszulek). Narzedzia te tworza gotowe prompty tekstowe — nie generuja bezposrednio obrazow ani tresci wizualnych. Pelny dostep wymaga planu Pro.'}</LegalP>
-      <LegalH>3. {lang === 'EN' ? 'Prompt disclaimer — limitation of liability' : 'Zastrzezenie dot. promptow — ograniczenie odpowiedzialnosci'}</LegalH>
-      <LegalP>{lang === 'EN'
-        ? 'AI Flow Academy provides a prompt creation tool that generates ready-to-use text prompts ("prompts"). These prompts are text strings only — AI Flow Academy does not generate, process, or deliver any images, graphics, videos, or other visual content.'
-        : 'AI Flow Academy udostepnia narzedzie do tworzenia promptow tekstowych ("promptow"). Prompty sa wylacznie ciagami tekstowymi — AI Flow Academy nie generuje, nie przetwarza ani nie dostarcza zadnych obrazow, grafik, filmow ani innych tresci wizualnych.'
-      }</LegalP>
-      <LegalP>{lang === 'EN'
-        ? 'The user acknowledges and agrees that: (1) the prompt is a text instruction intended for use in external, independent AI image generation tools operated by third parties; (2) AI Flow Academy has no control over how any external tool interprets, processes, or renders the prompt; (3) the final visual result depends entirely on the external tool, its version, model, settings, and internal algorithms; (4) AI Flow Academy makes no warranty, express or implied, regarding the accuracy, completeness, fitness for purpose, or visual outcome of any prompt; (5) the user has the right to freely edit and modify the prompt after copying it.'
-        : 'Uzytkownik przyjmuje do wiadomosci i akceptuje, ze: (1) prompt jest instrukcja tekstowa przeznaczona do uzycia w zewnetrznych, niezaleznych narzędziach do generowania obrazow AI, obsługiwanych przez podmioty trzecie; (2) AI Flow Academy nie ma zadnej kontroli nad tym, w jaki sposob zewnetrzne narzedzie interpretuje, przetwarza lub renderuje prompt; (3) ostateczny efekt wizualny zalezy wylacznie od zewnetrznego narzedzia, jego wersji, modelu, ustawien i wewnetrznych algorytmow; (4) AI Flow Academy nie udziela zadnych gwarancji, wyraznych ani dorozumianych, co do dokladnosci, kompletnosci, przydatnosci do okreslonych celow lub efektu wizualnego jakiegokolwiek promptu; (5) uzytkownik ma prawo do dowolnej edycji i modyfikacji promptu po jego skopiowaniu.'
-      }</LegalP>
-      <LegalP>{lang === 'EN'
-        ? 'AI Flow Academy shall not be liable for any direct, indirect, incidental, special, or consequential damages arising from: (a) the use or inability to use the generated prompt; (b) any results or lack thereof produced by external AI tools using the prompt; (c) errors, misinterpretations, or unexpected outputs of any external AI tool; (d) any decisions made by the user based on the generated prompt or its visual output. Use of the prompt creation tool is at the user\'s own risk.'
-        : 'AI Flow Academy nie ponosi odpowiedzialnosci za jakiekolwiek bezposrednie, posrednie, przypadkowe, szczegolne lub wynikowe szkody powstale w wyniku: (a) uzycia lub niezdolnosci do uzycia wygenerowanego promptu; (b) jakichkolwiek wynikow lub ich braku uzyskanych przez zewnetrzne narzedzia AI przy uzyciu promptu; (c) bledow, nieprawidlowej interpretacji lub nieoczekiwanych efektow dzialania zewnetrznego narzedzia AI; (d) jakichkolwiek decyzji podjętych przez uzytkownika na podstawie wygenerowanego promptu lub jego efektu wizualnego. Korzystanie z narzedzia do tworzenia promptow odbywa sie na wylaczne ryzyko uzytkownika.'
-      }</LegalP>
-      <LegalP>{lang === 'EN'
-        ? '⚠️ Prompt creators on AI Flow Academy must not be used to create prompts intended for generating illegal, 18+, discriminatory, or harmful content. The user bears full legal responsibility for the content of prompts created and for how they are used. AI Flow Academy reserves the right to suspend or terminate accounts that violate this provision without prior notice.'
-        : '⚠️ Kreatory promptow AI Flow Academy nie moga byc uzywane do tworzenia promptow przeznaczonych do generowania tresci nielegalnych, 18+, dyskryminujacych lub szkodliwych. Uzytkownik ponosi pelna odpowiedzialnosc prawna za tresc tworzonych promptow i sposob ich wykorzystania. AI Flow Academy zastrzega sobie prawo do zawieszenia lub zamkniecia kont naruszajacych niniejsze postanowienie bez uprzedniego ostrzezenia.'
-      }</LegalP>
+      <LegalP>{lang === 'EN' ? 'AI Flow Academy offers educational materials, AI prompt generators (Avatar Builder, Ad Builder), and community access. Full access requires registration and a Pro plan (29 PLN/month).' : 'AI Flow Academy oferuje materialy edukacyjne z zakresu AI, generatory promptow (Kreator Awatarow, Kreator Reklam) oraz spolecznosc. Pelny dostep wymaga rejestracji i planu Pro (29 PLN/miesiac).'}</LegalP>
+      <LegalH>3. {lang === 'EN' ? 'AI Tools disclaimer' : 'Zastrzezenia dot. narzedzi AI'}</LegalH>
+      <LegalP>{lang === 'EN' ? 'The prompt generators create text instructions for external AI image generators. AI Flow Academy does not guarantee specific visual results. Users are solely responsible for generated content and must comply with applicable laws and the terms of the chosen AI generator.' : 'Kreatory generuja prompty tekstowe do zewnetrznych generatorow obrazow AI. AI Flow Academy nie gwarantuje konkretnych efektow wizualnych. Uzytkownik korzysta z narzedzi na wlasna odpowiedzialnosc i musi przestrzegac obowiazujacego prawa oraz regulaminu wybranego generatora AI.'}</LegalP>
+      <LegalP>{lang === 'EN' ? '⚠️ AI Flow Academy prompt generators are not intended for generating 18+ or adult content. Users are solely responsible for how they use the generated prompts. The platform reserves the right to suspend accounts that violate this policy.' : '⚠️ Kreatory AI Flow Academy nie są przeznaczone do generowania treści 18+ ani materiałów dla dorosłych. Użytkownik ponosi pełną odpowiedzialność za sposób wykorzystania wygenerowanych promptów. Platforma zastrzega sobie prawo do zawieszenia kont naruszających tę zasadę.'}</LegalP>
       <LegalH>4. {lang === 'EN' ? 'Subscription' : 'Subskrypcja'}</LegalH>
       <LegalP>{lang === 'EN' ? 'Pro plan: 29 PLN/month, billed via Stripe, auto-renewing. Cancel anytime by email: info@loveaiflow.com. Access continues until end of paid period.' : 'Plan Pro: 29 PLN/miesiac, platnosc przez Stripe, odnawia sie automatycznie. Rezygnacja w dowolnym momencie: info@loveaiflow.com. Dostep aktywny do konca oplaconego okresu.'}</LegalP>
       <LegalH>5. {lang === 'EN' ? 'Withdrawal right (EU/DE)' : 'Prawo odstapienia (UE/DE)'}</LegalH>
@@ -3347,10 +3274,10 @@ export default function App() {
   // New nav items: Academy → Aplikacje → Dodatki → Tutoriale
   const [resetSignal, setResetSignal] = useState(0);
   const handleNavigate = (view) => {
-    if (view === 'text-builder')     { window.location.href = '/text.html'; return; }
-    if (view === 'coloring-builder') { window.location.href = '/text.html'; return; }
-    if (view === 'merch-builder')    { window.location.href = '/text.html'; return; }
-    if (view === 'aplikacje2')       { window.location.href = '/text.html'; return; }
+    if (view === 'text-builder')     { window.location.href = '/text.html';     return; }
+    if (view === 'coloring-builder') { window.location.href = '/coloring.html'; return; }
+    if (view === 'merch-builder')    { window.location.href = '/merch.html';    return; }
+    if (view === 'aplikacje2')       { window.location.href = '/text.html';     return; }
     setCurrentView(view); setActiveCreator(null); setMobileMenuOpen(false); setResetSignal(s => s + 1);
   };
   const navItems = [
@@ -3480,7 +3407,7 @@ export default function App() {
                   <div className="absolute right-0 top-12 w-48 rounded-2xl overflow-hidden z-50 shadow-2xl"
                     style={{background: isDarkMode ? '#0f0f0f' : '#fff', border: isDarkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.1)'}}>
                     {navItems.map(({ id, label }) => (
-                      <button key={id} onClick={() => { handleNavigate(id); setMobileMenuOpen(false); }}
+                      <button key={id} onClick={() => { setCurrentView(id); setMobileMenuOpen(false); }}
                         className={`w-full text-left px-5 py-3.5 text-[11px] font-bold uppercase tracking-widest transition-colors ${
                           currentView === id ? 'bg-amber-500 text-black' : isDarkMode ? 'text-white/60 hover:text-white hover:bg-white/5' : 'text-black/60 hover:text-black hover:bg-black/5'
                         }`}>
