@@ -1,4 +1,4 @@
-// TextCreator.jsx — Hub Aplikacje 2
+e// TextCreator.jsx — Hub Aplikacje 2
 // AI Flow Academy | loveaiflow.com
 // Kreatory: Napisy, Kolorowanki, Koszulki — z systemem tokenów i Firebase Auth
 
@@ -41,7 +41,7 @@ async function getTokenData(uid) {
     const isPro = (data.pro === true || data.starter === true) && !isExpired;
     return { ...data, isPro };
   } else {
-    const newData = { uid, tokens_text: 1, tokens_coloring: 1, tokens_merch: 1, pro: false, used: 0, createdAt: new Date().toISOString() };
+    const newData = { uid, tokens_text: 1, tokens_coloring: 1, tokens_merch: 1, tokens_viral: 1, pro: false, used: 0, createdAt: new Date().toISOString() };
     await setDoc(ref, newData);
     return { ...newData, isPro: false };
   }
@@ -609,13 +609,37 @@ function KolorowankaView({ onBack, user, onConsumeToken, tokenData, onPaywall })
   const promptRef = useRef(null);
   const filtered = group === 'all' ? COL_CATS : COL_CATS.filter(c => c.group === group);
   const canGen = selCat && selDiff && !isGenerating;
+  const [selGenerator, setSelGenerator] = useState('flux');
+
+  const GENERATORS = [
+    { id: 'flux',      label: 'Flux',      emoji: '⚡' },
+    { id: 'mj',        label: 'Midjourney',emoji: '🎨' },
+    { id: 'ideogram',  label: 'Ideogram',  emoji: '🔤' },
+    { id: 'firefly',   label: 'Firefly',   emoji: '🔥' },
+  ];
+
+  function buildColoringPrompt(scene) {
+    const base = `Black and white coloring book page illustration of ${scene}. ${selDiff.prompt}.`;
+    switch(selGenerator) {
+      case 'flux':
+        return `${base} Clean black outlines only, pure white background, no shading, no gray fills, no gradients, coloring book style, print-ready.`;
+      case 'mj':
+        return `${base} Pure white background, clean crisp black lines only, no grey shading, no color fills, no gradients, no shadows — only black outlines on white background. Professional coloring book style, print-ready for 8.5x11 inch KDP page. --ar 3:4 --style raw --v 6.1`;
+      case 'ideogram':
+        return `${base} Coloring book page, thick black outlines, pure white background, no color, no shading, no gradients, black and white only, KDP ready, 8.5x11.`;
+      case 'firefly':
+        return `${base} Line art only, black outlines on white background, no color fills, no shading, no gradients, coloring book illustration style, print ready.`;
+      default:
+        return base;
+    }
+  }
 
   async function handleGenerate() {
     if (!canGen) return;
     setIsGenerating(true);
     try {
       const scene = selCat.prompts[Math.floor(Math.random() * selCat.prompts.length)];
-      setPrompt(`Black and white coloring book page illustration of ${scene}. ${selDiff.prompt}. Pure white background, clean crisp black lines only, no grey shading, no color fills, no gradients, no shadows — only black outlines on white background. Professional coloring book style, print-ready for 8.5x11 inch KDP page. --ar 3:4 --style raw --v 6.1`);
+      setPrompt(buildColoringPrompt(scene));
       await onConsumeToken?.();
       setTimeout(() => promptRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
     } catch(e) { console.error(e); }
@@ -667,7 +691,19 @@ function KolorowankaView({ onBack, user, onConsumeToken, tokenData, onPaywall })
             ))}
           </div>
         </Step>
-        <div className="text-center space-y-2">
+        <div className="text-center space-y-4">
+          <div>
+            <p className="text-[10px] text-white/30 mb-3 uppercase tracking-widest font-bold">Wybierz generator</p>
+            <div className="flex gap-2 justify-center flex-wrap">
+              {GENERATORS.map(g => (
+                <button key={g.id} onClick={() => setSelGenerator(g.id)}
+                  className="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                  style={{ background: selGenerator === g.id ? 'rgba(167,139,250,0.2)' : 'rgba(255,255,255,0.03)', border: `1px solid ${selGenerator === g.id ? 'rgba(167,139,250,0.6)' : 'rgba(255,255,255,0.08)'}`, color: selGenerator === g.id ? '#a78bfa' : 'rgba(255,255,255,0.3)' }}>
+                  {g.emoji} {g.label}
+                </button>
+              ))}
+            </div>
+          </div>
           <p className="text-[10px] text-white/30">Każde kliknięcie = unikalna losowa scena 🎲</p>
           <button onClick={handleGenerate} disabled={!canGen} className="inline-flex items-center gap-3 px-10 py-4 rounded-2xl font-black text-sm uppercase tracking-[0.2em] transition-all"
             style={{ background: canGen ? 'linear-gradient(135deg,#a78bfa,#7c3aed)' : 'rgba(255,255,255,0.05)', color: canGen ? '#fff' : 'rgba(255,255,255,0.2)', cursor: canGen ? 'pointer' : 'not-allowed', boxShadow: canGen ? '0 0 40px rgba(167,139,250,0.3)' : 'none' }}>
@@ -858,11 +894,181 @@ function KoszulkaView({ onBack, user, onConsumeToken, tokenData, onPaywall }) {
 // =========================================================================
 // MENU GŁÓWNE
 // =========================================================================
+// =========================================================================
+// KREATOR 4 — VIRAL MERCH
+// =========================================================================
+
+const VIRAL_CHARACTERS = [
+  { id: 'dad',       emoji: '👨', label: 'Tata',        prompt: 'grumpy middle-aged dad in bathrobe and slippers, messy hair, holding coffee mug' },
+  { id: 'mom',       emoji: '👩', label: 'Mama',        prompt: 'tired mom in cozy robe, hair in messy bun, holding wine glass' },
+  { id: 'grandpa',   emoji: '👴', label: 'Dziadek',     prompt: 'retired old man with suspenders, reading glasses pushed up, thumbs up pose' },
+  { id: 'grandma',   emoji: '👵', label: 'Babcia',      prompt: 'funny old grandma with curlers in hair, apron, hands on hips' },
+  { id: 'son',       emoji: '👦', label: 'Syn',         prompt: 'teenage boy with headphones around neck, hoodie, cool slouchy pose' },
+  { id: 'daughter',  emoji: '👧', label: 'Córka',       prompt: 'teenage girl with ponytail, phone in hand, sassy attitude pose' },
+  { id: 'brother',   emoji: '🧑', label: 'Brat',        prompt: 'young man in casual streetwear, arms crossed, smirking expression' },
+  { id: 'sister',    emoji: '👩‍🦱', label: 'Siostra',    prompt: 'young woman in trendy outfit, hand on hip, confident pose' },
+  { id: 'worker',    emoji: '👷', label: 'Pracownik',   prompt: 'exhausted office worker with loosened tie, bags under eyes, holding stack of papers' },
+  { id: 'retiree',   emoji: '🧓', label: 'Emeryt',      prompt: 'happy retiree in casual clothes, big grin, flexing one arm showing muscles' },
+  { id: 'boss',      emoji: '💼', label: 'Szef',        prompt: 'pompous boss in expensive suit, finger pointing, smug expression' },
+  { id: 'chef',      emoji: '👨‍🍳', label: 'Kucharz',   prompt: 'cartoon chef with tall white hat, holding wooden spoon, cheerful expression' },
+  { id: 'cat',       emoji: '🐱', label: 'Kot',         prompt: 'grumpy cartoon cat in business suit, arms crossed, judging expression' },
+  { id: 'chicken',   emoji: '🐔', label: 'Kurczak',     prompt: 'funny cartoon chicken in work uniform, messy feathers, tired expression' },
+];
+
+const VIRAL_STYLES = [
+  { id: 'graffiti',  emoji: '🎨', label: 'Graffiti',     prompt: 'graffiti cartoon illustration style, dripping paint letters, urban street art, bold outlines, spray paint texture, transparent background' },
+  { id: 'retro',     emoji: '🕹️', label: 'Retro Vintage', prompt: 'retro vintage illustration style, distressed texture, old school graphic design, limited color palette, aged worn look, transparent background' },
+  { id: 'bold',      emoji: '💥', label: 'Bold Statement', prompt: 'bold minimalist graphic design, thick black outlines, high contrast, clean vector style, strong typography, transparent background' },
+  { id: 'cartoon',   emoji: '😂', label: 'Cartoon',       prompt: 'funny cartoon comic style, exaggerated features, bright colors, clean outlines, humorous illustration, transparent background' },
+  { id: 'parody',    emoji: '🏷️', label: 'Brand Parody',  prompt: 'parody brand logo style, clean vector design, professional logo aesthetic, simple iconic design, transparent background' },
+];
+
+const VIRAL_TEXTS_PL = [
+  'Pracuje w Biedrze', 'Nie zaczepiaj przed kawą', 'Emerytura jest bliżej niż myślisz',
+  'Nic nie muszę, jestem na emeryturze', 'Proszę nie wkurwiać Tatusia', 'Dzień dobry, że tak sobie zażartuję',
+  'Trudno jest być najlepszym, ale ktoś musi', 'Nie mam dziś nastroju', 'Powered by Coffee and Regrets',
+  'Oficjalnie najfajniejszy tata na świecie', 'Mama wiedziała lepiej', 'Szef ma zawsze rację',
+  'Poniedziałek powinien być nielegalny', 'Pracuję żeby żyć, nie żyję żeby pracować',
+];
+
+const VIRAL_TEXTS_EN = [
+  'Retired, Not Expired', 'World\'s Okayest Dad', 'I Survived Monday',
+  'Coffee Before Talkie', 'Not a Morning Person', 'Professional Napper',
+  'I Work Hard So My Cat Can Have a Better Life', 'Adulting is Hard',
+  'Currently Pretending to Work', 'Born to Nap, Forced to Work',
+  'Life is Short, Eat the Pizza', 'I\'m Not Lazy, I\'m Energy Efficient',
+];
+
+const VIRAL_TEXTS_DE = [
+  'Ich bin im Ruhestand, nicht im Sterben', 'Montag sollte verboten sein',
+  'Kaffee ist mein Seelentier', 'Weltbester Papa', 'Nicht vor dem Kaffee reden',
+  'Ich arbeite nur um meine Katze zu ernähren', 'Rentner: Jeden Tag Wochenende',
+  'Professioneller Faulenzer', 'Ich bin nicht faul, ich spare Energie',
+];
+
+function ViralMerchView({ onBack, user, onConsumeToken, tokenData, onPaywall }) {
+  const [selChar, setSelChar] = useState(null);
+  const [selStyle, setSelStyle] = useState(null);
+  const [customText, setCustomText] = useState('');
+  const [lang, setLang] = useState('pl');
+  const [prompt, setPrompt] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const promptRef = useRef(null);
+  const canGen = selChar && selStyle && !isGenerating;
+
+  function randomText() {
+    const list = lang === 'pl' ? VIRAL_TEXTS_PL : lang === 'en' ? VIRAL_TEXTS_EN : VIRAL_TEXTS_DE;
+    setCustomText(list[Math.floor(Math.random() * list.length)]);
+  }
+
+  async function handleGenerate() {
+    if (!user) { onPaywall(); return; }
+    if (!tokenData) return;
+    const hasAccess = tokenData?.isPro || (tokenData?.tokens_viral ?? 0) > 0;
+    if (!hasAccess) { onPaywall(); return; }
+    if (!canGen) return;
+    setIsGenerating(true);
+    try {
+      const textPart = customText.trim() ? `, with bold text saying "${customText.trim()}"` : '';
+      const langNote = lang === 'pl' ? ' Text in Polish language.' : lang === 'de' ? ' Text in German language.' : '';
+      setPrompt(`T-shirt graphic design featuring ${selChar.prompt}${textPart}.${langNote} ${selStyle.prompt}. Print-ready for DTG printing, works on both light and dark fabric, high contrast, Amazon Merch on Demand ready. --ar 1:1 --style raw --v 6.1`);
+      await onConsumeToken?.();
+      setTimeout(() => promptRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+    } catch(e) { console.error(e); }
+    finally { setIsGenerating(false); }
+  }
+
+  return (
+    <div className="max-w-5xl mx-auto px-4 pb-24">
+      <button onClick={onBack} className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-rose-400 transition-colors mb-6 pt-6">
+        <ArrowLeft className="w-4 h-4" /> Powrót
+      </button>
+      <div className="text-center mb-10">
+        <div className="text-5xl mb-4" style={{ filter: 'drop-shadow(0 0 30px rgba(244,63,94,0.5))' }}>🔥</div>
+        <h1 className="text-3xl font-black uppercase tracking-tighter mb-2 text-white">Viral <span style={{ color: '#f43f5e' }}>Merch</span></h1>
+        <p className="text-white/40 text-sm">Personalizowane grafiki które się sprzedają — tata, mama, emeryt i więcej</p>
+      </div>
+
+      <div className="space-y-8">
+        {/* KROK 1 — POSTAĆ */}
+        <Step n="1" title="Wybierz postać" color="#f43f5e">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 gap-2">
+            {VIRAL_CHARACTERS.map(c => (
+              <button key={c.id} onClick={() => setSelChar(c)}
+                className="relative p-3 rounded-xl text-center transition-all hover:scale-[1.02]"
+                style={{ background: selChar?.id === c.id ? 'rgba(244,63,94,0.15)' : 'rgba(255,255,255,0.03)', border: `1px solid ${selChar?.id === c.id ? 'rgba(244,63,94,0.5)' : 'rgba(255,255,255,0.08)'}` }}>
+                <div className="text-2xl mb-1">{c.emoji}</div>
+                <div className="text-[9px] font-black uppercase text-white leading-tight">{c.label}</div>
+                {selChar?.id === c.id && <div className="absolute top-1 right-1 w-3 h-3 rounded-full flex items-center justify-center" style={{ background: '#f43f5e' }}><Check className="w-2 h-2 text-white" /></div>}
+              </button>
+            ))}
+          </div>
+        </Step>
+
+        {/* KROK 2 — STYL */}
+        <Step n="2" title="Styl grafiki" color="#f43f5e">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            {VIRAL_STYLES.map(s => (
+              <button key={s.id} onClick={() => setSelStyle(s)}
+                className="p-3 rounded-xl text-left transition-all hover:scale-[1.02]"
+                style={{ background: selStyle?.id === s.id ? 'rgba(244,63,94,0.15)' : 'rgba(255,255,255,0.03)', border: `1px solid ${selStyle?.id === s.id ? 'rgba(244,63,94,0.5)' : 'rgba(255,255,255,0.08)'}` }}>
+                <div className="text-xl mb-1">{s.emoji}</div>
+                <div className="text-[10px] font-black uppercase text-white leading-tight">{s.label}</div>
+              </button>
+            ))}
+          </div>
+        </Step>
+
+        {/* KROK 3 — TEKST */}
+        <Step n="3" title="Crazy tekst" color="#f43f5e">
+          <div className="flex gap-2 mb-3">
+            {[['pl','🇵🇱 PL'],['en','🇬🇧 EN'],['de','🇩🇪 DE']].map(([id,label]) => (
+              <button key={id} onClick={() => setLang(id)}
+                className="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                style={{ background: lang === id ? 'rgba(244,63,94,0.15)' : 'rgba(255,255,255,0.03)', border: `1px solid ${lang === id ? 'rgba(244,63,94,0.5)' : 'rgba(255,255,255,0.08)'}`, color: lang === id ? '#f43f5e' : 'rgba(255,255,255,0.4)' }}>
+                {label}
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <input type="text" maxLength={60} placeholder="np. Pracuje w Biedrze, Nie zaczepiaj przed kawą..."
+              value={customText} onChange={e => setCustomText(e.target.value)}
+              className="flex-1 bg-white/5 border rounded-xl px-5 py-3 text-sm font-bold text-white outline-none transition-all"
+              style={{ borderColor: customText ? 'rgba(244,63,94,0.45)' : 'rgba(255,255,255,0.1)' }} />
+            <button onClick={randomText} title="Losuj tekst"
+              className="px-4 py-3 rounded-xl font-black text-lg transition-all hover:scale-105"
+              style={{ background: 'rgba(244,63,94,0.1)', border: '1px solid rgba(244,63,94,0.3)' }}>
+              🎲
+            </button>
+          </div>
+          <p className="text-[9px] text-white/25 mt-2">Zostaw puste jeśli chcesz samą grafikę bez tekstu</p>
+        </Step>
+
+        {/* GENERUJ */}
+        <div className="text-center space-y-2">
+          <p className="text-[10px] text-white/30">Każda kombinacja = unikalny viral design 🔥</p>
+          <button onClick={handleGenerate} disabled={!canGen}
+            className="inline-flex items-center gap-3 px-10 py-4 rounded-2xl font-black text-sm uppercase tracking-[0.2em] transition-all"
+            style={{ background: canGen ? 'linear-gradient(135deg,#f43f5e,#e11d48)' : 'rgba(255,255,255,0.05)', color: canGen ? '#fff' : 'rgba(255,255,255,0.2)', cursor: canGen ? 'pointer' : 'not-allowed', boxShadow: canGen ? '0 0 40px rgba(244,63,94,0.3)' : 'none' }}>
+            <Sparkles className="w-4 h-4" /> {isGenerating ? 'Generowanie...' : 'Generuj Viral Prompt 🔥'}
+          </button>
+        </div>
+
+        {prompt && (
+          <div ref={promptRef}>
+            <PromptOutput prompt={prompt} onRegenerate={handleGenerate} color="#f43f5e" id="viral-prompt" />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 const TOOLS = [
   { id: 'napisy',     emoji: '✍️', label: 'Kreator Napisów',    subtitle: 'Generator Promptów Napisów AI',    desc: 'Artystyczne litery — kwiaty, ogień, lód, złoto i więcej.',          color: '#f59e0b', badge: 'TEXT STUDIO',     glow: 'rgba(245,158,11,0.3)',   border: '#f59e0b44' },
   { id: 'kolorowanki',emoji: '🎨', label: 'Kreator Kolorowanek', subtitle: 'Generator Kolorowanek AI',         desc: 'Prompty kolorowanek dla dzieci i dorosłych — gotowe na Amazon KDP.', color: '#a78bfa', badge: 'COLORING STUDIO', glow: 'rgba(167,139,250,0.3)', border: '#a78bfa44' },
   { id: 'koszulki',   emoji: '👕', label: 'Kreator Koszulek',   subtitle: 'Generator Grafik na Koszulki AI',  desc: 'Grafiki na koszulki i bluzy — Amazon Merch, Redbubble, Printful.',   color: '#22d3ee', badge: 'MERCH STUDIO',    glow: 'rgba(34,211,238,0.3)',  border: '#22d3ee44' },
-  { id: null,         emoji: '🖼️', label: 'Kreator Okładek',    subtitle: 'Generator Okładek AI',             desc: 'Profesjonalne okładki książek i albumów. Wkrótce.',                  color: '#f472b6', badge: 'WKRÓTCE',         glow: 'rgba(244,114,182,0.2)', border: 'rgba(255,255,255,0.06)' },
+  { id: 'viral',      emoji: '🔥', label: 'Viral Merch',        subtitle: 'Personalizowane grafiki viral',    desc: 'Tata, mama, emeryt, pracownik — crazy tekst który się sprzedaje.',   color: '#f43f5e', badge: 'VIRAL STUDIO',    glow: 'rgba(244,63,94,0.3)',   border: '#f43f5e44' },
 ];
 
 function MainMenu({ onSelect, loadingTokens }) {
@@ -1004,7 +1210,7 @@ export default function App2() {
   function handleSelectCreator(id) {
     if (!user) { setPaywallCreator(id); setShowPaywall(true); return; }
     if (!tokenData) return; // jeszcze ładuje tokeny — czekamy
-    const tokenKey = { napisy: 'text', kolorowanki: 'coloring', koszulki: 'merch' }[id];
+    const tokenKey = { napisy: 'text', kolorowanki: 'coloring', koszulki: 'merch', viral: 'viral' }[id];
     const hasAccess = tokenData?.isPro || (tokenData[`tokens_${tokenKey}`] ?? 0) > 0;
     if (hasAccess) { setView(id); return; }
     setPaywallCreator(id); setShowPaywall(true);
@@ -1035,7 +1241,7 @@ export default function App2() {
             if (!data) return;
             setShowPaywall(false);
             if (paywallCreator) {
-              const tokenKey = { napisy: 'text', kolorowanki: 'coloring', koszulki: 'merch' }[paywallCreator];
+              const tokenKey = { napisy: 'text', kolorowanki: 'coloring', koszulki: 'merch', viral: 'viral' }[paywallCreator];
               const hasAccess = data.isPro || (data[`tokens_${tokenKey}`] ?? 0) > 0;
               if (hasAccess) setView(paywallCreator);
             }
@@ -1046,6 +1252,7 @@ export default function App2() {
       {view === 'napisy'      && <NapisyView     onBack={() => setView('menu')} user={user} onConsumeToken={() => consumeToken('text')}     tokenData={tokenData} onPaywall={() => setShowPaywall(true)} />}
       {view === 'kolorowanki' && <KolorowankaView onBack={() => setView('menu')} user={user} onConsumeToken={() => consumeToken('coloring')} tokenData={tokenData} onPaywall={() => setShowPaywall(true)} />}
       {view === 'koszulki'    && <KoszulkaView   onBack={() => setView('menu')} user={user} onConsumeToken={() => consumeToken('merch')}    tokenData={tokenData} onPaywall={() => setShowPaywall(true)} />}
+      {view === 'viral'       && <ViralMerchView  onBack={() => setView('menu')} user={user} onConsumeToken={() => consumeToken('viral')}    tokenData={tokenData} onPaywall={() => setShowPaywall(true)} />}
     </div>
   );
 }
