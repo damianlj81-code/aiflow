@@ -1,4 +1,4 @@
-e// TextCreator.jsx — Hub Aplikacje 2
+// TextCreator.jsx — Hub Aplikacje 2
 // AI Flow Academy | loveaiflow.com
 // Kreatory: Napisy, Kolorowanki, Koszulki — z systemem tokenów i Firebase Auth
 
@@ -600,23 +600,23 @@ const COL_GROUPS = [
   { id: 'mlodzież', label: 'Młodzież' }, { id: 'dorośli', label: 'Dorośli' }, { id: 'święta', label: 'Święta' },
 ];
 
+const GENERATORS = [
+  { id: 'flux',      label: 'Flux',      emoji: '⚡' },
+  { id: 'mj',        label: 'Midjourney',emoji: '🎨' },
+  { id: 'ideogram',  label: 'Ideogram',  emoji: '🔤' },
+  { id: 'firefly',   label: 'Firefly',   emoji: '🔥' },
+];
+
 function KolorowankaView({ onBack, user, onConsumeToken, tokenData, onPaywall }) {
   const [selCat, setSelCat] = useState(null);
   const [selDiff, setSelDiff] = useState(null);
   const [group, setGroup] = useState('all');
   const [prompt, setPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [selGenerator, setSelGenerator] = useState('flux');
   const promptRef = useRef(null);
   const filtered = group === 'all' ? COL_CATS : COL_CATS.filter(c => c.group === group);
   const canGen = selCat && selDiff && !isGenerating;
-  const [selGenerator, setSelGenerator] = useState('flux');
-
-  const GENERATORS = [
-    { id: 'flux',      label: 'Flux',      emoji: '⚡' },
-    { id: 'mj',        label: 'Midjourney',emoji: '🎨' },
-    { id: 'ideogram',  label: 'Ideogram',  emoji: '🔤' },
-    { id: 'firefly',   label: 'Firefly',   emoji: '🔥' },
-  ];
 
   function buildColoringPrompt(scene) {
     const base = `Black and white coloring book page illustration of ${scene}. ${selDiff.prompt}.`;
