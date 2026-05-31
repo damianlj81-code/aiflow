@@ -41,8 +41,8 @@ const getYTId = (url) => {
 // TOKEN SYSTEM
 // =========================================================================
 const TOKENS_FREE = 5; // 1 avatar + 1 ad + 1 lifestyle + 2 film
-const STRIPE_MONTHLY = 'https://buy.stripe.com/bJedR8ayBgOX5MY9I68bS0a'; // 89 PLN miesiecznie
-const STRIPE_ANNUAL = 'https://buy.stripe.com/7sY3cu0Y1eGP4IU5rQ8bS0b';   // 899 PLN rocznie
+const STRIPE_MONTHLY = 'https://buy.stripe.com/bJe00icGJgOX6R22fE8bS0c'; // 79 PLN miesiecznie
+const STRIPE_ANNUAL = 'https://buy.stripe.com/cNieVc369buD3EQ07w8bS0d';   // 799 PLN rocznie
 // Aliasy dla kompatybilnosci z reszta kodu
 const STRIPE_PRO_LINK = STRIPE_MONTHLY;
 const STRIPE_STARTER_LINK = STRIPE_MONTHLY;
@@ -671,7 +671,7 @@ const TutorialsView = ({ t, user, onLoginRequest, onNavigate }) => {
             style={{boxShadow:'0 0 40px rgba(245,158,11,0.05)'}}>
             <div>
               <p className="text-white font-black text-sm uppercase tracking-tight mb-1">
-                👑 {t.lang === 'EN' ? 'All tutorials + apps — from 89 PLN/mo' : 'Wszystkie tutoriale + aplikacje — od 89 zł/mies.'}
+                👑 {t.lang === 'EN' ? 'All tutorials + apps — from 79 PLN/mo' : 'Wszystkie tutoriale + aplikacje — od 79 zł/mies.'}
               </p>
               <p className="text-slate-500 text-xs">
                 {t.lang === 'EN' ? 'One subscription. Everything included. Cancel anytime.' : 'Jeden abonament. Dostęp do wszystkiego. Anuluj kiedy chcesz.'}
@@ -2951,7 +2951,7 @@ const CennikView = ({ t, user, onLoginRequest }) => {
             <div className="text-5xl mb-4" style={{filter:'drop-shadow(0 8px 20px rgba(245,158,11,0.6))',transform:'perspective(200px) rotateX(10deg)'}}>🚀</div>
             <div className="text-[9px] font-black uppercase tracking-[0.3em] text-amber-400 mb-2">{t.lang==='EN'?'Monthly':'Miesięczny'}</div>
             <div className="flex items-end gap-1 mb-1">
-              <span className="text-5xl font-black text-black dark:text-white">89</span>
+              <span className="text-5xl font-black text-black dark:text-white">79</span>
               <span className="text-sm text-slate-400 mb-2">PLN/{t.lang==='EN'?'mo':'mies.'}</span>
             </div>
             <p className="text-slate-400 text-xs mb-6">{t.lang==='EN'?'Full platform access':'Pełny dostęp do platformy'}</p>
@@ -2991,11 +2991,11 @@ const CennikView = ({ t, user, onLoginRequest }) => {
             <div className="text-5xl mb-4" style={{filter:'drop-shadow(0 8px 20px rgba(34,197,94,0.5))',transform:'perspective(200px) rotateX(10deg)'}}>💎</div>
             <div className="text-[9px] font-black uppercase tracking-[0.3em] text-emerald-400 mb-2">{t.lang==='EN'?'Annual':'Roczny'}</div>
             <div className="flex items-end gap-1 mb-1">
-              <span className="text-5xl font-black text-black dark:text-white">899</span>
+              <span className="text-5xl font-black text-black dark:text-white">799</span>
               <span className="text-sm text-slate-400 mb-2">PLN/{t.lang==='EN'?'year':'rok'}</span>
             </div>
-            <p className="text-slate-400 text-xs mb-1">{t.lang==='EN'?'75 PLN/month':'75 PLN/mies.'}</p>
-            <p className="text-emerald-400 text-[10px] font-bold mb-6">{t.lang==='EN'?'Save 169 PLN vs monthly':'Oszczędzasz 169 PLN vs miesięczny'}</p>
+            <p className="text-slate-400 text-xs mb-1">{t.lang==='EN'?'66 PLN/month':'66 PLN/mies.'}</p>
+            <p className="text-emerald-400 text-[10px] font-bold mb-6">{t.lang==='EN'?'Save 149 PLN vs monthly':'Oszczędzasz 149 PLN vs miesięczny'}</p>
             <div className="space-y-2 mb-8 flex-grow">
               {[
                 t.lang==='EN'?'✔ All 4 AI Builders':'✔ Wszystkie 4 kreatory AI',
@@ -3080,12 +3080,12 @@ const RegulaminView = ({ setCurrentView, lang }) => (
       <LegalH>1. {lang === 'EN' ? 'Provider' : 'Uslugodawca'}</LegalH>
       <LegalP>DDC — Dienstleistungen Damian Chlad, Garteler Weg 38, 27711 Osterholz-Scharmbeck, Niemcy. E-Mail: info@loveaiflow.com</LegalP>
       <LegalH>2. {lang === 'EN' ? 'Services' : 'Zakres uslug'}</LegalH>
-      <LegalP>{lang === 'EN' ? 'AI Flow Academy offers educational materials, AI prompt generators (Avatar Builder, Ad Builder), and community access. Full access requires registration and a Pro plan (29 PLN/month).' : 'AI Flow Academy oferuje materialy edukacyjne z zakresu AI, generatory promptow (Kreator Awatarow, Kreator Reklam) oraz spolecznosc. Pelny dostep wymaga rejestracji i planu Pro (29 PLN/miesiac).'}</LegalP>
+      <LegalP>{lang === 'EN' ? 'AI Flow Academy offers educational materials, AI prompt generators (Avatar Builder, Ad Builder), and community access. Full access requires registration and a Pro plan (79 PLN/month).' : 'AI Flow Academy oferuje materialy edukacyjne z zakresu AI, generatory promptow (Kreator Awatarow, Kreator Reklam) oraz spolecznosc. Pelny dostep wymaga rejestracji i planu Pro (79 PLN/miesiac).'}</LegalP>
       <LegalH>3. {lang === 'EN' ? 'AI Tools disclaimer' : 'Zastrzezenia dot. narzedzi AI'}</LegalH>
       <LegalP>{lang === 'EN' ? 'The prompt generators create text instructions for external AI image generators. AI Flow Academy does not guarantee specific visual results. Users are solely responsible for generated content and must comply with applicable laws and the terms of the chosen AI generator.' : 'Kreatory generuja prompty tekstowe do zewnetrznych generatorow obrazow AI. AI Flow Academy nie gwarantuje konkretnych efektow wizualnych. Uzytkownik korzysta z narzedzi na wlasna odpowiedzialnosc i musi przestrzegac obowiazujacego prawa oraz regulaminu wybranego generatora AI.'}</LegalP>
       <LegalP>{lang === 'EN' ? '⚠️ AI Flow Academy prompt generators are not intended for generating 18+ or adult content. Users are solely responsible for how they use the generated prompts. The platform reserves the right to suspend accounts that violate this policy.' : '⚠️ Kreatory AI Flow Academy nie są przeznaczone do generowania treści 18+ ani materiałów dla dorosłych. Użytkownik ponosi pełną odpowiedzialność za sposób wykorzystania wygenerowanych promptów. Platforma zastrzega sobie prawo do zawieszenia kont naruszających tę zasadę.'}</LegalP>
       <LegalH>4. {lang === 'EN' ? 'Subscription' : 'Subskrypcja'}</LegalH>
-      <LegalP>{lang === 'EN' ? 'Pro plan: 29 PLN/month, billed via Stripe, auto-renewing. Cancel anytime by email: info@loveaiflow.com. Access continues until end of paid period.' : 'Plan Pro: 29 PLN/miesiac, platnosc przez Stripe, odnawia sie automatycznie. Rezygnacja w dowolnym momencie: info@loveaiflow.com. Dostep aktywny do konca oplaconego okresu.'}</LegalP>
+      <LegalP>{lang === 'EN' ? 'Pro plan: 79 PLN/month, billed via Stripe, auto-renewing. Cancel anytime by email: info@loveaiflow.com. Access continues until end of paid period.' : 'Plan Pro: 79 PLN/miesiac, platnosc przez Stripe, odnawia sie automatycznie. Rezygnacja w dowolnym momencie: info@loveaiflow.com. Dostep aktywny do konca oplaconego okresu.'}</LegalP>
       <LegalH>5. {lang === 'EN' ? 'Withdrawal right (EU/DE)' : 'Prawo odstapienia (UE/DE)'}</LegalH>
       <LegalP>{lang === 'EN' ? 'You may withdraw from the contract within 14 days (§ 312g BGB). This right expires upon commencement of digital services with your explicit consent. To withdraw: info@loveaiflow.com.' : 'Prawo odstapienia od umowy przysluguje w ciagu 14 dni (§ 312g BGB). Wygasa z chwila rozpoczecia korzystania z uslug cyfrowych za zgoda uzytkownika. Aby odstapic: info@loveaiflow.com.'}</LegalP>
       <LegalH>6. {lang === 'EN' ? 'Governing law' : 'Prawo wlasciwe'}</LegalH>
